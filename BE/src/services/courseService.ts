@@ -116,3 +116,36 @@ export async function deleteCourse(courseId: string): Promise<boolean> {
 	await prisma.course.delete({ where: { id: courseId } });
 	return true;
 }
+
+export interface UpdateCourseInput {
+	title?: string;
+	summary?: string;
+	descriptionMarkdown?: string;
+	imagePath?: string;
+	isPublished?: boolean;
+}
+
+export async function updateCourse(
+	courseId: string,
+	data: UpdateCourseInput,
+): Promise<CourseDetail> {
+	const updated = await prisma.course.update({
+		where: { id: courseId },
+		data,
+		select: {
+			id: true,
+			title: true,
+			descriptionMarkdown: true,
+			imagePath: true,
+			videos: { select: { id: true }, orderBy: { order: 'asc' } },
+		},
+	});
+
+	return {
+		id: updated.id,
+		title: updated.title,
+		descriptionMarkdown: updated.descriptionMarkdown,
+		imagePath: updated.imagePath,
+		videoIds: updated.videos.map(v => v.id),
+	};
+}

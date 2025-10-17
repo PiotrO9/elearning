@@ -4,6 +4,7 @@ import {
 	handleGetCourseById,
 	handleCreateCourse,
 	handleDeleteCourse,
+	handleUpdateCourse,
 } from '../controllers/courseController';
 import { optionalAuth, authenticateToken } from '../middleware/auth';
 
@@ -33,5 +34,12 @@ router.post('/', authenticateToken, handleCreateCourse);
  * @access Private
  */
 router.delete('/:id', authenticateToken, handleDeleteCourse);
+
+/**
+ * @route PATCH /api/course/:id
+ * @desc Update a course
+ * @access Private
+ */
+router.patch('/:id', authenticateToken, handleUpdateCourse);
 
 export { router as courseRoutes };
