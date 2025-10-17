@@ -1,5 +1,5 @@
 import bcrypt from 'bcrypt';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../utils/prisma';
 import {
 	UserProfile,
 	UpdateUserData,
@@ -10,7 +10,7 @@ import {
 	UserServiceError,
 } from '../types/user';
 
-const prisma = new PrismaClient();
+// use shared prisma instance
 
 export class UserService {
 	/**

@@ -1,19 +1,10 @@
 import { prisma } from '../utils/prisma';
-
-export interface CourseListItem {
-	id: string;
-	title: string;
-	summary: string;
-	imagePath: string;
-}
-
-export interface CourseDetail {
-	id: string;
-	title: string;
-	descriptionMarkdown: string;
-	imagePath: string;
-	videoIds: string[];
-}
+import {
+	CourseListItem,
+	CourseDetail,
+	CreateCourseInput,
+	UpdateCourseInput,
+} from '../types/course';
 
 function mapListItem(course: {
 	id: string;
@@ -77,14 +68,6 @@ export async function getCourseDetail(
 	};
 }
 
-export interface CreateCourseInput {
-	title: string;
-	summary: string;
-	descriptionMarkdown: string;
-	imagePath: string;
-	isPublished?: boolean;
-}
-
 export async function createCourse(input: CreateCourseInput): Promise<CourseDetail> {
 	const created = await prisma.course.create({
 		data: {
@@ -115,14 +98,6 @@ export async function createCourse(input: CreateCourseInput): Promise<CourseDeta
 export async function deleteCourse(courseId: string): Promise<boolean> {
 	await prisma.course.delete({ where: { id: courseId } });
 	return true;
-}
-
-export interface UpdateCourseInput {
-	title?: string;
-	summary?: string;
-	descriptionMarkdown?: string;
-	imagePath?: string;
-	isPublished?: boolean;
 }
 
 export async function updateCourse(

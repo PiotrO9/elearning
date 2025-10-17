@@ -1,22 +1,5 @@
 import { prisma } from '../utils/prisma';
-
-export interface CreateVideoInput {
-	courseId: string;
-	title: string;
-	order: number;
-	isTrailer?: boolean;
-	sourceUrl: string;
-	durationSeconds?: number | null;
-}
-
-export interface UpdateVideoInput {
-	courseId?: string;
-	title?: string;
-	order?: number;
-	isTrailer?: boolean;
-	sourceUrl?: string;
-	durationSeconds?: number | null;
-}
+import { CreateVideoInput, UpdateVideoInput, AttachVideoOptions } from '../types/video';
 
 export async function createVideo(input: CreateVideoInput): Promise<string> {
 	const created = await prisma.video.create({
@@ -47,7 +30,7 @@ export async function deleteVideo(videoId: string): Promise<void> {
 export async function attachExistingVideoToCourse(
 	videoId: string,
 	courseId: string,
-	options?: { order?: number; isTrailer?: boolean },
+	options?: AttachVideoOptions,
 ): Promise<void> {
 	const updateData: Record<string, any> = { courseId };
 	if (typeof options?.order === 'number') updateData.order = options.order;

@@ -1,5 +1,5 @@
 import bcrypt from 'bcrypt';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../utils/prisma';
 import {
 	generateAccessToken,
 	generateRefreshToken,
@@ -8,7 +8,7 @@ import {
 } from '../utils/jwt';
 import { RegisterUserData, LoginResult, UserData, AuthServiceError } from '../types/auth';
 
-const prisma = new PrismaClient();
+// use shared prisma instance
 
 /**
  * Register new user
