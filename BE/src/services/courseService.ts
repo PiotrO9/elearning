@@ -76,3 +76,43 @@ export async function getCourseDetail(
 		videoIds,
 	};
 }
+
+export interface CreateCourseInput {
+	title: string;
+	summary: string;
+	descriptionMarkdown: string;
+	imagePath: string;
+	isPublished?: boolean;
+}
+
+export async function createCourse(input: CreateCourseInput): Promise<CourseDetail> {
+	const created = await prisma.course.create({
+		data: {
+			title: input.title,
+			summary: input.summary,
+			descriptionMarkdown: input.descriptionMarkdown,
+			imagePath: input.imagePath,
+			isPublished: input.isPublished ?? true,
+		},
+		select: {
+			id: true,
+			title: true,
+			descriptionMarkdown: true,
+			imagePath: true,
+			videos: { select: { id: true }, orderBy: { order: 'asc' } },
+		},
+	});
+
+	return {
+		id: created.id,
+		title: created.title,
+		descriptionMarkdown: created.descriptionMarkdown,
+		imagePath: created.imagePath,
+		videoIds: created.videos.map(v => v.id),
+	};
+}
+
+export async function deleteCourse(courseId: string): Promise<boolean> {
+	await prisma.course.delete({ where: { id: courseId } });
+	return true;
+}

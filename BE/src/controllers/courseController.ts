@@ -1,6 +1,11 @@
 import { Request, Response } from 'express';
-import { listPublishedCourses, getCourseDetail } from '../services/courseService';
-import { courseIdParamSchema } from '../utils/validationSchemas';
+import {
+	listPublishedCourses,
+	getCourseDetail,
+	createCourse,
+	deleteCourse,
+} from '../services/courseService';
+import { courseIdParamSchema, createCourseSchema } from '../utils/validationSchemas';
 import { CourseListItemDto, CourseDetailDto } from '../types/course';
 
 export async function handleGetCourses(req: Request, res: Response): Promise<void> {
@@ -47,5 +52,55 @@ export async function handleGetCourseById(req: Request, res: Response): Promise<
 		res.json(payload);
 	} catch (error) {
 		res.status(500).json({ message: 'Failed to fetch course' });
+	}
+}
+
+export async function handleCreateCourse(req: Request, res: Response): Promise<void> {
+	try {
+		const parsed = createCourseSchema.safeParse(req.body);
+		if (!parsed.success) {
+			res.status(400).json({
+				success: false,
+				message: 'Validation failed',
+				details: parsed.error.issues.map(issue => ({
+					field: issue.path.join('.'),
+					message: issue.message,
+				})),
+			});
+			return;
+		}
+
+		const course = await createCourse(parsed.data);
+		const payload: CourseDetailDto = {
+			id: course.id,
+			title: course.title,
+			description: course.descriptionMarkdown,
+			image_path: course.imagePath,
+			videos: course.videoIds,
+		};
+
+		res.status(201).json(payload);
+	} catch (error) {
+		res.status(500).json({ message: 'Failed to create course' });
+	}
+}
+
+export async function handleDeleteCourse(req: Request, res: Response): Promise<void> {
+	try {
+		const parsed = courseIdParamSchema.safeParse(req.params);
+		if (!parsed.success) {
+			res.status(400).json({ message: 'Invalid course id' });
+			return;
+		}
+
+		const { id } = parsed.data;
+		await deleteCourse(id);
+		res.status(204).send();
+	} catch (error: any) {
+		if (error?.code === 'P2025') {
+			res.status(404).json({ message: 'Course not found' });
+			return;
+		}
+		res.status(500).json({ message: 'Failed to delete course' });
 	}
 }

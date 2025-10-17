@@ -21,3 +21,14 @@ export const loginSchema = z.object({
 export const courseIdParamSchema = z.object({
 	id: z.string().min(10, 'Invalid course id'),
 });
+
+export const createCourseSchema = z.object({
+	title: z.string().min(3, 'Title must be at least 3 characters').max(120, 'Title too long'),
+	summary: z
+		.string()
+		.min(10, 'Summary must be at least 10 characters')
+		.max(300, 'Summary must be less than 300 characters'),
+	descriptionMarkdown: z.string().min(10, 'Description must be at least 10 characters'),
+	imagePath: z.string().min(1, 'Image path is required'),
+	isPublished: z.boolean().optional().default(true),
+});
