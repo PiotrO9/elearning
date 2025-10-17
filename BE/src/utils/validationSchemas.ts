@@ -16,3 +16,8 @@ export const loginSchema = z.object({
 	email: z.string().email('Invalid email format'),
 	password: z.string().min(1, 'Password is required'),
 });
+
+// cuid-like string (cuid2 or cuid) – for simplicity accept 10+ chars alphanumeric
+export const courseIdParamSchema = z.object({
+	id: z.string().min(10, 'Invalid course id'),
+});

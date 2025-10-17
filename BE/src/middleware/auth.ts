@@ -95,6 +95,27 @@ export const authenticateTokenWithoutRefresh = (
 };
 
 /**
+ * Optional authentication: attaches req.user if accessToken cookie is valid.
+ * If no token or invalid, continues without error to support guest access.
+ */
+export function optionalAuth(req: Request, res: Response, next: NextFunction): void {
+	res;
+	try {
+		const { accessToken } = req.cookies;
+		if (!accessToken) {
+			next();
+			return;
+		}
+		const decoded = verifyAccessToken(accessToken);
+		req.user = decoded;
+		next();
+	} catch (error) {
+		// treat as guest when token invalid/expired
+		next();
+	}
+}
+
+/**
  * Middleware to authorize user modifications (only own profile)
  */
 export const authorizeUserModification = (

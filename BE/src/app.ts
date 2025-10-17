@@ -3,6 +3,7 @@ import express, { Express, Request, Response } from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { apiRoutes } from './routes/api';
+import { prisma } from './utils/prisma';
 
 const app: Express = express();
 
@@ -32,14 +33,26 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 const PORT = process.env.PORT || 3000;
 
+async function handleHealth(req: Request, res: Response): Promise<void> {
+	req;
+	try {
+		await prisma.$queryRaw`SELECT 1`;
+		res.json({ status: 'ok', db: 'up', timestamp: new Date().toISOString() });
+	} catch (error) {
+		res.status(500).json({ status: 'error', db: 'down' });
+	}
+}
+
 app.get('/', (req: Request, res: Response) => {
 	res.json({
 		message: 'Elearning Backend',
 		timestamp: new Date().toISOString(),
 		status: 'Running 🚀',
-		accepted: req.accepted
+		accepted: req.accepted,
 	});
 });
+
+app.get('/health', handleHealth);
 
 app.use('/api', apiRoutes);
 
@@ -48,4 +61,3 @@ app.listen(PORT, () => {
 	console.log(`📚 API available at http://localhost:${PORT}/api`);
 	console.log(`💾 Environment: ${process.env.NODE_ENV || 'development'}`);
 });
-
