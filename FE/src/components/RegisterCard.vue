@@ -1,15 +1,15 @@
 <script lang="ts" setup>
 import { ref } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
-import { LoginScheme } from '@/types/User'
+import { RegisterScheme } from '@/types/User'
 import Input from './ui/Input.vue'
 
 const router = useRouter()
-const route = useRoute()
 const authStore = useAuthStore()
 
 const email = ref('')
+const username = ref('')
 const password = ref('')
 const errors = ref<Record<string, string>>({})
 
@@ -17,7 +17,11 @@ const handleSubmit = async () => {
   errors.value = {}
   authStore.clearError()
 
-  const validation = LoginScheme.safeParse({ email: email.value, password: password.value })
+  const validation = RegisterScheme.safeParse({ 
+    email: email.value, 
+    username: username.value, 
+    password: password.value 
+  })
   
   if (!validation.success) {
     validation.error.issues.forEach((err) => {
@@ -28,18 +32,18 @@ const handleSubmit = async () => {
     return
   }
 
-  const success = await authStore.login(validation.data)
+  const success = await authStore.register(validation.data)
   
   if (success) {
-    const redirectPath = (route.query.redirect as string) || '/'
-    router.push(redirectPath)
+    await authStore.login({ email: email.value, password: password.value })
+    router.push('/')
   }
 }
 </script>
 
 <template>
   <div class="bg-white w-full max-w-lg p-6 shadow-lg rounded-lg">
-    <h1 class="text-center font-bold text-xl uppercase">Zaloguj Się</h1>
+    <h1 class="text-center font-bold text-xl uppercase">Zarejestruj Się</h1>
     
     <div v-if="authStore.error" class="mt-4 p-3 bg-red-50 border border-red-200 rounded text-red-700 text-sm">
       {{ authStore.error }}
@@ -55,6 +59,16 @@ const handleSubmit = async () => {
           :disabled="authStore.loading"
         />
         <span v-if="errors.email" class="text-red-500 text-xs mt-1">{{ errors.email }}</span>
+      </div>
+
+      <div>
+        <Input 
+          v-model="username" 
+          placeholder="Nazwa użytkownika" 
+          class="w-full"
+          :disabled="authStore.loading"
+        />
+        <span v-if="errors.username" class="text-red-500 text-xs mt-1">{{ errors.username }}</span>
       </div>
       
       <div>
@@ -73,11 +87,11 @@ const handleSubmit = async () => {
         type="submit"
         :disabled="authStore.loading"
       >
-        {{ authStore.loading ? 'Ładowanie...' : 'Prześlij' }}
+        {{ authStore.loading ? 'Ładowanie...' : 'Zarejestruj' }}
       </button>
 
       <div class="text-center text-sm mt-2">
-        Nie masz konta? <RouterLink to="/register" class="text-blue-600 hover:underline">Zarejestruj się</RouterLink>
+        Masz już konto? <RouterLink to="/login" class="text-blue-600 hover:underline">Zaloguj się</RouterLink>
       </div>
     </form>
   </div>

@@ -1,6 +1,18 @@
 <script lang="ts" setup>
-  import Navbar from './components/Navbar.vue';
-  import Footer from './components/Footer.vue';
+import { onMounted } from 'vue'
+import { useAuthStore } from '@/stores/auth'
+import Navbar from './components/Navbar.vue'
+import Footer from './components/Footer.vue'
+
+const authStore = useAuthStore()
+
+onMounted(async () => {
+  try {
+    await authStore.fetchUser()
+  } catch (error) {
+    console.error('Failed to fetch user on mount:', error)
+  }
+})
 </script>
 
 <template>
