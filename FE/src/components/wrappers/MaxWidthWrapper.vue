@@ -1,6 +1,6 @@
 <script setup lang="ts">
     defineProps<{
-        size?: "sm" | "md" | "lg"
+        size?: "sm" | "md" | "lg" // TODO - te wartości wrzuć w osobny typ
     }>()
 
     const standardSize = "md"

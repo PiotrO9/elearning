@@ -3,6 +3,10 @@
         isOpen: boolean
     }>()
 
+    // TODO - Zrób osobną metodę do eventu @click i w niej wywołaj emit zamiast wywoływać go inline w template
+    // TODO - Jak masz czas to możesz przepisać komponent na semantyczną wersję z użyciem Dialog
+    // https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/dialog
+
     defineEmits<{
         'update:isOpen': [value: boolean]
     }>()

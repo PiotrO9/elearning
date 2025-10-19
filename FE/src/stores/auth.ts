@@ -5,12 +5,16 @@ import type { User, LoginResponse, MeResponse, RegisterResponse } from '@/types/
 import type { z } from 'zod'
 import { LoginScheme, RegisterScheme } from '@/types/User'
 
+// TODO - Ten store jest do przepisania całkowicie. Nie korzystasz tutaj z rzeczy, które
+// udostępnia pinia takie jak state, getters, actions itp.
+// https://pinia.vuejs.org/core-concepts/
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null)
   const loading = ref(false)
   const error = ref<string | null>(null)
 
   const isAuthenticated = computed(() => user.value !== null)
+
 
   const fetchUser = async () => {
     try {

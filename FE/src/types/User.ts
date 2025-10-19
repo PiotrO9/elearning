@@ -1,11 +1,13 @@
 import * as z from "zod";
 
+// TODO - Zmień nazwę pliku na user.ts
 export interface User {
     id: string
     email: string
     username: string
 }
 
+// TODO - Ja bym zrobił osobny plik na schematy zweryfikowane przez zod
 export const RegisterScheme = z.object({
     email: z.email({ message: "Nieprawidłowy adres email" }),
     username: z.string()

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// TODO - Zrób interface dla props
 defineProps<{
   modelValue?: string
   type?: string
@@ -6,13 +7,15 @@ defineProps<{
   disabled?: boolean
 }>()
 
+// TODO - Dodaj osobną metodę do eventu @input i w niej wywołaj emit zamiast wywoływać go inline w template
+
 defineEmits<{
   'update:modelValue': [value: string]
 }>()
 </script>
 
 <template>
-  <input 
+  <input
     :value="modelValue"
     @input="$emit('update:modelValue', ($event.target as HTMLInputElement).value)"
     :type="type || 'text'"
