@@ -6,7 +6,7 @@ import MaxWidthWrapper from './wrappers/MaxWidthWrapper.vue'
 const authStore = useAuthStore()
 const router = useRouter()
 
-const handleLogout = async () => {
+async function handleLogout() {
     await authStore.logout()
     router.push('/login')
 }

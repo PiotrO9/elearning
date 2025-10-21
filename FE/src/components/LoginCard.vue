@@ -13,7 +13,7 @@ const email = ref('')
 const password = ref('')
 const errors = ref<Record<string, string>>({})
 
-const handleSubmit = async () => {
+async function handleSubmit() {
     errors.value = {}
     authStore.clearError()
 

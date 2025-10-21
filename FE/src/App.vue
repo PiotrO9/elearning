@@ -6,7 +6,7 @@ import Footer from './components/Footer.vue'
 
 const authStore = useAuthStore()
 
-onMounted(async () => {
+onMounted(async function () {
     try {
         await authStore.fetchUser()
     } catch (error) {
