@@ -1,20 +1,21 @@
 <script setup lang="ts">
-    defineProps<{
-        size?: "sm" | "md" | "lg" // TODO - te wartości wrzuć w osobny typ
-    }>()
+type sizeType = 'sm' | 'md' | 'lg'
 
-    const standardSize = "md"
+defineProps<{
+    size?: sizeType
+}>()
 
-    const sizeClasses = {
-        sm: "max-w-5xl px-4 lg:px-0 mx-auto w-full",
-        md: "max-w-7xl px-4 xl:px-0 mx-auto w-full",
-        lg: "w-full px-4 md:px-16 lg:px-32",
-    }
+const standardSize = 'md'
 
+const sizeClasses = {
+    sm: 'max-w-5xl px-4 lg:px-0 mx-auto w-full',
+    md: 'max-w-7xl px-4 xl:px-0 mx-auto w-full',
+    lg: 'w-full px-4 md:px-16 lg:px-32',
+}
 </script>
 
 <template>
-    <div :class='sizeClasses[size ? size : standardSize]'>
+    <div :class="sizeClasses[size ? size : standardSize]">
         <slot />
     </div>
 </template>
