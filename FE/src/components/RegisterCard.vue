@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
-import { RegisterScheme } from '@/types/User'
+import { RegisterScheme } from '@/schemas/user'
 import Input from './ui/Input.vue'
 
 const router = useRouter()
@@ -14,85 +14,97 @@ const password = ref('')
 const errors = ref<Record<string, string>>({})
 
 const handleSubmit = async () => {
-  errors.value = {}
-  authStore.clearError()
+    errors.value = {}
+    authStore.clearError()
 
-  const validation = RegisterScheme.safeParse({ 
-    email: email.value, 
-    username: username.value, 
-    password: password.value 
-  })
-  
-  if (!validation.success) {
-    validation.error.issues.forEach((err) => {
-      if (err.path[0]) {
-        errors.value[err.path[0] as string] = err.message
-      }
+    const validation = RegisterScheme.safeParse({
+        email: email.value,
+        username: username.value,
+        password: password.value,
     })
-    return
-  }
 
-  const success = await authStore.register(validation.data)
-  
-  if (success) {
-    await authStore.login({ email: email.value, password: password.value })
-    router.push('/')
-  }
+    if (!validation.success) {
+        validation.error.issues.forEach((err) => {
+            if (err.path[0]) {
+                errors.value[err.path[0] as string] = err.message
+            }
+        })
+        return
+    }
+
+    const success = await authStore.register(validation.data)
+
+    if (success) {
+        await authStore.login({ email: email.value, password: password.value })
+        router.push('/')
+    }
 }
 </script>
 
 <template>
-  <div class="bg-white w-full max-w-lg p-6 shadow-lg rounded-lg">
-    <h1 class="text-center font-bold text-xl uppercase">Zarejestruj Się</h1>
-    
-    <div v-if="authStore.error" class="mt-4 p-3 bg-red-50 border border-red-200 rounded text-red-700 text-sm">
-      {{ authStore.error }}
+    <div class="bg-background-secondary w-full max-w-lg p-6 shadow-lg rounded-lg">
+        <h1 class="text-center font-bold text-xl uppercase">Zarejestruj Się</h1>
+
+        <div
+            v-if="authStore.error"
+            class="mt-4 p-3 bg-red-50 border border-red-200 rounded text-red-700 text-sm"
+        >
+            {{ authStore.error }}
+        </div>
+
+        <form @submit.prevent="handleSubmit" class="flex flex-col gap-3 mt-6">
+            <div>
+                <Input
+                    v-model="email"
+                    placeholder="Email"
+                    class="w-full"
+                    type="email"
+                    :disabled="authStore.loading"
+                />
+                <span v-if="errors.email" class="text-red-500 text-xs mt-1">{{
+                    errors.email
+                }}</span>
+            </div>
+
+            <div>
+                <Input
+                    v-model="username"
+                    placeholder="Nazwa użytkownika"
+                    class="w-full"
+                    :disabled="authStore.loading"
+                />
+                <span v-if="errors.username" class="text-red-500 text-xs mt-1">{{
+                    errors.username
+                }}</span>
+            </div>
+
+            <div>
+                <Input
+                    v-model="password"
+                    placeholder="Hasło"
+                    class="w-full"
+                    type="password"
+                    :disabled="authStore.loading"
+                />
+                <span v-if="errors.password" class="text-red-500 text-xs mt-1">{{
+                    errors.password
+                }}</span>
+            </div>
+
+            <button
+                class="w-full py-2 cursor-pointer border rounded border-blue-300 hover:border-blue-400 duration-300 bg-input-background hover:bg-input-background-focus disabled:opacity-50 disabled:cursor-not-allowed"
+                type="submit"
+                :disabled="authStore.loading"
+            >
+                {{ authStore.loading ? 'Ładowanie...' : 'Zarejestruj' }}
+            </button>
+
+            <div class="text-center text-sm mt-2">
+                Masz już konto?
+                <RouterLink to="/login" class="text-blue-600 hover:underline"
+                    >Zaloguj się</RouterLink
+                >
+            </div>
+        </form>
     </div>
-
-    <form @submit.prevent="handleSubmit" class="flex flex-col gap-3 mt-6">
-      <div>
-        <Input 
-          v-model="email" 
-          placeholder="Email" 
-          class="w-full"
-          type="email"
-          :disabled="authStore.loading"
-        />
-        <span v-if="errors.email" class="text-red-500 text-xs mt-1">{{ errors.email }}</span>
-      </div>
-
-      <div>
-        <Input 
-          v-model="username" 
-          placeholder="Nazwa użytkownika" 
-          class="w-full"
-          :disabled="authStore.loading"
-        />
-        <span v-if="errors.username" class="text-red-500 text-xs mt-1">{{ errors.username }}</span>
-      </div>
-      
-      <div>
-        <Input 
-          v-model="password" 
-          placeholder="Hasło" 
-          class="w-full" 
-          type="password"
-          :disabled="authStore.loading"
-        />
-        <span v-if="errors.password" class="text-red-500 text-xs mt-1">{{ errors.password }}</span>
-      </div>
-
-      <button 
-        class="w-full py-2 cursor-pointer border rounded border-blue-300 hover:border-blue-400 duration-300 bg-white hover:bg-zinc-50 disabled:opacity-50 disabled:cursor-not-allowed" 
-        type="submit"
-        :disabled="authStore.loading"
-      >
-        {{ authStore.loading ? 'Ładowanie...' : 'Zarejestruj' }}
-      </button>
-
-      <div class="text-center text-sm mt-2">
-        Masz już konto? <RouterLink to="/login" class="text-blue-600 hover:underline">Zaloguj się</RouterLink>
-      </div>
-    </form>
-  </div>
 </template>
