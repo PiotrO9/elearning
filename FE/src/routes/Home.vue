@@ -1,10 +1,9 @@
 <script setup lang="ts">
-import LoginCard from '@/components/LoginCard.vue';
-import Modal from '@/components/ui/Modal.vue';
-import { ref } from 'vue';
+import LoginCard from '@/components/LoginCard.vue'
+import Modal from '@/components/ui/Modal.vue'
+import { ref } from 'vue'
 
-    const isopen = ref<boolean>(false)
-
+const isopen = ref<boolean>(false)
 </script>
 
 <template>
@@ -17,19 +16,17 @@ import { ref } from 'vue';
     </div>
 </template>
 
-
 <style scoped>
-    @keyframes spin {
-        0% {
-            transform: rotateZ(0deg);
-        }
-        100% {
-            transform: rotateZ(360deg);
-        }
+@keyframes spin {
+    0% {
+        transform: rotateZ(0deg);
     }
+    100% {
+        transform: rotateZ(360deg);
+    }
+}
 
-    .animate-spins {
-        animation: spin 20s linear infinite;
-        
-    }
+.animate-spins {
+    animation: spin 20s linear infinite;
+}
 </style>
