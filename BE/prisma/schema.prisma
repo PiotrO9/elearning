@@ -45,8 +45,8 @@ model Course {
 
 model Video {
   id               String   @id @default(cuid())
-  courseId         String
-  course           Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  courseId         String?
+  course           Course?  @relation(fields: [courseId], references: [id], onDelete: Cascade)
   title            String
   order            Int
   isTrailer        Boolean  @default(false)

@@ -1,5 +1,4 @@
 export interface CreateVideoInput {
-	courseId: string;
 	title: string;
 	order: number;
 	isTrailer?: boolean;
@@ -23,7 +22,7 @@ export interface AttachVideoOptions {
 
 export interface Video {
 	id: string;
-	courseId: string;
+	courseId: string | null;
 	title: string;
 	order: number;
 	isTrailer: boolean;
@@ -33,7 +32,7 @@ export interface Video {
 
 export interface VideoDto {
 	id: string;
-	courseId: string;
+	courseId: string | null;
 	title: string;
 	order: number;
 	isTrailer: boolean;

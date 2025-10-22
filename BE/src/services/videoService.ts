@@ -4,7 +4,6 @@ import { CreateVideoInput, UpdateVideoInput, AttachVideoOptions, Video } from '.
 export async function createVideo(input: CreateVideoInput): Promise<string> {
 	const created = await prisma.video.create({
 		data: {
-			courseId: input.courseId,
 			title: input.title,
 			order: input.order,
 			isTrailer: input.isTrailer ?? false,

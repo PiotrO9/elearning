@@ -38,7 +38,6 @@ export const videoIdParamSchema = z.object({
 });
 
 export const createVideoSchema = z.object({
-	courseId: z.string().min(10, 'Invalid course id'),
 	title: z.string().min(3, 'Title must be at least 3 characters').max(200, 'Title too long'),
 	order: z.number().int().positive('Order must be positive'),
 	isTrailer: z.boolean().optional().default(false),
