@@ -1,4 +1,6 @@
 import { Request, Response } from 'express';
+import { sendSuccess, sendNoContent, sendError, buildValidationErrors } from '../utils/response';
+import { ValidationError } from '../types/api';
 import {
 	listPublishedCourses,
 	getCourseDetail,
@@ -25,9 +27,9 @@ export async function handleGetCourses(req: Request, res: Response): Promise<voi
 			imagePath: c.imagePath,
 		}));
 
-		res.json(payload);
+		sendSuccess(res, { items: payload, total: payload.length });
 	} catch (error) {
-		res.status(500).json({ message: 'Failed to fetch courses' });
+		sendError(res, 'Failed to fetch courses');
 	}
 }
 
@@ -35,16 +37,14 @@ export async function handleGetCourseById(req: Request, res: Response): Promise<
 	try {
 		const parsed = courseIdParamSchema.safeParse(req.params);
 		if (!parsed.success) {
-			res.status(400).json({ message: 'Invalid course id' });
-			return;
+			throw new ValidationError('Invalid course id', [{ message: 'Invalid id', field: 'id' }]);
 		}
 		const { id } = parsed.data;
 
 		const isAuthenticated = Boolean(req.user?.userId);
 		const course = await getCourseDetail(id, isAuthenticated);
 		if (!course) {
-			res.status(404).json({ message: 'Course not found' });
-			return;
+			return sendError(res, 'Course not found', 404, 'COURSE_NOT_FOUND');
 		}
 
 		const payload: CourseDetailDto = {
@@ -63,9 +63,9 @@ export async function handleGetCourseById(req: Request, res: Response): Promise<
 			})) as VideoDto[],
 		};
 
-		res.json(payload);
+		sendSuccess(res, payload);
 	} catch (error) {
-		res.status(500).json({ message: 'Failed to fetch course' });
+		sendError(res, 'Failed to fetch course');
 	}
 }
 
@@ -73,15 +73,8 @@ export async function handleCreateCourse(req: Request, res: Response): Promise<v
 	try {
 		const parsed = createCourseSchema.safeParse(req.body);
 		if (!parsed.success) {
-			res.status(400).json({
-				success: false,
-				message: 'Validation failed',
-				details: parsed.error.issues.map(issue => ({
-					field: issue.path.join('.'),
-					message: issue.message,
-				})),
-			});
-			return;
+			const errors = buildValidationErrors(parsed.error.issues);
+			throw new ValidationError('Validation failed', errors);
 		}
 
 		const course = await createCourse(parsed.data);
@@ -101,9 +94,9 @@ export async function handleCreateCourse(req: Request, res: Response): Promise<v
 			})) as VideoDto[],
 		};
 
-		res.status(201).json(payload);
+		sendSuccess(res, payload, 'Course created', 201);
 	} catch (error) {
-		res.status(500).json({ message: 'Failed to create course' });
+		sendError(res, 'Failed to create course');
 	}
 }
 
@@ -111,19 +104,17 @@ export async function handleDeleteCourse(req: Request, res: Response): Promise<v
 	try {
 		const parsed = courseIdParamSchema.safeParse(req.params);
 		if (!parsed.success) {
-			res.status(400).json({ message: 'Invalid course id' });
-			return;
+			throw new ValidationError('Invalid course id', [{ message: 'Invalid id', field: 'id' }]);
 		}
 
 		const { id } = parsed.data;
 		await deleteCourse(id);
-		res.status(204).send();
+		sendNoContent(res);
 	} catch (error: any) {
 		if (error?.code === 'P2025') {
-			res.status(404).json({ message: 'Course not found' });
-			return;
+			return sendError(res, 'Course not found', 404, 'COURSE_NOT_FOUND');
 		}
-		res.status(500).json({ message: 'Failed to delete course' });
+		return sendError(res, 'Failed to delete course');
 	}
 }
 
@@ -131,21 +122,13 @@ export async function handleUpdateCourse(req: Request, res: Response): Promise<v
 	try {
 		const params = courseIdParamSchema.safeParse(req.params);
 		if (!params.success) {
-			res.status(400).json({ message: 'Invalid course id' });
-			return;
+			throw new ValidationError('Invalid course id', [{ message: 'Invalid id', field: 'id' }]);
 		}
 
 		const body = updateCourseSchema.safeParse(req.body);
 		if (!body.success) {
-			res.status(400).json({
-				success: false,
-				message: 'Validation failed',
-				details: body.error.issues.map(issue => ({
-					field: issue.path.join('.'),
-					message: issue.message,
-				})),
-			});
-			return;
+			const errors = buildValidationErrors(body.error.issues);
+			throw new ValidationError('Validation failed', errors);
 		}
 
 		const course = await updateCourse(params.data.id, body.data);
@@ -165,12 +148,11 @@ export async function handleUpdateCourse(req: Request, res: Response): Promise<v
 			})) as VideoDto[],
 		};
 
-		res.json(payload);
+		sendSuccess(res, payload);
 	} catch (error: any) {
 		if (error?.code === 'P2025') {
-			res.status(404).json({ message: 'Course not found' });
-			return;
+			return sendError(res, 'Course not found', 404, 'COURSE_NOT_FOUND');
 		}
-		res.status(500).json({ message: 'Failed to update course' });
+		return sendError(res, 'Failed to update course');
 	}
 }

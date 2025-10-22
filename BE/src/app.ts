@@ -1,11 +1,14 @@
 import 'dotenv/config';
-import express, { Express, Request, Response } from 'express';
+import express, { Express, Request, Response, NextFunction } from 'express';
+import { randomUUID } from 'crypto';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { apiRoutes } from './routes/api';
 import { apiChildrenRouters } from './routes/api';
 import { buildOpenApiSpec } from './utils/openapi';
 import { prisma } from './utils/prisma';
+import { handleExpressError } from './utils/response';
+import { NotFoundError } from './types/api';
 
 const app: Express = express();
 
@@ -28,6 +31,15 @@ app.use(
 		optionsSuccessStatus: 204,
 	}),
 );
+
+// Trace id for correlation
+app.use((req: Request, res: Response, next: NextFunction) => {
+	const traceId = randomUUID();
+	(res as any).locals = { ...(res as any).locals, traceId };
+	(req as any).traceId = traceId;
+	res.setHeader('X-Trace-Id', traceId);
+	next();
+});
 
 app.use(cookieParser());
 app.use(express.json({ limit: '10mb' }));
@@ -97,6 +109,17 @@ app.get('/api', (_req: Request, res: Response) => {
 });
 
 app.use('/api', apiRoutes);
+
+// 404 for unknown api routes
+app.use('/api', (_req: Request, _res: Response, next: NextFunction) => {
+	next(new NotFoundError('Route not found'));
+});
+
+// Global error handler
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+app.use((err: unknown, req: Request, res: Response, _next: NextFunction) => {
+	handleExpressError(err, req, res);
+});
 
 app.listen(PORT, () => {
 	console.log(`🚀 Server is running on http://localhost:${PORT}`);
