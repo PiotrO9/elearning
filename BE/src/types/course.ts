@@ -1,19 +1,18 @@
 export interface CourseListItemDto {
 	id: string;
 	title: string;
-	description: string; // maps to summary
-	image_path: string; // maps to imagePath
+	description: string;
+	imagePath: string;
 }
 
 export interface CourseDetailDto {
 	id: string;
 	title: string;
-	description: string; // maps to descriptionMarkdown
-	image_path: string; // maps to imagePath
-	videos: string[]; // array of video IDs
+	description: string;
+	imagePath: string;
+	videos: import('./video').VideoDto[];
 }
 
-// Domain types used inside services
 export interface CourseListItem {
 	id: string;
 	title: string;
@@ -26,7 +25,7 @@ export interface CourseDetail {
 	title: string;
 	descriptionMarkdown: string;
 	imagePath: string;
-	videoIds: string[];
+	videos: import('./video').Video[];
 }
 
 export interface CreateCourseInput {

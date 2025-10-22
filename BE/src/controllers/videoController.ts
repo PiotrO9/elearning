@@ -12,7 +12,10 @@ import {
 	deleteVideo,
 	attachExistingVideoToCourse,
 	detachVideoFromCourse,
+	listAllVideos,
+	getVideoById,
 } from '../services/videoService';
+import { VideoDto } from '../types/video';
 
 export async function handleCreateVideo(req: Request, res: Response): Promise<void> {
 	try {
@@ -37,6 +40,54 @@ export async function handleCreateVideo(req: Request, res: Response): Promise<vo
 			return;
 		}
 		res.status(500).json({ message: 'Failed to create video' });
+	}
+}
+
+export async function handleListVideos(req: Request, res: Response): Promise<void> {
+	req;
+	try {
+		const videos = await listAllVideos();
+		const payload: VideoDto[] = videos.map(v => ({
+			id: v.id,
+			courseId: v.courseId,
+			title: v.title,
+			order: v.order,
+			isTrailer: v.isTrailer,
+			sourceUrl: v.sourceUrl,
+			durationSeconds: v.durationSeconds,
+		}));
+		res.json(payload);
+	} catch (error) {
+		res.status(500).json({ message: 'Failed to fetch videos' });
+	}
+}
+
+export async function handleGetVideoById(req: Request, res: Response): Promise<void> {
+	try {
+		const params = videoIdParamSchema.safeParse(req.params);
+		if (!params.success) {
+			res.status(400).json({ message: 'Invalid video id' });
+			return;
+		}
+
+		const video = await getVideoById(params.data.id);
+		if (!video) {
+			res.status(404).json({ message: 'Video not found' });
+			return;
+		}
+
+		const payload: VideoDto = {
+			id: video.id,
+			courseId: video.courseId,
+			title: video.title,
+			order: video.order,
+			isTrailer: video.isTrailer,
+			sourceUrl: video.sourceUrl,
+			durationSeconds: video.durationSeconds,
+		};
+		res.json(payload);
+	} catch (error) {
+		res.status(500).json({ message: 'Failed to fetch video' });
 	}
 }
 

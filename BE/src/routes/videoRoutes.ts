@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import { authenticateToken } from '../middleware/auth';
 import {
+	handleListVideos,
+	handleGetVideoById,
 	handleCreateVideo,
 	handleUpdateVideo,
 	handleDeleteVideo,
@@ -9,6 +11,20 @@ import {
 } from '../controllers/videoController';
 
 const router = Router();
+
+/**
+ * @route GET /api/video
+ * @desc List all videos
+ * @access Public
+ */
+router.get('/', handleListVideos);
+
+/**
+ * @route GET /api/video/:id
+ * @desc Get video by id
+ * @access Public
+ */
+router.get('/:id', handleGetVideoById);
 
 /**
  * @route POST /api/video

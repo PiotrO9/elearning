@@ -5,6 +5,7 @@ import {
 	CreateCourseInput,
 	UpdateCourseInput,
 } from '../types/course';
+import { Video } from '../types/video';
 
 function mapListItem(course: {
 	id: string;
@@ -42,7 +43,15 @@ export async function getCourseDetail(
 			descriptionMarkdown: true,
 			imagePath: true,
 			videos: {
-				select: { id: true, isTrailer: true, order: true },
+				select: {
+					id: true,
+					courseId: true,
+					title: true,
+					order: true,
+					isTrailer: true,
+					sourceUrl: true,
+					durationSeconds: true,
+				},
 				orderBy: { order: 'asc' },
 			},
 		},
@@ -52,19 +61,29 @@ export async function getCourseDetail(
 		return null;
 	}
 
-	const videoIds = isAuthenticated
-		? course.videos.map((v: { id: string }) => v.id)
-		: (() => {
-				const trailer = course.videos.find((v: { isTrailer: boolean }) => v.isTrailer === true);
-				return trailer ? [trailer.id] : [];
-		  })();
+	const videos: Video[] = (
+		isAuthenticated
+			? course.videos
+			: (() => {
+					const trailer = course.videos.find((v: { isTrailer: boolean }) => v.isTrailer === true);
+					return trailer ? [trailer] : [];
+			  })()
+	).map(v => ({
+		id: v.id,
+		courseId: v.courseId,
+		title: v.title,
+		order: v.order,
+		isTrailer: v.isTrailer,
+		sourceUrl: v.sourceUrl,
+		durationSeconds: v.durationSeconds ?? null,
+	}));
 
 	return {
 		id: course.id,
 		title: course.title,
 		descriptionMarkdown: course.descriptionMarkdown,
 		imagePath: course.imagePath,
-		videoIds,
+		videos,
 	};
 }
 
@@ -82,7 +101,18 @@ export async function createCourse(input: CreateCourseInput): Promise<CourseDeta
 			title: true,
 			descriptionMarkdown: true,
 			imagePath: true,
-			videos: { select: { id: true }, orderBy: { order: 'asc' } },
+			videos: {
+				select: {
+					id: true,
+					courseId: true,
+					title: true,
+					order: true,
+					isTrailer: true,
+					sourceUrl: true,
+					durationSeconds: true,
+				},
+				orderBy: { order: 'asc' },
+			},
 		},
 	});
 
@@ -91,7 +121,15 @@ export async function createCourse(input: CreateCourseInput): Promise<CourseDeta
 		title: created.title,
 		descriptionMarkdown: created.descriptionMarkdown,
 		imagePath: created.imagePath,
-		videoIds: created.videos.map(v => v.id),
+		videos: created.videos.map(v => ({
+			id: v.id,
+			courseId: v.courseId,
+			title: v.title,
+			order: v.order,
+			isTrailer: v.isTrailer,
+			sourceUrl: v.sourceUrl,
+			durationSeconds: v.durationSeconds ?? null,
+		})),
 	};
 }
 
@@ -112,7 +150,18 @@ export async function updateCourse(
 			title: true,
 			descriptionMarkdown: true,
 			imagePath: true,
-			videos: { select: { id: true }, orderBy: { order: 'asc' } },
+			videos: {
+				select: {
+					id: true,
+					courseId: true,
+					title: true,
+					order: true,
+					isTrailer: true,
+					sourceUrl: true,
+					durationSeconds: true,
+				},
+				orderBy: { order: 'asc' },
+			},
 		},
 	});
 
@@ -121,6 +170,14 @@ export async function updateCourse(
 		title: updated.title,
 		descriptionMarkdown: updated.descriptionMarkdown,
 		imagePath: updated.imagePath,
-		videoIds: updated.videos.map(v => v.id),
+		videos: updated.videos.map(v => ({
+			id: v.id,
+			courseId: v.courseId,
+			title: v.title,
+			order: v.order,
+			isTrailer: v.isTrailer,
+			sourceUrl: v.sourceUrl,
+			durationSeconds: v.durationSeconds ?? null,
+		})),
 	};
 }

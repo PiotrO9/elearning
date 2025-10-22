@@ -12,6 +12,7 @@ import {
 	updateCourseSchema,
 } from '../utils/validationSchemas';
 import { CourseListItemDto, CourseDetailDto } from '../types/course';
+import { VideoDto } from '../types/video';
 
 export async function handleGetCourses(req: Request, res: Response): Promise<void> {
 	req;
@@ -21,7 +22,7 @@ export async function handleGetCourses(req: Request, res: Response): Promise<voi
 			id: c.id,
 			title: c.title,
 			description: c.summary,
-			image_path: c.imagePath,
+			imagePath: c.imagePath,
 		}));
 
 		res.json(payload);
@@ -50,8 +51,16 @@ export async function handleGetCourseById(req: Request, res: Response): Promise<
 			id: course.id,
 			title: course.title,
 			description: course.descriptionMarkdown,
-			image_path: course.imagePath,
-			videos: course.videoIds,
+			imagePath: course.imagePath,
+			videos: course.videos.map(v => ({
+				id: v.id,
+				courseId: v.courseId,
+				title: v.title,
+				order: v.order,
+				isTrailer: v.isTrailer,
+				sourceUrl: v.sourceUrl,
+				durationSeconds: v.durationSeconds,
+			})) as VideoDto[],
 		};
 
 		res.json(payload);
@@ -80,8 +89,16 @@ export async function handleCreateCourse(req: Request, res: Response): Promise<v
 			id: course.id,
 			title: course.title,
 			description: course.descriptionMarkdown,
-			image_path: course.imagePath,
-			videos: course.videoIds,
+			imagePath: course.imagePath,
+			videos: course.videos.map(v => ({
+				id: v.id,
+				courseId: v.courseId,
+				title: v.title,
+				order: v.order,
+				isTrailer: v.isTrailer,
+				sourceUrl: v.sourceUrl,
+				durationSeconds: v.durationSeconds,
+			})) as VideoDto[],
 		};
 
 		res.status(201).json(payload);
@@ -136,8 +153,16 @@ export async function handleUpdateCourse(req: Request, res: Response): Promise<v
 			id: course.id,
 			title: course.title,
 			description: course.descriptionMarkdown,
-			image_path: course.imagePath,
-			videos: course.videoIds,
+			imagePath: course.imagePath,
+			videos: course.videos.map(v => ({
+				id: v.id,
+				courseId: v.courseId,
+				title: v.title,
+				order: v.order,
+				isTrailer: v.isTrailer,
+				sourceUrl: v.sourceUrl,
+				durationSeconds: v.durationSeconds,
+			})) as VideoDto[],
 		};
 
 		res.json(payload);

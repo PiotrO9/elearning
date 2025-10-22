@@ -107,7 +107,9 @@ export function buildOpenApiSpec(options: {
 	const paths: Record<string, any> = {};
 	for (const r of allRoutes) {
 		const oasPath = toOpenApiPath(r.fullPath);
+
 		if (!paths[oasPath]) paths[oasPath] = {};
+
 		const pathParameters = extractPathParamNamesFromOpenApiPath(oasPath).map(name => ({
 			name,
 			in: 'path',
