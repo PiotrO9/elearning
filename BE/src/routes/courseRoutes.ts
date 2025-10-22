@@ -7,7 +7,7 @@ import {
 	handleUpdateCourse,
 	handleReorderCourseVideos,
 } from '../controllers/courseController';
-import { optionalAuth, authenticateToken } from '../middleware/auth';
+import { optionalAuth, authenticateToken, requireAdmin } from '../middleware/auth';
 
 const router = Router();
 
@@ -26,28 +26,28 @@ router.get('/:id', optionalAuth, handleGetCourseById);
 /**
  * @route POST /api/course
  * @desc Create a new course
- * @access Private
+ * @access Admin only
  */
-router.post('/', authenticateToken, handleCreateCourse);
+router.post('/', authenticateToken, requireAdmin, handleCreateCourse);
 /**
  * @route DELETE /api/course/:id
  * @desc Delete a course
- * @access Private
+ * @access Admin only
  */
-router.delete('/:id', authenticateToken, handleDeleteCourse);
+router.delete('/:id', authenticateToken, requireAdmin, handleDeleteCourse);
 
 /**
  * @route PATCH /api/course/:id
  * @desc Update a course
- * @access Private
+ * @access Admin only
  */
-router.patch('/:id', authenticateToken, handleUpdateCourse);
+router.patch('/:id', authenticateToken, requireAdmin, handleUpdateCourse);
 
 /**
  * @route POST /api/course/:id/videos/reorder
  * @desc Reorder videos within a course
- * @access Private
+ * @access Admin only
  */
-router.post('/:id/videos/reorder', authenticateToken, handleReorderCourseVideos);
+router.post('/:id/videos/reorder', authenticateToken, requireAdmin, handleReorderCourseVideos);
 
 export { router as courseRoutes };

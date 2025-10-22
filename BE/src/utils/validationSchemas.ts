@@ -30,6 +30,7 @@ export const createCourseSchema = z.object({
 	descriptionMarkdown: z.string().min(10, 'Description must be at least 10 characters'),
 	imagePath: z.string().min(1, 'Image path is required'),
 	isPublished: z.boolean().optional().default(true),
+	isPublic: z.boolean().optional().default(false),
 });
 
 // Video and update schemas
@@ -65,6 +66,7 @@ export const updateCourseSchema = z
 		descriptionMarkdown: z.string().min(10).optional(),
 		imagePath: z.string().min(1).optional(),
 		isPublished: z.boolean().optional(),
+		isPublic: z.boolean().optional(),
 	})
 	.refine(obj => Object.keys(obj).length > 0, {
 		message: 'At least one field must be provided',
@@ -84,4 +86,13 @@ export const reorderCourseVideosSchema = z.object({
 			}),
 		)
 		.min(1, 'At least one item is required'),
+});
+
+// Enrollment schemas
+export const enrollUserSchema = z.object({
+	userId: z.string().uuid('Invalid user id'),
+});
+
+export const userIdParamSchema = z.object({
+	userId: z.string().uuid('Invalid user id'),
 });

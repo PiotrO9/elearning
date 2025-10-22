@@ -12,19 +12,21 @@ function mapListItem(course: {
 	title: string;
 	summary: string;
 	imagePath: string;
+	isPublic: boolean;
 }): CourseListItem {
 	return {
 		id: course.id,
 		title: course.title,
 		summary: course.summary,
 		imagePath: course.imagePath,
+		isPublic: course.isPublic,
 	};
 }
 
 export async function listPublishedCourses(): Promise<CourseListItem[]> {
 	const courses = await prisma.course.findMany({
 		where: { isPublished: true },
-		select: { id: true, title: true, summary: true, imagePath: true },
+		select: { id: true, title: true, summary: true, imagePath: true, isPublic: true },
 		orderBy: { createdAt: 'desc' },
 	});
 
@@ -42,6 +44,7 @@ export async function getCourseDetail(
 			title: true,
 			descriptionMarkdown: true,
 			imagePath: true,
+			isPublic: true,
 			videos: {
 				select: {
 					id: true,
@@ -83,6 +86,7 @@ export async function getCourseDetail(
 		title: course.title,
 		descriptionMarkdown: course.descriptionMarkdown,
 		imagePath: course.imagePath,
+		isPublic: course.isPublic,
 		videos,
 	};
 }
@@ -95,12 +99,14 @@ export async function createCourse(input: CreateCourseInput): Promise<CourseDeta
 			descriptionMarkdown: input.descriptionMarkdown,
 			imagePath: input.imagePath,
 			isPublished: input.isPublished ?? true,
+			isPublic: input.isPublic ?? false,
 		},
 		select: {
 			id: true,
 			title: true,
 			descriptionMarkdown: true,
 			imagePath: true,
+			isPublic: true,
 			videos: {
 				select: {
 					id: true,
@@ -121,6 +127,7 @@ export async function createCourse(input: CreateCourseInput): Promise<CourseDeta
 		title: created.title,
 		descriptionMarkdown: created.descriptionMarkdown,
 		imagePath: created.imagePath,
+		isPublic: created.isPublic,
 		videos: created.videos.map(v => ({
 			id: v.id,
 			courseId: v.courseId,
@@ -150,6 +157,7 @@ export async function updateCourse(
 			title: true,
 			descriptionMarkdown: true,
 			imagePath: true,
+			isPublic: true,
 			videos: {
 				select: {
 					id: true,
@@ -170,6 +178,7 @@ export async function updateCourse(
 		title: updated.title,
 		descriptionMarkdown: updated.descriptionMarkdown,
 		imagePath: updated.imagePath,
+		isPublic: updated.isPublic,
 		videos: updated.videos.map(v => ({
 			id: v.id,
 			courseId: v.courseId,

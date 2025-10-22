@@ -5,6 +5,8 @@ import {
 	generateAccessToken,
 	SLIDING_SESSION_ENABLED,
 } from '../utils/jwt';
+import { UserRole } from '../types/user';
+import { prisma } from '../utils/prisma';
 
 declare global {
 	namespace Express {
@@ -39,6 +41,7 @@ export const authenticateToken = (req: Request, res: Response, next: NextFunctio
 			const newAccessToken = generateAccessToken({
 				userId: decoded.userId,
 				email: decoded.email,
+				role: decoded.role,
 			});
 
 			// Set refreshed access token cookie
@@ -143,4 +146,122 @@ export const authorizeUserModification = (
 	}
 
 	next();
+};
+
+/**
+ * Middleware to require admin role
+ */
+export const requireAdmin = (req: Request, res: Response, next: NextFunction): void => {
+	if (!req.user) {
+		res.status(401).json({
+			success: false,
+			message: 'Authentication required',
+		});
+		return;
+	}
+
+	if (req.user.role !== UserRole.ADMIN) {
+		res.status(403).json({
+			success: false,
+			message: 'Admin access required',
+			code: 'ADMIN_ACCESS_REQUIRED',
+		});
+		return;
+	}
+
+	next();
+};
+
+/**
+ * Middleware to check if user has access to a course
+ * User has access if:
+ * - Course is public
+ * - User is enrolled in the course
+ * - User is admin
+ */
+export const checkCourseAccess = async (
+	req: Request,
+	res: Response,
+	next: NextFunction,
+): Promise<void> => {
+	try {
+		if (!req.user) {
+			res.status(401).json({
+				success: false,
+				message: 'Authentication required',
+			});
+			return;
+		}
+
+		const courseId = req.params.id || req.params.courseId;
+		if (!courseId) {
+			res.status(400).json({
+				success: false,
+				message: 'Course ID required',
+			});
+			return;
+		}
+
+		// Admin has access to everything
+		if (req.user.role === UserRole.ADMIN) {
+			next();
+			return;
+		}
+
+		// Check if course exists and is public
+		const course = await prisma.course.findUnique({
+			where: { id: courseId },
+			select: { isPublic: true, isPublished: true },
+		});
+
+		if (!course) {
+			res.status(404).json({
+				success: false,
+				message: 'Course not found',
+				code: 'COURSE_NOT_FOUND',
+			});
+			return;
+		}
+
+		if (!course.isPublished) {
+			res.status(403).json({
+				success: false,
+				message: 'Course is not published',
+				code: 'COURSE_NOT_PUBLISHED',
+			});
+			return;
+		}
+
+		// If course is public, allow access
+		if (course.isPublic) {
+			next();
+			return;
+		}
+
+		// Check if user is enrolled
+		const enrollment = await prisma.courseEnrollment.findUnique({
+			where: {
+				userId_courseId: {
+					userId: req.user.userId,
+					courseId: courseId,
+				},
+			},
+		});
+
+		if (!enrollment) {
+			res.status(403).json({
+				success: false,
+				message: 'You do not have access to this course',
+				code: 'COURSE_ACCESS_DENIED',
+			});
+			return;
+		}
+
+		next();
+	} catch (error) {
+		res.status(500).json({
+			success: false,
+			message: 'Failed to check course access',
+		});
+	}
 };

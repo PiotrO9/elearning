@@ -22,11 +22,12 @@ export async function handleGetCourses(req: Request, res: Response): Promise<voi
 	req;
 	try {
 		const courses = await listPublishedCourses();
-		const payload: CourseListItemDto[] = courses.map(c => ({
-			id: c.id,
-			title: c.title,
-			description: c.summary,
-			imagePath: c.imagePath,
+		const payload: CourseListItemDto[] = courses.map(course => ({
+			id: course.id,
+			title: course.title,
+			description: course.summary,
+			imagePath: course.imagePath,
+			isPublic: course.isPublic,
 		}));
 
 		sendSuccess(res, { items: payload, total: payload.length });
@@ -38,9 +39,11 @@ export async function handleGetCourses(req: Request, res: Response): Promise<voi
 export async function handleGetCourseById(req: Request, res: Response): Promise<void> {
 	try {
 		const parsed = courseIdParamSchema.safeParse(req.params);
+
 		if (!parsed.success) {
 			throw new ValidationError('Invalid course id', [{ message: 'Invalid id', field: 'id' }]);
 		}
+
 		const { id } = parsed.data;
 
 		const isAuthenticated = Boolean(req.user?.userId);
@@ -54,6 +57,7 @@ export async function handleGetCourseById(req: Request, res: Response): Promise<
 			title: course.title,
 			description: course.descriptionMarkdown,
 			imagePath: course.imagePath,
+			isPublic: course.isPublic,
 			videos: course.videos.map(v => ({
 				id: v.id,
 				courseId: v.courseId,
@@ -85,6 +89,7 @@ export async function handleCreateCourse(req: Request, res: Response): Promise<v
 			title: course.title,
 			description: course.descriptionMarkdown,
 			imagePath: course.imagePath,
+			isPublic: course.isPublic,
 			videos: course.videos.map(v => ({
 				id: v.id,
 				courseId: v.courseId,
@@ -139,6 +144,7 @@ export async function handleUpdateCourse(req: Request, res: Response): Promise<v
 			title: course.title,
 			description: course.descriptionMarkdown,
 			imagePath: course.imagePath,
+			isPublic: course.isPublic,
 			videos: course.videos.map(v => ({
 				id: v.id,
 				courseId: v.courseId,

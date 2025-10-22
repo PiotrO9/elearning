@@ -7,11 +7,17 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum UserRole {
+  USER
+  ADMIN
+}
+
 model User {
   id                   String           @id @default(uuid())
   email                String           @unique
   username             String           @unique
   password             String
+  role                 UserRole         @default(USER)
   createdAt            DateTime         @default(now())
   updatedAt            DateTime         @updatedAt
   deletedAt            DateTime?        // soft delete timestamp
@@ -19,6 +25,7 @@ model User {
   isOnline             Boolean          @default(false)
 
   refreshTokens        RefreshToken[]
+  courseEnrollments    CourseEnrollment[]
 }
 
 model RefreshToken {
@@ -38,7 +45,9 @@ model Course {
   descriptionMarkdown String
   imagePath           String
   isPublished         Boolean  @default(true)
+  isPublic            Boolean  @default(false)
   videos              Video[]
+  enrollments         CourseEnrollment[]
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
 }
@@ -56,4 +65,19 @@ model Video {
   updatedAt        DateTime @updatedAt
 
   @@unique([courseId, order])
+}
+
+model CourseEnrollment {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId        String
+  course          Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  enrolledBy      String?  // ID admina, który zapisał użytkownika (null jeśli self-enrollment)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([userId, courseId])
+  @@index([userId])
+  @@index([courseId])
 }
