@@ -181,3 +181,52 @@ export async function updateCourse(
 		})),
 	};
 }
+
+export async function reorderCourseVideos(
+	courseId: string,
+	items: { id: string; order: number }[],
+): Promise<void> {
+	if (items.length === 0) {
+		return;
+	}
+
+	// Ensure unique orders and ids
+	const targetOrders = new Set(items.map(i => i.order));
+	if (targetOrders.size !== items.length) {
+		throw Object.assign(new Error('Duplicate order values'), {
+			statusCode: 400,
+			code: 'DUPLICATE_ORDER',
+		});
+	}
+	const targetIds = new Set(items.map(i => i.id));
+	if (targetIds.size !== items.length) {
+		throw Object.assign(new Error('Duplicate video ids'), { statusCode: 400, code: 'DUPLICATE_ID' });
+	}
+
+	await prisma.$transaction(async tx => {
+		// Fetch existing videos for the course
+		const existing = await tx.video.findMany({
+			where: { courseId },
+			select: { id: true },
+		});
+		const existingIds = new Set(existing.map(v => v.id));
+
+		// Validate that all provided ids belong to the course
+		for (const item of items) {
+			if (!existingIds.has(item.id)) {
+				throw Object.assign(new Error('Video not in course'), {
+					statusCode: 404,
+					code: 'VIDEO_NOT_IN_COURSE',
+				});
+			}
+		}
+
+		// Optionally, ensure the full set matches existing to keep contiguous sequence
+		// Not mandatory: allow partial reorder of subset
+
+		// Update orders
+		for (const item of items) {
+			await tx.video.update({ where: { id: item.id }, data: { order: item.order } });
+		}
+	});
+}

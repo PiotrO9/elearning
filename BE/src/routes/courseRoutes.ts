@@ -5,6 +5,7 @@ import {
 	handleCreateCourse,
 	handleDeleteCourse,
 	handleUpdateCourse,
+	handleReorderCourseVideos,
 } from '../controllers/courseController';
 import { optionalAuth, authenticateToken } from '../middleware/auth';
 
@@ -41,5 +42,12 @@ router.delete('/:id', authenticateToken, handleDeleteCourse);
  * @access Private
  */
 router.patch('/:id', authenticateToken, handleUpdateCourse);
+
+/**
+ * @route POST /api/course/:id/videos/reorder
+ * @desc Reorder videos within a course
+ * @access Private
+ */
+router.post('/:id/videos/reorder', authenticateToken, handleReorderCourseVideos);
 
 export { router as courseRoutes };

@@ -74,3 +74,14 @@ export const attachVideoToCourseSchema = z.object({
 	order: z.number().int().positive().optional(),
 	isTrailer: z.boolean().optional(),
 });
+
+export const reorderCourseVideosSchema = z.object({
+	items: z
+		.array(
+			z.object({
+				id: z.string().min(10, 'Invalid video id'),
+				order: z.number().int().positive('Order must be positive'),
+			}),
+		)
+		.min(1, 'At least one item is required'),
+});
