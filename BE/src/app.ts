@@ -3,6 +3,8 @@ import express, { Express, Request, Response } from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { apiRoutes } from './routes/api';
+import { apiChildrenRouters } from './routes/api';
+import { buildOpenApiSpec } from './utils/openapi';
 import { prisma } from './utils/prisma';
 
 const app: Express = express();
@@ -53,6 +55,46 @@ app.get('/', (req: Request, res: Response) => {
 });
 
 app.get('/health', handleHealth);
+
+app.get('/api/openapi.json', (req: Request, res: Response) => {
+	const serverUrl = `${req.protocol}://${req.get('host')}`;
+	const spec = buildOpenApiSpec({
+		serverUrl,
+		children: apiChildrenRouters,
+		apiTitle: 'Elearning API',
+		apiVersion: '1.0.0',
+	});
+	res.json(spec);
+});
+
+app.get('/api', (_req: Request, res: Response) => {
+	res.setHeader('Content-Type', 'text/html; charset=utf-8');
+	res.send(`<!doctype html>
+	<html lang="en">
+	<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>Elearning API</title>
+	<link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css" />
+	<style>html,body,#swagger-ui{height:100%;margin:0}</style>
+	</head>
+	<body>
+	<div id="swagger-ui"></div>
+	<script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
+	<script>
+	window.onload = function handleLoad() {
+		SwaggerUIBundle({
+			url: '/api/openapi.json',
+			dom_id: '#swagger-ui',
+			deepLinking: true,
+			presets: [SwaggerUIBundle.presets.apis],
+			layout: 'BaseLayout'
+		});
+	};
+	</script>
+	</body>
+	</html>`);
+});
 
 app.use('/api', apiRoutes);
 
