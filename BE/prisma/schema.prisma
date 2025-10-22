@@ -73,7 +73,7 @@ model CourseEnrollment {
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   courseId        String
   course          Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  enrolledBy      String?  // ID admina, który zapisał użytkownika (null jeśli self-enrollment)
+  enrolledBy      String?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
