@@ -48,6 +48,7 @@ model Course {
   isPublic            Boolean  @default(false)
   videos              Video[]
   enrollments         CourseEnrollment[]
+  tags                CourseTag[]
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
 }
@@ -80,4 +81,27 @@ model CourseEnrollment {
   @@unique([userId, courseId])
   @@index([userId])
   @@index([courseId])
+}
+
+model Tag {
+  id          String      @id @default(cuid())
+  name        String      @unique
+  slug        String      @unique
+  description String?
+  courses     CourseTag[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+model CourseTag {
+  id        String   @id @default(cuid())
+  courseId  String
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  tagId     String
+  tag       Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([courseId, tagId])
+  @@index([courseId])
+  @@index([tagId])
 }

@@ -6,11 +6,12 @@ const prisma = new PrismaClient();
 export async function clearDatabase() {
 	console.log('🗑️  Czyszczenie bazy danych...');
 
-	// Usuwamy w odpowiedniej kolejności ze względu na foreign keys
 	await prisma.courseEnrollment.deleteMany();
+	await prisma.courseTag.deleteMany();
 	await prisma.refreshToken.deleteMany();
 	await prisma.video.deleteMany();
 	await prisma.course.deleteMany();
+	await prisma.tag.deleteMany();
 	await prisma.user.deleteMany();
 
 	console.log('✅ Baza danych wyczyszczona');
@@ -411,7 +412,6 @@ export async function seedVideos(courses: Course[]) {
 	console.log('🎥 Tworzenie video...');
 
 	const videosData = [
-		// TypeScript course
 		{
 			courseId: courses[0].id,
 			videos: [
@@ -423,7 +423,6 @@ export async function seedVideos(courses: Course[]) {
 				{ title: 'Generics', order: 6, isTrailer: false, durationSeconds: 1500 },
 			],
 		},
-		// Vue 3 course
 		{
 			courseId: courses[1].id,
 			videos: [
@@ -436,7 +435,6 @@ export async function seedVideos(courses: Course[]) {
 				{ title: 'Pinia - State Management', order: 7, isTrailer: false, durationSeconds: 1900 },
 			],
 		},
-		// Node.js course
 		{
 			courseId: courses[2].id,
 			videos: [
@@ -448,7 +446,6 @@ export async function seedVideos(courses: Course[]) {
 				{ title: 'Połączenie z bazą danych', order: 6, isTrailer: false, durationSeconds: 1800 },
 			],
 		},
-		// React 18 course
 		{
 			courseId: courses[3].id,
 			videos: [
@@ -462,7 +459,6 @@ export async function seedVideos(courses: Course[]) {
 				{ title: 'Server Components', order: 8, isTrailer: false, durationSeconds: 1600 },
 			],
 		},
-		// Python Data Science course
 		{
 			courseId: courses[4].id,
 			videos: [
@@ -475,7 +471,6 @@ export async function seedVideos(courses: Course[]) {
 				{ title: 'Scikit-learn w praktyce', order: 7, isTrailer: false, durationSeconds: 1900 },
 			],
 		},
-		// Docker & Kubernetes course
 		{
 			courseId: courses[5].id,
 			videos: [
@@ -489,7 +484,6 @@ export async function seedVideos(courses: Course[]) {
 				{ title: 'Helm charts', order: 8, isTrailer: false, durationSeconds: 1700 },
 			],
 		},
-		// PostgreSQL course
 		{
 			courseId: courses[6].id,
 			videos: [
@@ -502,7 +496,6 @@ export async function seedVideos(courses: Course[]) {
 				{ title: 'JSON w PostgreSQL', order: 7, isTrailer: false, durationSeconds: 1500 },
 			],
 		},
-		// GraphQL course
 		{
 			courseId: courses[7].id,
 			videos: [
@@ -516,7 +509,6 @@ export async function seedVideos(courses: Course[]) {
 				{ title: 'Subscriptions', order: 8, isTrailer: false, durationSeconds: 1400 },
 			],
 		},
-		// MongoDB course
 		{
 			courseId: courses[8].id,
 			videos: [
@@ -529,7 +521,6 @@ export async function seedVideos(courses: Course[]) {
 				{ title: 'Replication', order: 7, isTrailer: false, durationSeconds: 1600 },
 			],
 		},
-		// Next.js 14 course
 		{
 			courseId: courses[9].id,
 			videos: [
@@ -544,7 +535,6 @@ export async function seedVideos(courses: Course[]) {
 				{ title: 'Deployment na Vercel', order: 9, isTrailer: false, durationSeconds: 900 },
 			],
 		},
-		// Tailwind CSS course
 		{
 			courseId: courses[10].id,
 			videos: [
@@ -556,7 +546,6 @@ export async function seedVideos(courses: Course[]) {
 				{ title: 'Komponenty wielokrotnego użytku', order: 6, isTrailer: false, durationSeconds: 1350 },
 			],
 		},
-		// AWS course
 		{
 			courseId: courses[11].id,
 			videos: [
@@ -602,83 +591,69 @@ export async function seedEnrollments(users: User[], courses: Course[]) {
 	console.log('📝 Przypisywanie użytkowników do kursów...');
 
 	const enrollmentsData = [
-		// Jan Kowalski - frontend enthusiast (TypeScript, React, Vue, Next.js, Tailwind)
 		{ userId: users[1].id, courseId: courses[0].id },
 		{ userId: users[1].id, courseId: courses[1].id },
 		{ userId: users[1].id, courseId: courses[3].id },
 		{ userId: users[1].id, courseId: courses[9].id },
 		{ userId: users[1].id, courseId: courses[10].id },
 
-		// Anna Nowak - full-stack (TypeScript, Vue, Node.js, PostgreSQL)
 		{ userId: users[2].id, courseId: courses[0].id },
 		{ userId: users[2].id, courseId: courses[1].id },
 		{ userId: users[2].id, courseId: courses[2].id },
 		{ userId: users[2].id, courseId: courses[6].id },
 
-		// Piotr Wiśniewski - backend (Node.js, PostgreSQL, GraphQL, MongoDB)
 		{ userId: users[3].id, courseId: courses[2].id },
 		{ userId: users[3].id, courseId: courses[6].id },
 		{ userId: users[3].id, courseId: courses[7].id },
 		{ userId: users[3].id, courseId: courses[8].id },
 
-		// Maria Dąbrowska - data science (Python, MongoDB)
 		{ userId: users[4].id, courseId: courses[4].id },
 		{ userId: users[4].id, courseId: courses[8].id },
 
-		// Tomasz Lewandowski - devops (Docker/K8s, AWS, Node.js, PostgreSQL)
 		{ userId: users[5].id, courseId: courses[2].id },
 		{ userId: users[5].id, courseId: courses[5].id },
 		{ userId: users[5].id, courseId: courses[6].id },
 		{ userId: users[5].id, courseId: courses[11].id },
 
-		// Karolina Wójcik - React specialist (TypeScript, React, Next.js, Tailwind)
 		{ userId: users[6].id, courseId: courses[0].id },
 		{ userId: users[6].id, courseId: courses[3].id },
 		{ userId: users[6].id, courseId: courses[9].id },
 		{ userId: users[6].id, courseId: courses[10].id },
 
-		// Marcin Kamiński - backend + devops (Node.js, Docker, GraphQL, AWS)
 		{ userId: users[7].id, courseId: courses[2].id },
 		{ userId: users[7].id, courseId: courses[5].id },
 		{ userId: users[7].id, courseId: courses[7].id },
 		{ userId: users[7].id, courseId: courses[11].id },
 
-		// Agnieszka Zielińska - fullstack (TypeScript, React, Node.js, Next.js)
 		{ userId: users[8].id, courseId: courses[0].id },
 		{ userId: users[8].id, courseId: courses[2].id },
 		{ userId: users[8].id, courseId: courses[3].id },
 		{ userId: users[8].id, courseId: courses[9].id },
 
-		// Krzysztof Szymański - database specialist (PostgreSQL, MongoDB, GraphQL)
 		{ userId: users[9].id, courseId: courses[6].id },
 		{ userId: users[9].id, courseId: courses[7].id },
 		{ userId: users[9].id, courseId: courses[8].id },
 
-		// Magdalena Woźniak - frontend (Vue, React, Tailwind, Next.js)
 		{ userId: users[10].id, courseId: courses[1].id },
 		{ userId: users[10].id, courseId: courses[3].id },
 		{ userId: users[10].id, courseId: courses[9].id },
 		{ userId: users[10].id, courseId: courses[10].id },
 
-		// Adam Kowalczyk - versatile learner (wszystkie publiczne)
 		{ userId: users[11].id, courseId: courses[0].id },
 		{ userId: users[11].id, courseId: courses[3].id },
 		{ userId: users[11].id, courseId: courses[6].id },
 		{ userId: users[11].id, courseId: courses[9].id },
 		{ userId: users[11].id, courseId: courses[10].id },
 
-		// Ewa Krawczyk - data & cloud (Python, MongoDB, AWS)
 		{ userId: users[12].id, courseId: courses[4].id },
 		{ userId: users[12].id, courseId: courses[8].id },
 		{ userId: users[12].id, courseId: courses[11].id },
 
-		// Paweł Piotrowski - modern stack (TypeScript, Next.js, Tailwind, GraphQL)
 		{ userId: users[13].id, courseId: courses[0].id },
 		{ userId: users[13].id, courseId: courses[7].id },
 		{ userId: users[13].id, courseId: courses[9].id },
 		{ userId: users[13].id, courseId: courses[10].id },
 
-		// Natalia Grabowska - beginner explorer (tylko publiczne kursy)
 		{ userId: users[14].id, courseId: courses[0].id },
 		{ userId: users[14].id, courseId: courses[3].id },
 		{ userId: users[14].id, courseId: courses[6].id },
@@ -698,6 +673,122 @@ export async function seedEnrollments(users: User[], courses: Course[]) {
 	console.log(`✅ Utworzono ${enrollmentsData.length} zapisów na kursy`);
 }
 
+interface Tag {
+	id: string;
+	name: string;
+	slug: string;
+	[key: string]: any;
+}
+
+export async function seedTags(): Promise<Tag[]> {
+	console.log('🏷️  Tworzenie tagów...');
+
+	const tagsData = [
+		{ name: 'JavaScript', slug: 'javascript', description: 'Kursy związane z JavaScript' },
+		{ name: 'TypeScript', slug: 'typescript', description: 'Kursy TypeScript' },
+		{ name: 'Frontend', slug: 'frontend', description: 'Rozwój interfejsów użytkownika' },
+		{ name: 'Backend', slug: 'backend', description: 'Programowanie po stronie serwera' },
+		{ name: 'Full-stack', slug: 'full-stack', description: 'Rozwój full-stack' },
+		{ name: 'React', slug: 'react', description: 'Biblioteka React' },
+		{ name: 'Vue', slug: 'vue', description: 'Framework Vue.js' },
+		{ name: 'Node.js', slug: 'nodejs', description: 'JavaScript runtime' },
+		{ name: 'Python', slug: 'python', description: 'Język programowania Python' },
+		{ name: 'Data Science', slug: 'data-science', description: 'Analiza danych i ML' },
+		{ name: 'DevOps', slug: 'devops', description: 'Automatyzacja i infrastruktura' },
+		{ name: 'Bazy danych', slug: 'bazy-danych', description: 'SQL i NoSQL' },
+		{ name: 'Cloud', slug: 'cloud', description: 'Usługi chmurowe' },
+		{ name: 'API', slug: 'api', description: 'Projektowanie i budowa API' },
+		{ name: 'CSS', slug: 'css', description: 'Stylowanie i design' },
+		{ name: 'Początkujący', slug: 'poczatkujacy', description: 'Kursy dla początkujących' },
+		{ name: 'Zaawansowany', slug: 'zaawansowany', description: 'Kursy zaawansowane' },
+	];
+
+	const createdTags: Tag[] = [];
+
+	for (const tagData of tagsData) {
+		const tag = await prisma.tag.create({
+			data: tagData,
+		});
+		createdTags.push(tag);
+		console.log(`   ✓ ${tagData.name}`);
+	}
+
+	console.log('✅ Utworzono tagi');
+	return createdTags;
+}
+
+export async function seedCourseTags(courses: Course[], tags: Tag[]) {
+	console.log('🔗 Przypisywanie tagów do kursów...');
+
+	const findTagsByNames = (names: string[]): string[] => {
+		return names
+			.map(name => tags.find(t => t.name === name)?.id)
+			.filter((id): id is string => id !== undefined);
+	};
+
+	const courseTagsData = [
+		{
+			courseId: courses[0].id,
+			tagIds: findTagsByNames(['TypeScript', 'JavaScript', 'Frontend', 'Backend', 'Początkujący']),
+		},
+		{
+			courseId: courses[1].id,
+			tagIds: findTagsByNames(['Vue', 'JavaScript', 'Frontend', 'Zaawansowany']),
+		},
+		{
+			courseId: courses[2].id,
+			tagIds: findTagsByNames(['Node.js', 'JavaScript', 'Backend', 'API', 'Full-stack']),
+		},
+		{
+			courseId: courses[3].id,
+			tagIds: findTagsByNames(['React', 'JavaScript', 'Frontend', 'Początkujący']),
+		},
+		{ courseId: courses[4].id, tagIds: findTagsByNames(['Python', 'Data Science', 'Zaawansowany']) },
+		{
+			courseId: courses[5].id,
+			tagIds: findTagsByNames(['DevOps', 'Cloud', 'Backend', 'Zaawansowany']),
+		},
+		{ courseId: courses[6].id, tagIds: findTagsByNames(['Bazy danych', 'Backend', 'Zaawansowany']) },
+		{
+			courseId: courses[7].id,
+			tagIds: findTagsByNames(['API', 'Backend', 'JavaScript', 'Node.js', 'Zaawansowany']),
+		},
+		{ courseId: courses[8].id, tagIds: findTagsByNames(['Bazy danych', 'Backend']) },
+		{
+			courseId: courses[9].id,
+			tagIds: findTagsByNames([
+				'React',
+				'JavaScript',
+				'TypeScript',
+				'Frontend',
+				'Full-stack',
+				'Zaawansowany',
+			]),
+		},
+		{ courseId: courses[10].id, tagIds: findTagsByNames(['CSS', 'Frontend', 'Początkujący']) },
+		{
+			courseId: courses[11].id,
+			tagIds: findTagsByNames(['Cloud', 'DevOps', 'Backend', 'Zaawansowany']),
+		},
+	];
+
+	let totalAssignments = 0;
+
+	for (const courseTagData of courseTagsData) {
+		for (const tagId of courseTagData.tagIds) {
+			await prisma.courseTag.create({
+				data: {
+					courseId: courseTagData.courseId,
+					tagId,
+				},
+			});
+			totalAssignments++;
+		}
+	}
+
+	console.log(`✅ Przypisano ${totalAssignments} tagów do kursów`);
+}
+
 export async function runSeed() {
 	console.log('🌱 Rozpoczynam seedowanie bazy danych...\n');
 
@@ -707,7 +798,13 @@ export async function runSeed() {
 	const users = await seedUsers();
 	console.log('');
 
+	const tags = await seedTags();
+	console.log('');
+
 	const courses = await seedCourses();
+	console.log('');
+
+	await seedCourseTags(courses, tags);
 	console.log('');
 
 	await seedVideos(courses);
@@ -719,6 +816,7 @@ export async function runSeed() {
 	console.log('\n📊 Podsumowanie:');
 	console.log(`   Użytkownicy: ${users.length}`);
 	console.log(`   Kursy: ${courses.length}`);
+	console.log(`   Tagi: ${tags.length}`);
 	console.log(`   Admin: admin@elearning.pl / Admin123!`);
 	console.log(`   Użytkownicy testowi: *@example.com / User123!`);
 }

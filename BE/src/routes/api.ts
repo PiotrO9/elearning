@@ -4,6 +4,7 @@ import { courseRoutes } from './courseRoutes';
 import { videoRoutes } from './videoRoutes';
 import enrollmentRoutes from './enrollmentRoutes';
 import seedRoutes from './seedRoutes';
+import tagRoutes from './tagRoutes';
 
 const router = Router();
 
@@ -12,6 +13,7 @@ router.use('/course', courseRoutes);
 router.use('/video', videoRoutes);
 router.use('/courses', enrollmentRoutes);
 router.use('/seed', seedRoutes);
+router.use('/tags', tagRoutes);
 
 export { router as apiRoutes };
 
@@ -21,4 +23,5 @@ export const apiChildrenRouters = [
 	{ base: '/video', router: videoRoutes },
 	{ base: '/courses', router: enrollmentRoutes },
 	{ base: '/seed', router: seedRoutes },
+	{ base: '/tags', router: tagRoutes },
 ];

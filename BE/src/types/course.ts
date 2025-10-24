@@ -4,6 +4,7 @@ export interface CourseListItemDto {
 	description: string;
 	imagePath: string;
 	isPublic: boolean;
+	tags?: import('./tag').TagDto[];
 }
 
 export interface CourseDetailDto {
@@ -13,6 +14,7 @@ export interface CourseDetailDto {
 	imagePath: string;
 	isPublic: boolean;
 	videos: import('./video').VideoDto[];
+	tags?: import('./tag').TagDto[];
 }
 
 export interface CourseListItem {
@@ -21,6 +23,7 @@ export interface CourseListItem {
 	summary: string;
 	imagePath: string;
 	isPublic: boolean;
+	tags?: import('./tag').TagDto[];
 }
 
 export interface CourseDetail {
@@ -30,6 +33,7 @@ export interface CourseDetail {
 	imagePath: string;
 	isPublic: boolean;
 	videos: import('./video').Video[];
+	tags?: import('./tag').TagDto[];
 }
 
 export interface CreateCourseInput {
@@ -39,6 +43,7 @@ export interface CreateCourseInput {
 	imagePath: string;
 	isPublished?: boolean;
 	isPublic?: boolean;
+	tagIds?: string[];
 }
 
 export interface UpdateCourseInput {
@@ -48,4 +53,5 @@ export interface UpdateCourseInput {
 	imagePath?: string;
 	isPublished?: boolean;
 	isPublic?: boolean;
+	tagIds?: string[];
 }
