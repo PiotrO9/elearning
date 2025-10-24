@@ -31,8 +31,8 @@ async function handleLogout() {
             </template>
 
             <template v-else>
-                <RouterLink to="/login">Logowanie</RouterLink>
-                <RouterLink to="/register">Rejestracja</RouterLink>
+                <RouterLink to="/auth">Logowanie</RouterLink>
+                <RouterLink to="/auth?mode=register">Rejestracja</RouterLink>
             </template>
         </nav>
     </MaxWidthWrapper>

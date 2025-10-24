@@ -85,7 +85,7 @@ async function handleSubmit() {
 
             <div class="text-center text-sm mt-2">
                 Nie masz konta?
-                <RouterLink to="/register" class="text-blue-600 hover:underline"
+                <RouterLink to="/auth?mode=register" class="text-blue-600 hover:underline"
                     >Zarejestruj się</RouterLink
                 >
             </div>
