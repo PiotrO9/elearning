@@ -104,7 +104,7 @@ onUnmounted(() => {
         <button
             v-if="images.length > 1"
             @click="prevSlide"
-            class="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-white/80 p-2 shadow-lg transition-all hover:bg-white hover:scale-110 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            class="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-white/80 p-2 shadow-lg transition-all hover:bg-white hover:scale-110 focus:outline-none focus:ring-2 focus:ring-primary"
             aria-label="Previous slide"
         >
             <svg
@@ -126,7 +126,7 @@ onUnmounted(() => {
         <button
             v-if="images.length > 1"
             @click="nextSlide"
-            class="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-white/80 p-2 shadow-lg transition-all hover:bg-white hover:scale-110 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            class="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-white/80 p-2 shadow-lg transition-all hover:bg-white hover:scale-110 focus:outline-none focus:ring-2 focus:ring-primary"
             aria-label="Next slide"
         >
             <svg
