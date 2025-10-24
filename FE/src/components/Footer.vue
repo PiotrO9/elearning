@@ -1,6 +1,9 @@
 <script setup lang="ts">
+import { useAuthStore } from '@/stores/auth'
 import MaxWidthWrapper from './wrappers/MaxWidthWrapper.vue'
 import { Icon } from '@iconify/vue'
+
+const authStore = useAuthStore()
 
 const links = [
     {
@@ -10,6 +13,8 @@ const links = [
             { name: 'Kursy', url: '/courses' },
             { name: 'O Nas', url: '/about' },
             { name: 'Kontakt', url: '/contact' },
+            { name: 'Posiadane Kursy', url: '/profile/courses', isAuthRequired: true },
+            { name: 'Profil', url: '/profile', isAuthRequired: true },
         ],
     },
     {
@@ -22,6 +27,10 @@ const links = [
         ],
     },
 ]
+
+const getVisibleLinks = function (sublinks: (typeof links)[0]['sublinks']) {
+    return sublinks.filter((link) => !link.isAuthRequired || authStore.isAuthenticated)
+}
 </script>
 
 <template>
@@ -52,7 +61,7 @@ const links = [
                     <h2 class="text-xl mb-6 font-semibold">{{ section.name }}</h2>
                     <ul class="flex flex-col gap-3">
                         <li
-                            v-for="link in section.sublinks"
+                            v-for="link in getVisibleLinks(section.sublinks)"
                             :key="link.name"
                             class="hover:text-text-on-dark-muted duration-300"
                         >
