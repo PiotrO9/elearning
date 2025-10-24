@@ -29,9 +29,11 @@ onMounted(() => {
 
 <template>
     <MaxWidthWrapper size="lg">
-        <div class="min-h-[80vh] flex justify-between items-center py-6">
-            <LoginCard class="row-start-2" v-if="currentMode === 'login'" />
-            <RegisterCard class="row-start-2" v-else-if="currentMode === 'register'" />
+        <div
+            class="min-h-[80vh] flex flex-col lg:flex-row gap-24 lg:gap-6 justify-between items-center py-6"
+        >
+            <LoginCard v-if="currentMode === 'login'" />
+            <RegisterCard v-else-if="currentMode === 'register'" />
             <Carousel
                 class="max-w-5xl"
                 :images="['/placeholder.jpg', '/placeholder.webp']"
