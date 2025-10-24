@@ -4,5 +4,8 @@ export interface Video {
   duration: string
   isCompleted?: boolean
   isFree?: boolean
+  isTrailer?: boolean
+  url?: string
+  order?: number
 }
 
