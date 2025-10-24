@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import Carousel from '@/components/Carousel.vue'
 import LoginCard from '@/components/LoginCard.vue'
 import Modal from '@/components/ui/Modal.vue'
 import { ref } from 'vue'
@@ -13,6 +14,11 @@ const isopen = ref<boolean>(false)
         <Modal v-on:update:is-open="isopen = false" :is-open="isopen">
             <LoginCard />
         </Modal>
+        <Carousel
+            :images="['/placeholder.jpg', 'placeholder.webp']"
+            auto-play
+            :auto-play-interval="2000"
+        />
     </div>
 </template>
 
