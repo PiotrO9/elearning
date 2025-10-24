@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import LoginCard from '@/components/LoginCard.vue';
-import Modal from '@/components/ui/Modal.vue';
-import { ref } from 'vue';
+import Carousel from '@/components/Carousel.vue'
+import LoginCard from '@/components/LoginCard.vue'
+import Modal from '@/components/ui/Modal.vue'
+import { ref } from 'vue'
 
-    const isopen = ref<boolean>(false)
-
+const isopen = ref<boolean>(false)
 </script>
 
 <template>
@@ -14,22 +14,25 @@ import { ref } from 'vue';
         <Modal v-on:update:is-open="isopen = false" :is-open="isopen">
             <LoginCard />
         </Modal>
+        <Carousel
+            :images="['/placeholder.jpg', 'placeholder.webp']"
+            auto-play
+            :auto-play-interval="2000"
+        />
     </div>
 </template>
 
-
 <style scoped>
-    @keyframes spin {
-        0% {
-            transform: rotateZ(0deg);
-        }
-        100% {
-            transform: rotateZ(360deg);
-        }
+@keyframes spin {
+    0% {
+        transform: rotateZ(0deg);
     }
+    100% {
+        transform: rotateZ(360deg);
+    }
+}
 
-    .animate-spins {
-        animation: spin 20s linear infinite;
-        
-    }
+.animate-spins {
+    animation: spin 20s linear infinite;
+}
 </style>

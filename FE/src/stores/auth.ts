@@ -1,98 +1,80 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
 import { httpClient } from '@/utils'
-import type { User, LoginResponse, MeResponse, RegisterResponse } from '@/types/User'
-import type { z } from 'zod'
-import { LoginScheme, RegisterScheme } from '@/types/User'
+import type { MeResponse, LoginResponse, RegisterResponse, User } from '@/types/user'
+import { LoginScheme, RegisterScheme } from '@/schemas/user'
+import * as z from 'zod'
 
-export const useAuthStore = defineStore('auth', () => {
-  const user = ref<User | null>(null)
-  const loading = ref(false)
-  const error = ref<string | null>(null)
+export const useAuthStore = defineStore('auth', {
+    state: () => ({
+        user: null as User | null,
+        loading: false,
+        error: null as string | null,
+    }),
 
-  const isAuthenticated = computed(() => user.value !== null)
+    getters: {
+        isAuthenticated: (state) => !!state.user,
+    },
 
-  const fetchUser = async () => {
-    try {
-      loading.value = true
-      error.value = null
-      const response = await httpClient.get<MeResponse>('/auth/me')
-      user.value = response.data.data.user
-    } catch (err: any) {
-      user.value = null
-      if (err.response?.status !== 401) {
-        error.value = err.response?.data?.message || 'Nie udało się pobrać danych użytkownika'
-      }
-    } finally {
-      loading.value = false
-    }
-  }
+    actions: {
+        async login(credentials: z.infer<typeof LoginScheme>) {
+            try {
+                this.loading = true
+                this.error = null
+                const response = await httpClient.post<LoginResponse>('/auth/login', credentials)
+                this.user = response.data.data.user
+                return true
+            } catch (err: any) {
+                console.error('Login: ', err)
+                this.error = err.response?.data?.message || 'Rejestracja nie powiodła się'
+                return false
+            } finally {
+                this.loading = false
+            }
+        },
 
-  const login = async (credentials: z.infer<typeof LoginScheme>) => {
-    try {
-      loading.value = true
-      error.value = null
-      const response = await httpClient.post<LoginResponse>('/auth/login', credentials)
-      user.value = response.data.data.user
-      return true
-    } catch (err: any) {
-      console.error('Login error:', err)
-      if (err.code === 'ERR_NETWORK') {
-        error.value = 'Nie można połączyć się z serwerem. Upewnij się, że backend jest uruchomiony.'
-      } else {
-        error.value = err.response?.data?.message || 'Logowanie nie powiodło się'
-      }
-      return false
-    } finally {
-      loading.value = false
-    }
-  }
+        async register(credentials: z.infer<typeof RegisterScheme>) {
+            try {
+                this.loading = true
+                this.error = null
+                await httpClient.post<RegisterResponse>('/auth/register', credentials)
+                return true
+            } catch (err: any) {
+                console.error('Register: ', err)
+                this.error = err.response?.data?.message || 'Rejestracja nie powiodła się'
+                return false
+            }
+        },
 
-  const register = async (credentials: z.infer<typeof RegisterScheme>) => {
-    try {
-      loading.value = true
-      error.value = null
-      await httpClient.post<RegisterResponse>('/auth/register', credentials)
-      return true
-    } catch (err: any) {
-      console.error('Register error:', err)
-      if (err.code === 'ERR_NETWORK') {
-        error.value = 'Nie można połączyć się z serwerem. Upewnij się, że backend jest uruchomiony.'
-      } else {
-        error.value = err.response?.data?.message || 'Rejestracja nie powiodła się'
-      }
-      return false
-    } finally {
-      loading.value = false
-    }
-  }
+        async logout() {
+            try {
+                this.loading = true
+                this.error = null
+                await httpClient.post('/auth/logout')
+            } catch (err: any) {
+                this.error = err.response?.data?.message || 'Wylogowanie nie powiodło się'
+            } finally {
+                this.user = null
+                this.error = null
+            }
+        },
 
-  const logout = async () => {
-    try {
-      loading.value = true
-      error.value = null
-      await httpClient.post('/auth/logout')
-    } catch (err: any) {
-      error.value = err.response?.data?.message || 'Wylogowanie nie powiodło się'
-    } finally {
-      user.value = null
-      loading.value = false
-    }
-  }
+        async fetchUser() {
+            try {
+                this.loading = true
+                this.error = null
 
-  const clearError = () => {
-    error.value = null
-  }
+                const response = await httpClient.get<MeResponse>('/auth/me')
+                this.user = response.data.data.user
+            } catch (err: any) {
+                this.user = null
+                console.error(err)
+            } finally {
+                this.loading = false
+            }
+        },
 
-  return {
-    user,
-    loading,
-    error,
-    isAuthenticated,
-    fetchUser,
-    login,
-    register,
-    logout,
-    clearError
-  }
+        clearError() {
+            this.error = null
+        },
+    },
 })

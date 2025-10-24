@@ -1,1 +1,27 @@
-@import "tailwindcss";
+@import 'tailwindcss';
+
+@theme {
+    /* primary */
+    --color-primary: #78dcca;
+    --color-secondary: #f87171;
+    --color-accent: #fbbf24;
+
+    /* text */
+    --color-text: #f1f5f9;
+    --color-text-secondary: #94a3b8;
+
+    /* background */
+    --color-background: #1e293b;
+    --color-background-secondary: #334155;
+
+    /* input */
+    --color-input-background: #0f172a;
+    --color-input-background-focus: #1e293b;
+    --color-input-border: #475569;
+    --color-input-placeholder: #64748b;
+    --color-input-focus-border: #3b82f6;
+}
+
+body {
+    @apply bg-background text-text;
+}
