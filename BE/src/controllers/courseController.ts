@@ -19,15 +19,18 @@ import { CourseListItemDto, CourseDetailDto } from '../types/course';
 import { VideoDto } from '../types/video';
 
 export async function handleGetCourses(req: Request, res: Response): Promise<void> {
-	req;
 	try {
-		const courses = await listPublishedCourses();
+		// Get optional tag filter from query params
+		const tagSlug = req.query.tag as string | undefined;
+
+		const courses = await listPublishedCourses(tagSlug);
 		const payload: CourseListItemDto[] = courses.map(course => ({
 			id: course.id,
 			title: course.title,
 			description: course.summary,
 			imagePath: course.imagePath,
 			isPublic: course.isPublic,
+			tags: course.tags,
 		}));
 
 		sendSuccess(res, { items: payload, total: payload.length });
@@ -67,6 +70,7 @@ export async function handleGetCourseById(req: Request, res: Response): Promise<
 				sourceUrl: v.sourceUrl,
 				durationSeconds: v.durationSeconds,
 			})) as VideoDto[],
+			tags: course.tags,
 		};
 
 		sendSuccess(res, payload);
@@ -99,6 +103,7 @@ export async function handleCreateCourse(req: Request, res: Response): Promise<v
 				sourceUrl: v.sourceUrl,
 				durationSeconds: v.durationSeconds,
 			})) as VideoDto[],
+			tags: course.tags,
 		};
 
 		sendSuccess(res, payload, 'Course created', 201);
@@ -154,6 +159,7 @@ export async function handleUpdateCourse(req: Request, res: Response): Promise<v
 				sourceUrl: v.sourceUrl,
 				durationSeconds: v.durationSeconds,
 			})) as VideoDto[],
+			tags: course.tags,
 		};
 
 		sendSuccess(res, payload);

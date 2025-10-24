@@ -13,7 +13,8 @@ const router = Router();
 
 /**
  * @route GET /api/course
- * @desc List published courses
+ * @query tag - Optional tag slug to filter courses (e.g., ?tag=javascript)
+ * @desc List published courses, optionally filtered by tag
  * @access Public
  */
 router.get('/', handleGetCourses);

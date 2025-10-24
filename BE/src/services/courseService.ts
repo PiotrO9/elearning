@@ -38,9 +38,22 @@ function mapListItem(course: {
 	};
 }
 
-export async function listPublishedCourses(): Promise<CourseListItem[]> {
+export async function listPublishedCourses(tagSlug?: string): Promise<CourseListItem[]> {
+	const whereClause: any = { isPublished: true };
+
+	// If tagSlug is provided, filter courses by tag
+	if (tagSlug) {
+		whereClause.tags = {
+			some: {
+				tag: {
+					slug: tagSlug,
+				},
+			},
+		};
+	}
+
 	const courses = await prisma.course.findMany({
-		where: { isPublished: true },
+		where: whereClause,
 		select: {
 			id: true,
 			title: true,
