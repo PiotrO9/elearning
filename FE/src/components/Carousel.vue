@@ -151,19 +151,14 @@ onUnmounted(() => {
                 :key="`dot-${index}`"
                 @click="goToSlide(index)"
                 :class="[
-                    'h-3 w-3 rounded-full transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2',
+                    'h-3 w-3 rounded-full transition-all duration-300 focus-within:ring-primary focus:outline-none focus:ring-2 focus:ring-offset-2',
                     index === currentIndex
-                        ? 'bg-white scale-125 shadow-lg'
-                        : 'bg-white/50 hover:bg-white/75 hover:scale-110',
+                        ? 'bg-primary scale-125 shadow-lg'
+                        : 'bg-primary/40 hover:bg-primary/100 hover:scale-110',
                 ]"
                 :aria-label="`Go to slide ${index + 1}`"
                 :aria-current="index === currentIndex ? 'true' : 'false'"
             ></button>
-        </div>
-
-        <!-- Slide Counter -->
-        <div class="absolute top-4 right-4 rounded-full bg-black/50 px-3 py-1 text-sm text-white">
-            {{ currentIndex + 1 }} / {{ images.length }}
         </div>
     </div>
 </template>
