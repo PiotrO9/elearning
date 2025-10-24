@@ -1,9 +1,11 @@
 import jwt from 'jsonwebtoken';
 import { Response } from 'express';
+import { UserRole } from '../types/user';
 
 export interface TokenPayload {
 	userId: string;
 	email: string;
+	role: UserRole;
 }
 
 // JWT secret keys from environment variables

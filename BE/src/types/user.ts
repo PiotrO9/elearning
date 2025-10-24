@@ -1,7 +1,12 @@
+import { UserRole } from '@prisma/client';
+
+export { UserRole };
+
 export interface UserProfile {
 	id: string;
 	email: string;
 	username: string;
+	role: UserRole;
 	createdAt: Date;
 	updatedAt: Date;
 	lastSeen: Date | null;
@@ -11,6 +16,7 @@ export interface UserBasic {
 	id: string;
 	email: string;
 	username: string;
+	role: UserRole;
 	createdAt: Date;
 	lastSeen: Date | null;
 }

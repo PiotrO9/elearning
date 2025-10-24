@@ -1,9 +1,14 @@
 import 'dotenv/config';
-import express, { Express, Request, Response } from 'express';
+import express, { Express, Request, Response, NextFunction } from 'express';
+import { randomUUID } from 'crypto';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { apiRoutes } from './routes/api';
+import { apiChildrenRouters } from './routes/api';
+import { buildOpenApiSpec } from './utils/openapi';
 import { prisma } from './utils/prisma';
+import { handleExpressError } from './utils/response';
+import { NotFoundError } from './types/api';
 
 const app: Express = express();
 
@@ -26,6 +31,15 @@ app.use(
 		optionsSuccessStatus: 204,
 	}),
 );
+
+// Trace id for correlation
+app.use((req: Request, res: Response, next: NextFunction) => {
+	const traceId = randomUUID();
+	(res as any).locals = { ...(res as any).locals, traceId };
+	(req as any).traceId = traceId;
+	res.setHeader('X-Trace-Id', traceId);
+	next();
+});
 
 app.use(cookieParser());
 app.use(express.json({ limit: '10mb' }));
@@ -54,7 +68,58 @@ app.get('/', (req: Request, res: Response) => {
 
 app.get('/health', handleHealth);
 
+app.get('/api/openapi.json', (req: Request, res: Response) => {
+	const serverUrl = `${req.protocol}://${req.get('host')}`;
+	const spec = buildOpenApiSpec({
+		serverUrl,
+		children: apiChildrenRouters,
+		apiTitle: 'Elearning API',
+		apiVersion: '1.0.0',
+	});
+	res.json(spec);
+});
+
+app.get('/api', (_req: Request, res: Response) => {
+	res.setHeader('Content-Type', 'text/html; charset=utf-8');
+	res.send(`<!doctype html>
+	<html lang="en">
+	<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>Elearning API</title>
+	<link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css" />
+	<style>html,body,#swagger-ui{height:100%;margin:0}</style>
+	</head>
+	<body>
+	<div id="swagger-ui"></div>
+	<script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
+	<script>
+	window.onload = function handleLoad() {
+		SwaggerUIBundle({
+			url: '/api/openapi.json',
+			dom_id: '#swagger-ui',
+			deepLinking: true,
+			presets: [SwaggerUIBundle.presets.apis],
+			layout: 'BaseLayout'
+		});
+	};
+	</script>
+	</body>
+	</html>`);
+});
+
 app.use('/api', apiRoutes);
+
+// 404 for unknown api routes
+app.use('/api', (_req: Request, _res: Response, next: NextFunction) => {
+	next(new NotFoundError('Route not found'));
+});
+
+// Global error handler
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+app.use((err: unknown, req: Request, res: Response, _next: NextFunction) => {
+	handleExpressError(err, req, res);
+});
 
 app.listen(PORT, () => {
 	console.log(`🚀 Server is running on http://localhost:${PORT}`);

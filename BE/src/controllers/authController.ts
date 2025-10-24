@@ -10,6 +10,8 @@ import {
 } from '../services/authService';
 import { AuthServiceError } from '../types/auth';
 import { UserService } from '../services/userService';
+import { sendSuccess, sendError, buildValidationErrors } from '../utils/response';
+import { ValidationError } from '../types/api';
 
 const userService = new UserService();
 
@@ -22,39 +24,22 @@ export async function register(req: Request, res: Response): Promise<void> {
 		const validationResult = registerSchema.safeParse(req.body);
 
 		if (!validationResult.success) {
-			res.status(400).json({
-				success: false,
-				message: 'Validation failed',
-				details: validationResult.error.issues.map(issue => ({
-					field: issue.path.join('.'),
-					message: issue.message,
-				})),
-			});
-			return;
+			const errors = buildValidationErrors(validationResult.error.issues);
+			throw new ValidationError('Validation failed', errors);
 		}
 
 		const { email, username, password } = validationResult.data;
 
 		await registerUser({ email, username, password });
 
-		res.status(201).json({
-			success: true,
-			message: 'User registered successfully',
-		});
+		sendSuccess(res, undefined, 'User registered successfully', 201);
 	} catch (error) {
 		if (error instanceof AuthServiceError) {
-			res.status(error.statusCode).json({
-				success: false,
-				message: error.message,
-			});
-			return;
+			return sendError(res, error.message, error.statusCode, error.code);
 		}
 
 		console.error('Registration error:', error);
-		res.status(500).json({
-			success: false,
-			message: 'Internal server error',
-		});
+		return sendError(res, 'Internal server error');
 	}
 }
 
@@ -67,15 +52,8 @@ export async function login(req: Request, res: Response): Promise<void> {
 		const validationResult = loginSchema.safeParse(req.body);
 
 		if (!validationResult.success) {
-			res.status(400).json({
-				success: false,
-				message: 'Validation failed',
-				details: validationResult.error.issues.map(issue => ({
-					field: issue.path.join('.'),
-					message: issue.message,
-				})),
-			});
-			return;
+			const errors = buildValidationErrors(validationResult.error.issues);
+			throw new ValidationError('Validation failed', errors);
 		}
 
 		const { email, password } = validationResult.data;
@@ -91,27 +69,14 @@ export async function login(req: Request, res: Response): Promise<void> {
 			console.error('Error setting user online status:', error);
 		}
 
-		res.status(200).json({
-			success: true,
-			message: 'Login successful',
-			data: {
-				user: result.user,
-			},
-		});
+		sendSuccess(res, { user: result.user }, 'Login successful', 200);
 	} catch (error) {
 		if (error instanceof AuthServiceError) {
-			res.status(error.statusCode).json({
-				success: false,
-				message: error.message,
-			});
-			return;
+			return sendError(res, error.message, error.statusCode, error.code);
 		}
 
 		console.error('Login error:', error);
-		res.status(500).json({
-			success: false,
-			message: 'Internal server error',
-		});
+		return sendError(res, 'Internal server error');
 	}
 }
 
@@ -124,11 +89,7 @@ export async function refresh(req: Request, res: Response): Promise<void> {
 		const { refreshToken } = req.cookies;
 
 		if (!refreshToken) {
-			res.status(401).json({
-				success: false,
-				message: 'Refresh token not found',
-			});
-			return;
+			return sendError(res, 'Refresh token not found', 401, 'REFRESH_TOKEN_MISSING');
 		}
 
 		const newAccessToken = await refreshAccessToken(refreshToken);
@@ -140,24 +101,14 @@ export async function refresh(req: Request, res: Response): Promise<void> {
 			maxAge: 15 * 60 * 1000, // 15 minutes
 		});
 
-		res.status(200).json({
-			success: true,
-			message: 'Access token refreshed successfully',
-		});
+		sendSuccess(res, undefined, 'Access token refreshed successfully', 200);
 	} catch (error) {
 		if (error instanceof AuthServiceError) {
-			res.status(error.statusCode).json({
-				success: false,
-				message: error.message,
-			});
-			return;
+			return sendError(res, error.message, error.statusCode, error.code);
 		}
 
 		console.error('Refresh token error:', error);
-		res.status(500).json({
-			success: false,
-			message: 'Internal server error',
-		});
+		return sendError(res, 'Internal server error');
 	}
 }
 
@@ -185,16 +136,10 @@ export async function logout(req: Request, res: Response): Promise<void> {
 
 		clearAuthCookies(res);
 
-		res.status(200).json({
-			success: true,
-			message: 'Logout successful',
-		});
+		sendSuccess(res, undefined, 'Logout successful', 200);
 	} catch (error) {
 		console.error('Logout error:', error);
-		res.status(500).json({
-			success: false,
-			message: 'Internal server error',
-		});
+		return sendError(res, 'Internal server error');
 	}
 }
 
@@ -207,34 +152,18 @@ export async function me(req: Request, res: Response): Promise<void> {
 		const userId = (req as any).user?.userId;
 
 		if (!userId) {
-			res.status(401).json({
-				success: false,
-				message: 'User not authenticated',
-			});
-			return;
+			return sendError(res, 'User not authenticated', 401, 'UNAUTHENTICATED');
 		}
 
 		const user = await getUserData(userId);
 
-		res.status(200).json({
-			success: true,
-			data: {
-				user,
-			},
-		});
+		sendSuccess(res, { user }, undefined, 200);
 	} catch (error) {
 		if (error instanceof AuthServiceError) {
-			res.status(error.statusCode).json({
-				success: false,
-				message: error.message,
-			});
-			return;
+			return sendError(res, error.message, error.statusCode, error.code);
 		}
 
 		console.error('Get user data error:', error);
-		res.status(500).json({
-			success: false,
-			message: 'Internal server error',
-		});
+		return sendError(res, 'Internal server error');
 	}
 }

@@ -1,9 +1,9 @@
 {
-  "name": "elearning-backend",
-  "version": "1.0.0",
-  "description": "Prosty projekt Express.js z TypeScript dla platformy e-learningowej",
-  "main": "dist/app.js",
-  "scripts": {
+	"name": "elearning-backend",
+	"version": "1.0.0",
+	"description": "Prosty projekt Express.js z TypeScript dla platformy e-learningowej",
+	"main": "dist/app.js",
+	"scripts": {
 		"dev": "nodemon src/app.ts",
 		"build": "tsc",
 		"start": "node dist/app.js",
@@ -11,22 +11,27 @@
 		"db:push": "prisma db push",
 		"db:migrate": "prisma migrate dev",
 		"db:studio": "prisma studio",
+		"db:seed": "ts-node prisma/seed.ts",
 		"docker:up": "docker-compose up --build",
 		"docker:down": "docker-compose down",
 		"docker:clean": "docker-compose down -v"
 	},
-  "keywords": [
-	"express",
-	"backend",
-	"elearning",
-	"api",
-	"typescript"
-  ],
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
+	"prisma": {
+		"seed": "ts-node prisma/seed.ts"
+	},
+	"keywords": [
+		"express",
+		"backend",
+		"elearning",
+		"api",
+		"typescript"
+	],
+	"author": "",
+	"license": "ISC",
+	"dependencies": {
 		"@prisma/client": "^6.16.3",
 		"@types/cookie-parser": "^1.4.9",
+		"@types/swagger-ui-express": "^4.1.8",
 		"@typescript-eslint/eslint-plugin": "^8.45.0",
 		"@typescript-eslint/parser": "^8.45.0",
 		"bcrypt": "^6.0.0",
@@ -36,6 +41,7 @@
 		"eslint": "^9.37.0",
 		"express": "^5.1.0",
 		"jsonwebtoken": "^9.0.2",
+		"swagger-ui-express": "^5.0.1",
 		"zod": "^4.1.11"
 	},
 	"devDependencies": {
@@ -50,4 +56,3 @@
 		"typescript": "^5.9.3"
 	}
 }
-

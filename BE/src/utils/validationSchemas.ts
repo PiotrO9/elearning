@@ -30,6 +30,7 @@ export const createCourseSchema = z.object({
 	descriptionMarkdown: z.string().min(10, 'Description must be at least 10 characters'),
 	imagePath: z.string().min(1, 'Image path is required'),
 	isPublished: z.boolean().optional().default(true),
+	isPublic: z.boolean().optional().default(false),
 });
 
 // Video and update schemas
@@ -38,7 +39,6 @@ export const videoIdParamSchema = z.object({
 });
 
 export const createVideoSchema = z.object({
-	courseId: z.string().min(10, 'Invalid course id'),
 	title: z.string().min(3, 'Title must be at least 3 characters').max(200, 'Title too long'),
 	order: z.number().int().positive('Order must be positive'),
 	isTrailer: z.boolean().optional().default(false),
@@ -66,6 +66,7 @@ export const updateCourseSchema = z
 		descriptionMarkdown: z.string().min(10).optional(),
 		imagePath: z.string().min(1).optional(),
 		isPublished: z.boolean().optional(),
+		isPublic: z.boolean().optional(),
 	})
 	.refine(obj => Object.keys(obj).length > 0, {
 		message: 'At least one field must be provided',
@@ -74,4 +75,24 @@ export const updateCourseSchema = z
 export const attachVideoToCourseSchema = z.object({
 	order: z.number().int().positive().optional(),
 	isTrailer: z.boolean().optional(),
+});
+
+export const reorderCourseVideosSchema = z.object({
+	items: z
+		.array(
+			z.object({
+				id: z.string().min(10, 'Invalid video id'),
+				order: z.number().int().positive('Order must be positive'),
+			}),
+		)
+		.min(1, 'At least one item is required'),
+});
+
+// Enrollment schemas
+export const enrollUserSchema = z.object({
+	userId: z.string().uuid('Invalid user id'),
+});
+
+export const userIdParamSchema = z.object({
+	userId: z.string().uuid('Invalid user id'),
 });

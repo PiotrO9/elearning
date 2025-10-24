@@ -7,11 +7,17 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum UserRole {
+  USER
+  ADMIN
+}
+
 model User {
   id                   String           @id @default(uuid())
   email                String           @unique
   username             String           @unique
   password             String
+  role                 UserRole         @default(USER)
   createdAt            DateTime         @default(now())
   updatedAt            DateTime         @updatedAt
   deletedAt            DateTime?        // soft delete timestamp
@@ -19,6 +25,7 @@ model User {
   isOnline             Boolean          @default(false)
 
   refreshTokens        RefreshToken[]
+  courseEnrollments    CourseEnrollment[]
 }
 
 model RefreshToken {
@@ -38,15 +45,18 @@ model Course {
   descriptionMarkdown String
   imagePath           String
   isPublished         Boolean  @default(true)
+  isPublic            Boolean  @default(false)
   videos              Video[]
+  enrollments         CourseEnrollment[]
+  tags                CourseTag[]
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
 }
 
 model Video {
   id               String   @id @default(cuid())
-  courseId         String
-  course           Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  courseId         String?
+  course           Course?  @relation(fields: [courseId], references: [id], onDelete: Cascade)
   title            String
   order            Int
   isTrailer        Boolean  @default(false)
@@ -56,4 +66,42 @@ model Video {
   updatedAt        DateTime @updatedAt
 
   @@unique([courseId, order])
+}
+
+model CourseEnrollment {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId        String
+  course          Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  enrolledBy      String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([userId, courseId])
+  @@index([userId])
+  @@index([courseId])
+}
+
+model Tag {
+  id          String      @id @default(cuid())
+  name        String      @unique
+  slug        String      @unique
+  description String?
+  courses     CourseTag[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+model CourseTag {
+  id        String   @id @default(cuid())
+  courseId  String
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  tagId     String
+  tag       Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([courseId, tagId])
+  @@index([courseId])
+  @@index([tagId])
 }

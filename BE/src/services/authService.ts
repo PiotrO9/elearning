@@ -66,6 +66,7 @@ export async function loginUser(email: string, password: string): Promise<LoginR
 	const tokenPayload: TokenPayload = {
 		userId: user.id,
 		email: user.email,
+		role: user.role,
 	};
 
 	const accessToken = generateAccessToken(tokenPayload);
@@ -127,6 +128,7 @@ export async function refreshAccessToken(refreshToken: string): Promise<string> 
 	const newAccessToken = generateAccessToken({
 		userId: storedToken.user.id,
 		email: storedToken.user.email,
+		role: storedToken.user.role,
 	});
 
 	return newAccessToken;

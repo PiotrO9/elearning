@@ -1,24 +1,29 @@
 export interface CourseListItemDto {
 	id: string;
 	title: string;
-	description: string; // maps to summary
-	image_path: string; // maps to imagePath
+	description: string;
+	imagePath: string;
+	isPublic: boolean;
+	tags?: import('./tag').TagDto[];
 }
 
 export interface CourseDetailDto {
 	id: string;
 	title: string;
-	description: string; // maps to descriptionMarkdown
-	image_path: string; // maps to imagePath
-	videos: string[]; // array of video IDs
+	description: string;
+	imagePath: string;
+	isPublic: boolean;
+	videos: import('./video').VideoDto[];
+	tags?: import('./tag').TagDto[];
 }
 
-// Domain types used inside services
 export interface CourseListItem {
 	id: string;
 	title: string;
 	summary: string;
 	imagePath: string;
+	isPublic: boolean;
+	tags?: import('./tag').TagDto[];
 }
 
 export interface CourseDetail {
@@ -26,7 +31,9 @@ export interface CourseDetail {
 	title: string;
 	descriptionMarkdown: string;
 	imagePath: string;
-	videoIds: string[];
+	isPublic: boolean;
+	videos: import('./video').Video[];
+	tags?: import('./tag').TagDto[];
 }
 
 export interface CreateCourseInput {
@@ -35,6 +42,8 @@ export interface CreateCourseInput {
 	descriptionMarkdown: string;
 	imagePath: string;
 	isPublished?: boolean;
+	isPublic?: boolean;
+	tagIds?: string[];
 }
 
 export interface UpdateCourseInput {
@@ -43,4 +52,6 @@ export interface UpdateCourseInput {
 	descriptionMarkdown?: string;
 	imagePath?: string;
 	isPublished?: boolean;
+	isPublic?: boolean;
+	tagIds?: string[];
 }
