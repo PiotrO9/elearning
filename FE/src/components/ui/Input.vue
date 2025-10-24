@@ -24,6 +24,6 @@ const onInput = function (e: Event) {
         :type="type || 'text'"
         :placeholder="placeholder"
         :disabled="disabled"
-        class="bg-input-background focus:bg-input-background-focus outline-0 duration-300 p-2 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+        class="w-full bg-input-bg placeholder:text-input-placeholder border border-input-border rounded-md px-3 py-2 shadow-sm outline-none transition-colors duration-200 focus:border-primary focus:ring-1 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
     />
 </template>

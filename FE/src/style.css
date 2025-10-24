@@ -1,25 +1,54 @@
 @import 'tailwindcss';
 
 @theme {
-    /* primary */
-    --color-primary: #78dcca;
-    --color-secondary: #f87171;
-    --color-accent: #fbbf24;
+    /* === PRIMARY COLORS === */
+    --color-primary: #14736c;
+    --color-secondary: #e4b45a;
+    --color-accent: #cbe6e3;
 
-    /* text */
-    --color-text: #f1f5f9;
-    --color-text-secondary: #94a3b8;
+    /* === BACKGROUND COLORS === */
+    --color-background: #f9fafb;
+    --color-surface: #ffffff;
+    --color-surface-muted: #f3f4f6;
+    --color-footer-bg: #123e3f;
 
-    /* background */
-    --color-background: #1e293b;
-    --color-background-secondary: #334155;
+    /* === TEXT COLORS === */
+    --color-text: #111827;
+    --color-text-secondary: #4b5563;
+    --color-text-muted: #6b7280;
+    --color-text-on-dark: #f1f5f9;
+    --color-text-on-dark-muted: #cbd5e1;
 
-    /* input */
-    --color-input-background: #0f172a;
-    --color-input-background-focus: #1e293b;
-    --color-input-border: #475569;
-    --color-input-placeholder: #64748b;
-    --color-input-focus-border: #3b82f6;
+    /* === BORDER COLORS === */
+    --color-border: #e5e7eb;
+    --color-border-strong: #d1d5db;
+
+    /* === BUTTON COLORS === */
+    --color-button-primary-bg: #14736c;
+    --color-button-primary-text: #ffffff;
+    --color-button-primary-hover: #0f5b56;
+    --color-button-secondary-bg: #e4b45a;
+    --color-button-secondary-text: #0f3d3e;
+
+    /* === INPUTS / CARDS === */
+    --color-input-bg: #ffffff;
+    --color-input-border: #d1d5db;
+    --color-input-placeholder: #9ca3af;
+
+    --color-card-bg: #ffffff;
+    --color-card-border: #e5e7eb;
+    --color-card-shadow: rgba(0, 0, 0, 0.05);
+
+    /* === ALERTS === */
+    --color-alert-info-bg: #e0f2fe;
+    --color-alert-success-bg: #dcfce7;
+    --color-alert-warning-bg: #fef9c3;
+    --color-alert-error-bg: #fee2e2;
+
+    /* === STATES === */
+    --color-hover: #f3f4f6;
+    --color-active: #e4b45a;
+    --color-disabled: #9ca3af;
 }
 
 body {
