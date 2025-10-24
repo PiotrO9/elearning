@@ -19,6 +19,13 @@ async function handleLogout() {
             <RouterLink to="/courses">Kursy</RouterLink>
 
             <template v-if="authStore.isAuthenticated">
+                <!-- TYMCZASOWO bez warunku authStore.isAdmin - dla testowania -->
+                <RouterLink
+                    to="/admin"
+                    class="px-3 py-1 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors"
+                >
+                    👑 Panel Admina
+                </RouterLink>
                 <RouterLink to="/profile" class="text-blue-600 hover:underline">
                     {{ authStore.user?.username }}
                 </RouterLink>
