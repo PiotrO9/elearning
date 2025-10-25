@@ -5,6 +5,7 @@ import { useAuthStore } from './stores/auth'
 import Courses from './routes/Courses.vue'
 import CourseDetails from './routes/CourseDetails.vue'
 import Auth from './routes/Auth.vue'
+import NotFound from './routes/NotFound.vue'
 
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
@@ -15,6 +16,7 @@ const router = createRouter({
         { path: '/profile', component: Profile, meta: { requiresAuth: true } },
         { path: '/courses', component: Courses },
         { path: '/courses/:id', component: CourseDetails, meta: { requiresAuth: true } },
+        { path: '/:pathMatch(.*)*', component: NotFound },
     ],
 })
 
@@ -30,7 +32,7 @@ router.beforeEach(async (to, from, next) => {
     }
 
     if (to.meta.requiresAuth && !authStore.isAuthenticated) {
-        return next({ path: '/login', query: { redirect: to.fullPath } })
+        return next({ path: '/auth', query: { redirect: to.fullPath } })
     }
 
     if (to.meta.guest && authStore.isAuthenticated) {
