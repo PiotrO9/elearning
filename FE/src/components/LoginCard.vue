@@ -4,6 +4,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { LoginScheme } from '@/schemas/user'
 import Input from './ui/Input.vue'
+import Button from './ui/Button.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -75,17 +76,16 @@ async function handleSubmit() {
                 }}</span>
             </div>
 
-            <button
-                class="w-full py-2 cursor-pointer border rounded border-blue-300 hover:border-blue-400 duration-300 bg-input-background hover:bg-input-background-focus disabled:opacity-50 disabled:cursor-not-allowed"
-                type="submit"
-                :disabled="authStore.loading"
-            >
+            <Button type="outline" variant="primary" :disabled="authStore.loading">
                 {{ authStore.loading ? 'Ładowanie...' : 'Prześlij' }}
-            </button>
+            </Button>
 
             <div class="text-center text-sm mt-2">
                 Nie masz konta?
-                <RouterLink to="/auth?mode=register" class="text-blue-600 hover:underline"
+                <RouterLink
+                    to="/auth?mode=register"
+                    @click="authStore.clearError"
+                    class="text-blue-600 hover:underline"
                     >Zarejestruj się</RouterLink
                 >
             </div>
