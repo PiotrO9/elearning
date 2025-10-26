@@ -5,7 +5,11 @@ interface ButtonProps {
     disabled?: boolean
 }
 
-defineProps<ButtonProps>()
+withDefaults(defineProps<ButtonProps>(), {
+    type: 'fill',
+    variant: 'primary',
+    disabled: false,
+})
 </script>
 
 <template>
