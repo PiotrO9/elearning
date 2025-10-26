@@ -10,12 +10,17 @@ import NotFound from './routes/NotFound.vue'
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
     routes: [
-        { path: '/', component: Home },
-        { path: '/auth', component: Auth, meta: { guest: true } },
-        { path: '/auth?mode=register', component: Auth, meta: { guest: true } },
-        { path: '/profile', component: Profile, meta: { requiresAuth: true } },
-        { path: '/courses', component: Courses },
-        { path: '/courses/:id', component: CourseDetails, meta: { requiresAuth: true } },
+        { path: '/', component: Home, name: 'home' },
+        { path: '/auth', component: Auth, meta: { guest: true }, name: 'login' },
+        { path: '/auth?mode=register', component: Auth, meta: { guest: true }, name: 'register' },
+        { path: '/profile', component: Profile, meta: { requiresAuth: true }, name: 'profile' },
+        { path: '/courses', component: Courses, name: 'courses' },
+        {
+            path: '/courses/:id',
+            component: CourseDetails,
+            meta: { requiresAuth: true },
+            name: 'course-details',
+        },
         { path: '/:pathMatch(.*)*', component: NotFound },
     ],
 })
