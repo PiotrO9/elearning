@@ -1,36 +1,10 @@
 <script setup lang="ts">
-import { useAuthStore } from '@/stores/auth'
 import MaxWidthWrapper from './wrappers/MaxWidthWrapper.vue'
 import { Icon } from '@iconify/vue'
+import { links, getVisibleLinks } from '@/utils/linksUtils'
+import { useAuthStore } from '@/stores/auth'
 
 const authStore = useAuthStore()
-
-const links = [
-    {
-        name: 'Nawigacja',
-        sublinks: [
-            { name: 'Strona Główna', url: '/' },
-            { name: 'Kursy', url: '/courses' },
-            { name: 'O Nas', url: '/about' },
-            { name: 'Kontakt', url: '/contact' },
-            { name: 'Posiadane Kursy', url: '/profile/courses', isAuthRequired: true },
-            { name: 'Profil', url: '/profile', isAuthRequired: true },
-        ],
-    },
-    {
-        name: 'Pomoc',
-        sublinks: [
-            { name: 'FAQ', url: '/faq' },
-            { name: 'Wsparcie', url: '/support' },
-            { name: 'Polityka Prywatności', url: '/privacy' },
-            { name: 'Warunki Użytkowania', url: '/terms' },
-        ],
-    },
-]
-
-const getVisibleLinks = function (sublinks: (typeof links)[0]['sublinks']) {
-    return sublinks.filter((link) => !link.isAuthRequired || authStore.isAuthenticated)
-}
 </script>
 
 <template>
@@ -61,7 +35,7 @@ const getVisibleLinks = function (sublinks: (typeof links)[0]['sublinks']) {
                     <h2 class="text-xl mb-6 font-semibold">{{ section.name }}</h2>
                     <ul class="flex flex-col gap-3">
                         <li
-                            v-for="link in getVisibleLinks(section.sublinks)"
+                            v-for="link in getVisibleLinks(authStore, section.sublinks)"
                             :key="link.name"
                             class="hover:text-text-on-dark-muted duration-300"
                         >

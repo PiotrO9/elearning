@@ -4,6 +4,7 @@ import { useAuthStore } from '@/stores/auth'
 import { Icon } from '@iconify/vue'
 import MaxWidthWrapper from './wrappers/MaxWidthWrapper.vue'
 import { ref } from 'vue'
+import Button from './ui/Button.vue'
 
 const authStore = useAuthStore()
 const router = useRouter()
@@ -19,6 +20,8 @@ async function handleLogout() {
 function closeHamburger() {
     isHamburgerOpen.value = false
 }
+
+import { links, getVisibleLinks } from '@/utils/linksUtils'
 
 // TODO: Nawigacja linki nested json najlepiej albo z footer links przeniesc do utilsów
 // TODO: Close button
@@ -44,29 +47,27 @@ function closeHamburger() {
             class="fixed right-0 top-0 w-3/4 md:w-1/3 h-full bg-surface shadow-xl z-50 px-6 py-12 flex flex-col"
             v-if="isHamburgerOpen"
         >
-            <h1 class="text-3xl font-semibold italic">MENU</h1>
-            <template v-if="authStore.isAuthenticated">
-                <RouterLink
-                    to="/profile"
-                    class="text-blue-600 hover:underline"
-                    @click="closeHamburger"
-                >
-                    {{ authStore.user?.username }}
-                </RouterLink>
-                <button
-                    @click="handleLogout"
-                    class="px-3 py-1 border border-red-300 hover:border-red-400 rounded duration-300"
-                >
-                    Wyloguj
-                </button>
-            </template>
+            <h1 class="text-3xl font-semibold italic mb-6">MENU</h1>
 
-            <template v-else>
-                <RouterLink to="/auth" @click="closeHamburger">Logowanie</RouterLink>
-                <RouterLink to="/auth?mode=register" @click="closeHamburger"
-                    >Rejestracja</RouterLink
+            <ul class="flex flex-col gap-3">
+                <li
+                    v-for="link in getVisibleLinks(authStore, links[0]?.sublinks ?? [])"
+                    :key="link.name"
                 >
-            </template>
+                    <RouterLink
+                        :to="link.url"
+                        @click="closeHamburger"
+                        class="block py-2 px-3 rounded hover:bg-hover transition-colors duration-200"
+                    >
+                        {{ link.name }}
+                    </RouterLink>
+                </li>
+                <li v-if="authStore.isAuthenticated">
+                    <Button class="w-full" type="outline" @click="handleLogout">
+                        Wyloguj Się
+                    </Button>
+                </li>
+            </ul>
         </div>
     </Transition>
     <Transition name="fade-in">
