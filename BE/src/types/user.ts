@@ -19,6 +19,7 @@ export interface UserBasic {
 	role: UserRole;
 	createdAt: Date;
 	lastSeen: Date | null;
+	coursesCount: number;
 }
 
 export interface UpdateUserData {

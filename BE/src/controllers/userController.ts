@@ -3,10 +3,41 @@ import { sendSuccess, sendError, buildValidationErrors } from '../utils/response
 import { ValidationError } from '../types/api';
 import { UserService } from '../services/userService';
 import { UserServiceError } from '../types/user';
-import { userRoleParamSchema, updateUserRoleSchema } from '../utils/validationSchemas';
+import {
+	userRoleParamSchema,
+	updateUserRoleSchema,
+	paginationQuerySchema,
+} from '../utils/validationSchemas';
 import { UserRole } from '@prisma/client';
 
 const userService = new UserService();
+
+/**
+ * GET /users
+ * Admin/Superadmin pobiera listę wszystkich użytkowników z paginacją
+ */
+export async function handleGetAllUsers(req: Request, res: Response): Promise<void> {
+	try {
+		const queryValidation = paginationQuerySchema.safeParse(req.query);
+		if (!queryValidation.success) {
+			const errors = buildValidationErrors(queryValidation.error.issues);
+			throw new ValidationError('Invalid pagination parameters', errors);
+		}
+
+		const { page, limit } = queryValidation.data;
+		const result = await userService.getAllUsers({ page, limit });
+
+		sendSuccess(res, result, 'Users retrieved successfully', 200);
+	} catch (error) {
+		if (error instanceof UserServiceError) {
+			return sendError(res, error.message, error.statusCode, error.code);
+		}
+		if (error instanceof ValidationError) {
+			return sendError(res, error.message, error.statusCode, error.code, error.errors);
+		}
+		return sendError(res, 'Failed to retrieve users');
+	}
+}
 
 /**
  * PATCH /users/:id/role
@@ -45,4 +76,3 @@ export async function handleUpdateUserRole(req: Request, res: Response): Promise
 		return sendError(res, 'Failed to update user role');
 	}
 }
-

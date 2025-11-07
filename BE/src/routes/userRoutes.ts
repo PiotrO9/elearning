@@ -1,8 +1,15 @@
 import { Router } from 'express';
-import { handleUpdateUserRole } from '../controllers/userController';
+import { handleGetAllUsers, handleUpdateUserRole } from '../controllers/userController';
 import { authenticateToken, requireAdmin } from '../middleware/auth';
 
 const router = Router();
+
+/**
+ * @route GET /api/users
+ * @desc Get all users with pagination
+ * @access Admin or Superadmin
+ */
+router.get('/', authenticateToken, requireAdmin, handleGetAllUsers);
 
 /**
  * @route PATCH /api/users/:id/role

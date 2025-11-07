@@ -103,6 +103,27 @@ export const userRoleParamSchema = z.object({
 
 export const updateUserRoleSchema = z.object({
 	role: z.enum(['USER', 'ADMIN', 'SUPERADMIN'], {
-		errorMap: () => ({ message: 'Role must be USER, ADMIN, or SUPERADMIN' }),
+		message: 'Role must be USER, ADMIN, or SUPERADMIN',
 	}),
+});
+
+export const paginationQuerySchema = z.object({
+	page: z
+		.string()
+		.optional()
+		.default('1')
+		.transform(val => parseInt(val, 10))
+		.pipe(z.number().int().positive('Page must be a positive integer')),
+	limit: z
+		.string()
+		.optional()
+		.default('10')
+		.transform(val => parseInt(val, 10))
+		.pipe(
+			z
+				.number()
+				.int()
+				.positive('Limit must be a positive integer')
+				.max(100, 'Limit cannot exceed 100'),
+		),
 });

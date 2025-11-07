@@ -54,6 +54,11 @@ export class UserService {
 				role: true,
 				createdAt: true,
 				lastSeen: true,
+				_count: {
+					select: {
+						courseEnrollments: true,
+					},
+				},
 			},
 			skip,
 			take: limit,
@@ -65,8 +70,18 @@ export class UserService {
 		const totalUsers = await prisma.user.count();
 		const totalPages = Math.ceil(totalUsers / limit);
 
+		const usersWithCoursesCount = users.map(user => ({
+			id: user.id,
+			email: user.email,
+			username: user.username,
+			role: user.role,
+			createdAt: user.createdAt,
+			lastSeen: user.lastSeen,
+			coursesCount: user._count.courseEnrollments,
+		}));
+
 		return {
-			users,
+			users: usersWithCoursesCount,
 			pagination: {
 				currentPage: page,
 				totalPages,
