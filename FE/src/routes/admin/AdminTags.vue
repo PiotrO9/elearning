@@ -1,19 +1,21 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import MaxWidthWrapper from '@/components/wrappers/MaxWidthWrapper.vue'
-import Modal from '@/components/ui/Modal.vue'
 import AdminNav from '@/components/admin/AdminNav.vue'
+import ConfirmModal from '@/components/ui/ConfirmModal.vue'
 import type { Tag } from '@/types/Admin'
-import { getTags, createTag, updateTag, deleteTag } from '@/services/adminService'
+import { getTags, deleteTag } from '@/services/adminService'
+
+const router = useRouter()
 
 const tags = ref<Tag[]>([])
-const isModalOpen = ref(false)
 const searchQuery = ref('')
-const selectedTag = ref<Tag | null>(null)
-const tagName = ref('')
-const tagDescription = ref('')
 const isLoading = ref(false)
 const error = ref<string | null>(null)
+const isDeleteModalOpen = ref(false)
+const tagToDelete = ref<Tag | null>(null)
+const isDeleting = ref(false)
 
 const filteredTags = computed(() => {
   if (!tags.value) return []
@@ -38,63 +40,52 @@ async function fetchTags() {
   }
 }
 
-function handleOpenModal(tag?: Tag) {
-  selectedTag.value = tag || null
-  tagName.value = tag?.name || ''
-  tagDescription.value = tag?.description || ''
-  isModalOpen.value = true
-}
-
-function handleCloseModal() {
-  isModalOpen.value = false
-  selectedTag.value = null
-  tagName.value = ''
-  tagDescription.value = ''
-}
-
-async function handleSaveTag() {
-  if (!tagName.value.trim()) return
-
-  try {
-    if (selectedTag.value) {
-      // Edycja
-      await updateTag(selectedTag.value.id, {
-        name: tagName.value,
-        description: tagDescription.value || undefined
-      })
-    } else {
-      // Dodawanie
-      await createTag({
-        name: tagName.value,
-        description: tagDescription.value || undefined
-      })
-    }
-
-    await fetchTags()
-    handleCloseModal()
-  } catch (err: any) {
-    alert('Błąd podczas zapisywania tagu: ' + (err.message || 'Nieznany błąd'))
-    console.error('Error saving tag:', err)
+function handleEditTag(tag?: Tag) {
+  if (tag) {
+    router.push(`/admin/tags/${tag.id}`)
+  } else {
+    router.push('/admin/tags/new')
   }
 }
 
-async function handleDeleteTag(tagId: string) {
-  const tag = tags.value.find(t => t.id === tagId)
+function handleDeleteTag(tag: Tag) {
+  tagToDelete.value = tag
+  isDeleteModalOpen.value = true
+}
 
-  if (tag && tag.coursesCount && tag.coursesCount > 0) {
-    if (!confirm(`Tag "${tag.name}" jest używany w ${tag.coursesCount} kursach. Czy na pewno chcesz go usunąć?`)) {
-      return
-    }
-  }
+async function confirmDeleteTag() {
+  if (!tagToDelete.value) return
+
+  isDeleting.value = true
+  error.value = null
 
   try {
-    await deleteTag(tagId)
+    await deleteTag(tagToDelete.value.id)
     await fetchTags()
+    isDeleteModalOpen.value = false
+    tagToDelete.value = null
   } catch (err: any) {
-    alert('Błąd podczas usuwania tagu: ' + (err.message || 'Nieznany błąd'))
+    error.value = err.message || 'Nie udało się usunąć tagu'
     console.error('Error deleting tag:', err)
+  } finally {
+    isDeleting.value = false
   }
 }
+
+function cancelDeleteTag() {
+  isDeleteModalOpen.value = false
+  tagToDelete.value = null
+}
+
+const deleteModalMessage = computed(() => {
+  if (!tagToDelete.value) return ''
+
+  if (tagToDelete.value.coursesCount && tagToDelete.value.coursesCount > 0) {
+    return `Tag "${tagToDelete.value.name}" jest używany w ${tagToDelete.value.coursesCount} ${tagToDelete.value.coursesCount === 1 ? 'kursie' : 'kursach'}. Czy na pewno chcesz go usunąć? Ta operacja jest nieodwracalna.`
+  }
+
+  return `Czy na pewno chcesz usunąć tag "${tagToDelete.value.name}"? Ta operacja jest nieodwracalna.`
+})
 
 onMounted(() => {
   fetchTags()
@@ -116,7 +107,7 @@ onMounted(() => {
             </p>
           </div>
           <button
-            @click="handleOpenModal()"
+            @click="handleEditTag()"
             class="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center gap-2"
           >
             <span class="text-xl">+</span>
@@ -173,15 +164,25 @@ onMounted(() => {
                 <td class="px-6 py-4">
                   <div class="flex items-center justify-end gap-2">
                     <button
-                      @click="handleOpenModal(tag)"
-                      class="px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                      @click="handleEditTag(tag)"
+                      class="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors shadow-sm hover:shadow-md flex items-center gap-1.5"
+                      tabindex="0"
+                      aria-label="Edytuj tag"
                     >
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
                       Edytuj
                     </button>
                     <button
-                      @click="handleDeleteTag(tag.id)"
-                      class="px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      @click="handleDeleteTag(tag)"
+                      class="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors shadow-sm hover:shadow-md flex items-center gap-1.5"
+                      tabindex="0"
+                      aria-label="Usuń tag"
                     >
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
                       Usuń
                     </button>
                   </div>
@@ -200,54 +201,19 @@ onMounted(() => {
       </div>
     </MaxWidthWrapper>
 
-    <Modal :is-open="isModalOpen" @update:is-open="handleCloseModal">
-      <div class="p-6">
-        <h2 class="text-2xl font-bold text-gray-900 mb-6">
-          {{ selectedTag ? 'Edytuj tag' : 'Dodaj nowy tag' }}
-        </h2>
-
-        <div class="mb-4">
-          <label class="block text-sm font-medium text-gray-700 mb-2">
-            Nazwa tagu *
-          </label>
-          <input
-            v-model="tagName"
-            type="text"
-            placeholder="np. Vue, React, TypeScript"
-            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            @keyup.enter="handleSaveTag"
-          />
-        </div>
-
-        <div class="mb-6">
-          <label class="block text-sm font-medium text-gray-700 mb-2">
-            Opis (opcjonalne)
-          </label>
-          <textarea
-            v-model="tagDescription"
-            rows="3"
-            placeholder="Opis tagu..."
-            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-
-        <div class="flex justify-end gap-3">
-          <button
-            @click="handleCloseModal"
-            class="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-          >
-            Anuluj
-          </button>
-          <button
-            @click="handleSaveTag"
-            :disabled="!tagName.trim()"
-            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {{ selectedTag ? 'Aktualizuj' : 'Dodaj' }}
-          </button>
-        </div>
-      </div>
-    </Modal>
+    <ConfirmModal
+      :is-open="isDeleteModalOpen"
+      title="Usuń tag"
+      :message="deleteModalMessage"
+      confirm-text="Usuń"
+      cancel-text="Anuluj"
+      variant="danger"
+      :is-loading="isDeleting"
+      @confirm="confirmDeleteTag"
+      @cancel="cancelDeleteTag"
+      @update:is-open="cancelDeleteTag"
+    />
   </div>
 </template>
+
 

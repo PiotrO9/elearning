@@ -2,24 +2,21 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import MaxWidthWrapper from '@/components/wrappers/MaxWidthWrapper.vue'
-import Modal from '@/components/ui/Modal.vue'
 import AdminNav from '@/components/admin/AdminNav.vue'
-import CourseForm from '@/components/admin/CourseForm.vue'
+import ConfirmModal from '@/components/ui/ConfirmModal.vue'
 import type { CourseListItem } from '@/types/Course'
-import type { Tag, CreateCourseInput, UpdateCourseInput } from '@/types/Admin'
 import { getCourses } from '@/services/courseService'
-import { updateCourse, deleteCourse, createCourse, getTags, assignTagsToCourse } from '@/services/adminService'
+import { deleteCourse, updateCourse } from '@/services/adminService'
 
 const router = useRouter()
 
 const courses = ref<CourseListItem[]>([])
-const tags = ref<Tag[]>([])
-const isModalOpen = ref(false)
 const searchQuery = ref('')
-const selectedCourse = ref<CourseListItem | null>(null)
 const isLoading = ref(false)
-const isSaving = ref(false)
 const error = ref<string | null>(null)
+const isDeleteModalOpen = ref(false)
+const courseToDelete = ref<CourseListItem | null>(null)
+const isDeleting = ref(false)
 
 const filteredCourses = computed(() => {
   if (!courses.value) return []
@@ -46,70 +43,41 @@ async function fetchCourses() {
   }
 }
 
-async function fetchTags() {
-  try {
-    tags.value = await getTags()
-  } catch (err: any) {
-    console.error('Error fetching tags:', err)
+function handleEditCourse(course?: CourseListItem) {
+  if (course) {
+    router.push(`/admin/courses/${course.id}`)
+  } else {
+    router.push('/admin/courses/new')
   }
 }
 
-function handleOpenModal(course?: CourseListItem) {
-  selectedCourse.value = course || null
-  isModalOpen.value = true
+function handleDeleteCourse(course: CourseListItem) {
+  courseToDelete.value = course
+  isDeleteModalOpen.value = true
 }
 
-function handleCloseModal() {
-  isModalOpen.value = false
-  selectedCourse.value = null
-}
+async function confirmDeleteCourse() {
+  if (!courseToDelete.value) return
 
-async function handleSaveCourse(data: CreateCourseInput | UpdateCourseInput, tagIds: string[]) {
-  isSaving.value = true
+  isDeleting.value = true
+  error.value = null
 
   try {
-    let courseId: string
-
-    if (selectedCourse.value) {
-      // Edycja
-      courseId = selectedCourse.value.id.toString()
-      await updateCourse(courseId, data as UpdateCourseInput)
-    } else {
-      // Tworzenie
-      const response = await createCourse(data as CreateCourseInput)
-      courseId = response.data?.id || ''
-    }
-
-    // Przypisz tagi do kursu (jeśli są wybrane)
-    if (courseId && tagIds.length > 0) {
-      try {
-        await assignTagsToCourse(courseId, tagIds)
-      } catch (err) {
-        console.error('Error assigning tags:', err)
-        // Nie przerywamy procesu jeśli przypisanie tagów się nie powiodło
-      }
-    }
-
+    await deleteCourse(courseToDelete.value.id.toString())
     await fetchCourses()
-    handleCloseModal()
+    isDeleteModalOpen.value = false
+    courseToDelete.value = null
   } catch (err: any) {
-    alert('Błąd podczas zapisywania kursu: ' + (err.response?.data?.message || err.message || 'Nieznany błąd'))
-    console.error('Error saving course:', err)
-  } finally {
-    isSaving.value = false
-  }
-}
-
-async function handleDeleteCourse(courseId: string | number) {
-  if (!confirm('Czy na pewno chcesz usunąć ten kurs?')) return
-
-  try {
-    await deleteCourse(courseId.toString())
-    await fetchCourses()
-  } catch (err: any) {
-    alert('Błąd podczas usuwania kursu: ' + (err.message || 'Nieznany błąd'))
+    error.value = err.message || 'Nie udało się usunąć kursu'
     console.error('Error deleting course:', err)
+  } finally {
+    isDeleting.value = false
   }
+}
+
+function cancelDeleteCourse() {
+  isDeleteModalOpen.value = false
+  courseToDelete.value = null
 }
 
 async function handleTogglePublish(course: CourseListItem) {
@@ -126,7 +94,6 @@ async function handleTogglePublish(course: CourseListItem) {
 
 onMounted(() => {
   fetchCourses()
-  fetchTags()
 })
 </script>
 
@@ -145,7 +112,7 @@ onMounted(() => {
             </p>
           </div>
           <button
-            @click="handleOpenModal()"
+            @click="handleEditCourse()"
             class="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center gap-2"
           >
             <span class="text-xl">+</span>
@@ -246,15 +213,25 @@ onMounted(() => {
                 <td class="px-6 py-4">
                   <div class="flex items-center justify-end gap-2">
                     <button
-                      @click="handleOpenModal(course)"
-                      class="px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                      @click="handleEditCourse(course)"
+                      class="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors shadow-sm hover:shadow-md flex items-center gap-1.5"
+                      tabindex="0"
+                      aria-label="Edytuj kurs"
                     >
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
                       Edytuj
                     </button>
                     <button
-                      @click="handleDeleteCourse(course.id)"
-                      class="px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      @click="handleDeleteCourse(course)"
+                      class="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors shadow-sm hover:shadow-md flex items-center gap-1.5"
+                      tabindex="0"
+                      aria-label="Usuń kurs"
                     >
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
                       Usuń
                     </button>
                   </div>
@@ -273,17 +250,18 @@ onMounted(() => {
       </div>
     </MaxWidthWrapper>
 
-    <Modal :is-open="isModalOpen" @update:is-open="handleCloseModal">
-      <div class="p-6 max-h-[90vh] overflow-y-auto">
-        <CourseForm
-          :course="selectedCourse"
-          :all-tags="tags"
-          :is-loading="isSaving"
-          @save="handleSaveCourse"
-          @cancel="handleCloseModal"
-        />
-      </div>
-    </Modal>
+    <ConfirmModal
+      :is-open="isDeleteModalOpen"
+      title="Usuń kurs"
+      :message="courseToDelete ? `Czy na pewno chcesz usunąć kurs '${courseToDelete.title}'? Ta operacja jest nieodwracalna.` : ''"
+      confirm-text="Usuń"
+      cancel-text="Anuluj"
+      variant="danger"
+      :is-loading="isDeleting"
+      @confirm="confirmDeleteCourse"
+      @cancel="cancelDeleteCourse"
+      @update:is-open="cancelDeleteCourse"
+    />
   </div>
 </template>
 

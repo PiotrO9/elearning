@@ -5,7 +5,9 @@ import Courses from './routes/Courses.vue'
 import CourseDetails from './routes/CourseDetails.vue'
 import AdminDashboard from './routes/admin/Dashboard.vue'
 import AdminCourses from './routes/admin/AdminCourses.vue'
+import AdminCourseEdit from './routes/admin/AdminCourseEdit.vue'
 import AdminTags from './routes/admin/AdminTags.vue'
+import AdminTagEdit from './routes/admin/AdminTagEdit.vue'
 import AdminUsers from './routes/admin/AdminUsers.vue'
 import { useAuthStore } from './stores/auth'
 import Auth from './routes/Auth.vue'
@@ -39,8 +41,18 @@ const router = createRouter({
             meta: { requiresAuth: true, requiresAdmin: true }
         },
         {
+            path: '/admin/courses/:id',
+            component: AdminCourseEdit,
+            meta: { requiresAuth: true, requiresAdmin: true }
+        },
+        {
             path: '/admin/tags',
             component: AdminTags,
+            meta: { requiresAuth: true, requiresAdmin: true }
+        },
+        {
+            path: '/admin/tags/:id',
+            component: AdminTagEdit,
             meta: { requiresAuth: true, requiresAdmin: true }
         },
         {
