@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import MaxWidthWrapper from '@/components/wrappers/MaxWidthWrapper.vue'
 import AdminNav from '@/components/admin/AdminNav.vue'
+import Action from '@/components/ui/Action.vue'
 import type { Tag } from '@/types/Admin'
 import { getTags, createTag, updateTag } from '@/services/adminService'
 
@@ -135,22 +136,30 @@ onMounted(() => {
             </div>
 
             <div class="flex justify-end gap-3 pt-4 border-t">
-              <button
-                type="button"
+              <Action
                 @click="handleCancel"
-                class="px-6 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                variant="ghost"
+                size="lg"
                 :disabled="isSaving"
+                aria-label="Anuluj"
               >
                 Anuluj
-              </button>
-              <button
-                type="submit"
+              </Action>
+              <Action
+                variant="primary"
+                size="lg"
                 :disabled="!tagName.trim() || isSaving"
-                class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                aria-label="Zapisz tag"
               >
-                <span v-if="isSaving">Zapisywanie...</span>
-                <span v-else>{{ isEditMode ? 'Aktualizuj' : 'Dodaj' }}</span>
-              </button>
+                <button
+                  type="submit"
+                  :disabled="!tagName.trim() || isSaving"
+                  class="w-full h-full bg-transparent border-0 p-0 m-0 cursor-pointer"
+                >
+                  <span v-if="isSaving">Zapisywanie...</span>
+                  <span v-else>{{ isEditMode ? 'Aktualizuj' : 'Dodaj' }}</span>
+                </button>
+              </Action>
             </div>
           </form>
         </div>

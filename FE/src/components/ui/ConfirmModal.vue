@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import Action from '@/components/ui/Action.vue'
+
 interface Props {
   isOpen: boolean
   title: string
@@ -31,10 +33,10 @@ function handleCancel() {
   emit('update:isOpen', false)
 }
 
-const variantClasses: Record<string, string> = {
-  danger: 'bg-red-600 hover:bg-red-700',
-  warning: 'bg-yellow-600 hover:bg-yellow-700',
-  info: 'bg-blue-600 hover:bg-blue-700'
+const variantMap: Record<string, 'danger' | 'primary' | 'secondary'> = {
+  danger: 'danger',
+  warning: 'secondary',
+  info: 'primary'
 }
 </script>
 
@@ -51,26 +53,25 @@ const variantClasses: Record<string, string> = {
     </p>
 
     <template #footer>
-      <button
-        type="button"
+      <Action
         @click="handleCancel"
-        class="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+        variant="ghost"
+        size="md"
         :disabled="isLoading"
+        :aria-label="cancelText"
       >
         {{ cancelText }}
-      </button>
-      <button
-        type="button"
+      </Action>
+      <Action
         @click="handleConfirm"
-        :class="[
-          'px-4 py-2 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed',
-          variantClasses[variant]
-        ]"
+        :variant="variantMap[variant]"
+        size="md"
         :disabled="isLoading"
+        :aria-label="confirmText"
       >
         <span v-if="isLoading">Przetwarzanie...</span>
         <span v-else>{{ confirmText }}</span>
-      </button>
+      </Action>
     </template>
   </Dialog>
 </template>

@@ -3,6 +3,7 @@ import { ref, computed, onMounted } from 'vue'
 import MaxWidthWrapper from '@/components/wrappers/MaxWidthWrapper.vue'
 import Modal from '@/components/ui/Modal.vue'
 import AdminNav from '@/components/admin/AdminNav.vue'
+import Action from '@/components/ui/Action.vue'
 import type { User } from '@/types/User'
 import type { CourseListItem } from '@/types/Course'
 import { getCourses } from '@/services/courseService'
@@ -233,12 +234,14 @@ onMounted(() => {
                 </td>
                 <td class="px-6 py-4">
                   <div class="flex items-center justify-end gap-2">
-                    <button
+                    <Action
                       @click="handleOpenModal(user)"
-                      class="px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                      variant="outline"
+                      size="sm"
+                      aria-label="Zarządzaj kursami użytkownika"
                     >
                       Zarządzaj kursami
-                    </button>
+                    </Action>
                   </div>
                 </td>
               </tr>
@@ -291,18 +294,22 @@ onMounted(() => {
         </div>
 
         <div class="flex justify-end gap-3">
-          <button
+          <Action
             @click="handleCloseModal"
-            class="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+            variant="ghost"
+            size="md"
+            aria-label="Anuluj"
           >
             Anuluj
-          </button>
-          <button
+          </Action>
+          <Action
             @click="handleSaveAssignments"
-            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            variant="primary"
+            size="md"
+            aria-label="Zapisz zmiany"
           >
             Zapisz zmiany
-          </button>
+          </Action>
         </div>
       </div>
     </Modal>

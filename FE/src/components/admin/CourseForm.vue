@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue'
+import Action from '@/components/ui/Action.vue'
 import type { CourseListItem } from '@/types/Course'
 import type { Tag } from '@/types/Admin'
 import type { CreateCourseInput, UpdateCourseInput } from '@/types/Admin'
@@ -288,22 +289,30 @@ const descriptionLength = computed(() => formData.value.descriptionMarkdown.leng
 
       <!-- Przyciski -->
       <div class="flex justify-end gap-3 pt-4 border-t">
-        <button
-          type="button"
+        <Action
           @click="handleCancel"
-          class="px-6 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+          variant="ghost"
+          size="lg"
           :disabled="isLoading"
+          aria-label="Anuluj"
         >
           Anuluj
-        </button>
-        <button
-          type="submit"
-          class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        </Action>
+        <Action
+          variant="primary"
+          size="lg"
           :disabled="isLoading"
+          aria-label="Zapisz kurs"
         >
-          <span v-if="isLoading">Zapisywanie...</span>
-          <span v-else>{{ course ? 'Zapisz zmiany' : 'Utwórz kurs' }}</span>
-        </button>
+          <button
+            type="submit"
+            :disabled="isLoading"
+            class="w-full h-full bg-transparent border-0 p-0 m-0 cursor-pointer"
+          >
+            <span v-if="isLoading">Zapisywanie...</span>
+            <span v-else>{{ course ? 'Zapisz zmiany' : 'Utwórz kurs' }}</span>
+          </button>
+        </Action>
       </div>
     </form>
   </div>
