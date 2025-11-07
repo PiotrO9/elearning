@@ -17,7 +17,7 @@ export default async function authMiddleware(
     }
 
     if (!authStore.isAuthenticated) {
-        return next({ path: '/login', query: { redirect: to.fullPath } })
+        return next({ path: '/auth', query: { redirect: to.fullPath } })
     }
 
     next()
