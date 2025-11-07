@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import Action from '@/components/ui/Action.vue'
+import Icon from '@/components/ui/Icon.vue'
 
 interface AdminTableHeaderProps {
   title: string
@@ -41,9 +42,10 @@ function handleAdd() {
         circle
         :aria-label="addButtonAriaLabel || `Dodaj ${title.toLowerCase()}`"
       >
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-        </svg>
+        <Icon
+          name="plus"
+          class="w-5 h-5"
+        />
       </Action>
     </slot>
   </div>

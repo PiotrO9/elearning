@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue'
 import MaxWidthWrapper from '@/components/wrappers/MaxWidthWrapper.vue'
 import AdminNav from '@/components/admin/AdminNav.vue'
+import Icon from '@/components/ui/Icon.vue'
 import { getDashboard } from '@/services/adminService'
 
 const stats = ref({
@@ -107,7 +108,10 @@ onMounted(() => {
               <p class="text-3xl font-bold text-gray-900">{{ stats.totalCourses }}</p>
             </div>
             <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-              <span class="text-2xl">📚</span>
+              <Icon
+                name="books"
+                style="--icon-size: 24px; --icon-color: #3b82f6"
+              />
             </div>
           </div>
         </div>
@@ -119,7 +123,10 @@ onMounted(() => {
               <p class="text-3xl font-bold text-gray-900">{{ stats.activeCourses }}</p>
             </div>
             <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-              <span class="text-2xl">✅</span>
+              <Icon
+                name="check"
+                style="--icon-size: 24px; --icon-color: #10b981"
+              />
             </div>
           </div>
         </div>
@@ -131,7 +138,10 @@ onMounted(() => {
               <p class="text-3xl font-bold text-gray-900">{{ stats.totalUsers }}</p>
             </div>
             <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
-              <span class="text-2xl">👥</span>
+              <Icon
+                name="users"
+                style="--icon-size: 24px; --icon-color: #8b5cf6"
+              />
             </div>
           </div>
         </div>
@@ -143,7 +153,10 @@ onMounted(() => {
               <p class="text-3xl font-bold text-gray-900">{{ stats.totalTags }}</p>
             </div>
             <div class="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
-              <span class="text-2xl">🏷️</span>
+              <Icon
+                name="tags"
+                style="--icon-size: 24px; --icon-color: #f97316"
+              />
             </div>
           </div>
         </div>
@@ -157,7 +170,11 @@ onMounted(() => {
               to="/admin/courses"
               class="flex flex-col items-center p-6 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
             >
-              <span class="text-4xl mb-2">📚</span>
+              <Icon
+                name="books"
+                style="--icon-size: 48px; --icon-color: #3b82f6"
+                class="mb-2"
+              />
               <span class="font-semibold text-gray-900">Zarządzaj kursami</span>
             </router-link>
 
@@ -165,7 +182,11 @@ onMounted(() => {
               to="/admin/tags"
               class="flex flex-col items-center p-6 bg-green-50 rounded-lg hover:bg-green-100 transition-colors"
             >
-              <span class="text-4xl mb-2">🏷️</span>
+              <Icon
+                name="tags"
+                style="--icon-size: 48px; --icon-color: #10b981"
+                class="mb-2"
+              />
               <span class="font-semibold text-gray-900">Zarządzaj tagami</span>
             </router-link>
 
@@ -173,7 +194,11 @@ onMounted(() => {
               to="/admin/users"
               class="flex flex-col items-center p-6 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors"
             >
-              <span class="text-4xl mb-2">👥</span>
+              <Icon
+                name="users"
+                style="--icon-size: 48px; --icon-color: #8b5cf6"
+                class="mb-2"
+              />
               <span class="font-semibold text-gray-900">Zarządzaj użytkownikami</span>
             </router-link>
           </div>

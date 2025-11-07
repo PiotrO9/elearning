@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import Icon from '@/components/ui/Icon.vue'
 
 interface AdminTableSearchProps {
   modelValue: string
@@ -38,20 +39,11 @@ function handleKeyDown(event: KeyboardEvent) {
   <div class="relative w-full">
     <div class="relative flex items-center">
       <div class="absolute left-4 z-10 pointer-events-none">
-        <svg
+        <Icon
+          name="search"
           class="w-5 h-5 text-gray-400"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
           aria-hidden="true"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-          />
-        </svg>
+        />
       </div>
 
       <input
@@ -73,20 +65,11 @@ function handleKeyDown(event: KeyboardEvent) {
         @click="handleClear"
         @keydown="(e) => e.key === 'Enter' && handleClear()"
       >
-        <svg
+        <Icon
+          name="close"
           class="w-5 h-5"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
           aria-hidden="true"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M6 18L18 6M6 6l12 12"
-          />
-        </svg>
+        />
       </button>
     </div>
   </div>
