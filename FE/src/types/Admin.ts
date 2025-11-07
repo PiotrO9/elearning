@@ -1,4 +1,5 @@
 import type { Course, CourseListItem } from './Course'
+import type { UserAdminPanelListItem } from './user'
 import type { Video } from './Video'
 
 // Tag types
@@ -98,3 +99,15 @@ export interface ApiTagsResponse {
   data: Tag[]
 }
 
+export type UsersListsResponse = ApiResponse<{
+  users: UserAdminPanelListItem[]
+  pagination: UsersePagination
+}>
+
+export interface UsersePagination {
+  currentPage: number
+  totalPages: number
+  hasNext: boolean
+  hasPrevious: boolean
+  totalUsers: number
+}

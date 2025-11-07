@@ -2,16 +2,19 @@
 import { ref, computed, onMounted } from 'vue'
 import MaxWidthWrapper from '@/components/wrappers/MaxWidthWrapper.vue'
 import Modal from '@/components/ui/Modal.vue'
+import ConfirmModal from '@/components/ui/ConfirmModal.vue'
 import AdminNav from '@/components/admin/AdminNav.vue'
 import AdminTableHeader from '@/components/admin/AdminTableHeader.vue'
 import AdminTableSearch from '@/components/admin/AdminTableSearch.vue'
 import AdminTable from '@/components/admin/AdminTable.vue'
 import AdminTableRow from '@/components/admin/AdminTableRow.vue'
 import Action from '@/components/ui/Action.vue'
-import type { User } from '@/types/User'
+import Pagination from '@/components/ui/Pagination.vue'
+import type { User, UserAdminPanelListItem } from '@/types/user'
 import type { CourseListItem } from '@/types/Course'
 import { getCourses } from '@/services/courseService'
-import { getAllUsers, enrollUserToCourse, unenrollUserFromCourse, getUserCourses } from '@/services/adminService'
+import { getAllUsers, enrollUserToCourse, unenrollUserFromCourse, getUserCourses, updateUserRole } from '@/services/adminService'
+import { type ApiResponse, type UsersListsResponse } from '@/types/Admin'
 
 const tableColumns = [
   { label: 'Użytkownik', align: 'left' as const },
@@ -26,52 +29,85 @@ interface UserWithCourses extends User {
   enrolledAt?: string
 }
 
-const users = ref<User[]>([])
+const users = ref<UserWithCourses[]>([])
 const courses = ref<CourseListItem[]>([])
 const usersWithCourses = ref<Map<string, string[]>>(new Map())
 
 const isModalOpen = ref(false)
+const isRoleChangeModalOpen = ref(false)
+const isChangingRole = ref(false)
 const searchQuery = ref('')
 const selectedUser = ref<User | null>(null)
+const userToChangeRole = ref<UserWithCourses | null>(null)
 const selectedCourseIds = ref<string[]>([])
 const isLoading = ref(false)
+const isLoadingUsers = ref(false)
 const error = ref<string | null>(null)
+const roleChangeError = ref<string | null>(null)
 
-// UWAGA: Endpoint GET /api/users nie istnieje jeszcze w backend
-// Tymczasowo używamy mocków
-const mockUsers = ref<UserWithCourses[]>([
-  {
-    id: '1',
-    email: 'jan.kowalski@example.com',
-    username: 'jankowalski',
-    role: 'USER',
-    enrolledCourses: [],
-  },
-  {
-    id: '2',
-    email: 'anna.nowak@example.com',
-    username: 'annanowak',
-    role: 'USER',
-    enrolledCourses: [],
-  },
-  {
-    id: '3',
-    email: 'admin@example.com',
-    username: 'admin',
-    role: 'ADMIN',
-    enrolledCourses: [],
-  }
-])
+// Paginacja
+const currentPage = ref(1)
+const limit = ref(10)
+const totalUsers = ref(0)
 
 const filteredUsers = computed(() => {
-  if (!mockUsers.value) return []
-  if (!searchQuery.value) return mockUsers.value
+  if (!users.value) return []
+  if (!searchQuery.value) return users.value
 
-  return mockUsers.value.filter(user =>
+  return users.value.filter(user =>
     user.username.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
     user.email.toLowerCase().includes(searchQuery.value.toLowerCase())
   )
 })
+
+async function fetchUsers() {
+  isLoadingUsers.value = true
+  error.value = null
+
+  try {
+    const response: UsersListsResponse = await getAllUsers({
+      page: currentPage.value,
+      limit: limit.value
+    })
+
+    console.log('API Response:', response)
+
+    if (response.success && response.data) {
+      // Konwertuj User[] na UserWithCourses[]
+      users.value = response.data.users.map(user => ({
+        ...user,
+        enrolledCourses: usersWithCourses.value.get(user.id) || []
+      }))
+      totalUsers.value = response.data.pagination.totalUsers
+
+      // Pobierz kursy dla każdego użytkownika (nie blokuj wyświetlania użytkowników jeśli to się nie powiedzie)
+      for (const user of users.value) {
+        try {
+          const enrolledCourseIds = await fetchUserCourses(user.id)
+          usersWithCourses.value.set(user.id, enrolledCourseIds)
+          const userIndex = users.value.findIndex(u => u.id === user.id)
+          if (userIndex !== -1 && users.value[userIndex]) {
+            users.value[userIndex].enrolledCourses = enrolledCourseIds
+          }
+        } catch (courseErr: any) {
+          console.warn(`Error fetching courses for user ${user.id}:`, courseErr)
+          // Kontynuuj dla innych użytkowników
+        }
+      }
+    } else {
+      error.value = 'Nie udało się pobrać użytkowników'
+      users.value = []
+      totalUsers.value = 0
+    }
+  } catch (err: any) {
+    error.value = err.response?.data?.message || err.message || 'Wystąpił błąd podczas pobierania użytkowników'
+    console.error('Error fetching users:', err)
+    users.value = []
+    totalUsers.value = 0
+  } finally {
+    isLoadingUsers.value = false
+  }
+}
 
 async function fetchCourses() {
   try {
@@ -142,14 +178,61 @@ async function handleSaveAssignments() {
 }
 
 function handleToggleRole(user: UserWithCourses) {
-  const index = mockUsers.value.findIndex(u => u.id === user.id)
-  if (index !== -1) {
-    mockUsers.value[index].role = user.role === 'ADMIN' ? 'USER' : 'ADMIN'
+  userToChangeRole.value = user
+  isRoleChangeModalOpen.value = true
+}
+
+async function handleConfirmRoleChange() {
+  if (!userToChangeRole.value) return
+
+  isChangingRole.value = true
+  roleChangeError.value = null
+
+  try {
+    const newRole = userToChangeRole.value.role === 'ADMIN' ? 'USER' : 'ADMIN'
+    const response = await updateUserRole(userToChangeRole.value.id, newRole)
+
+    if (response.success && response.data?.user) {
+      // Aktualizuj rolę w liście użytkowników
+      const index = users.value.findIndex(u => u.id === userToChangeRole.value!.id)
+      if (index !== -1) {
+        users.value[index].role = response.data.user.role
+      }
+    }
+
+    isRoleChangeModalOpen.value = false
+    userToChangeRole.value = null
+  } catch (err: any) {
+    const errorResponse = err.response?.data
+
+    if (errorResponse?.code === 'INSUFFICIENT_PERMISSIONS') {
+      roleChangeError.value = 'Brak uprawnień. Administrator może tylko awansować użytkowników z roli USER na ADMIN.'
+    } else if (errorResponse?.code === 'SAME_ROLE') {
+      roleChangeError.value = 'Użytkownik już ma tę rolę.'
+    } else if (errorResponse?.code === 'USER_NOT_FOUND') {
+      roleChangeError.value = 'Użytkownik nie został znaleziony.'
+    } else {
+      roleChangeError.value = errorResponse?.message || 'Wystąpił błąd podczas zmiany roli.'
+    }
+  } finally {
+    isChangingRole.value = false
   }
+}
+
+function handleCancelRoleChange() {
+  isRoleChangeModalOpen.value = false
+  userToChangeRole.value = null
+  roleChangeError.value = null
+}
+
+function handlePageChange(page: number) {
+  currentPage.value = page
+  fetchUsers()
 }
 
 onMounted(() => {
   fetchCourses()
+  fetchUsers()
 })
 </script>
 
@@ -169,11 +252,21 @@ onMounted(() => {
         />
       </div>
 
+      <div v-if="error" class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+        <p class="text-sm text-red-700">{{ error }}</p>
+      </div>
+
       <AdminTable
         :columns="tableColumns"
-        :is-empty="filteredUsers.length === 0"
+        :is-empty="!isLoadingUsers && filteredUsers.length === 0"
         empty-message="Nie znaleziono użytkowników"
       >
+        <template v-if="isLoadingUsers" #empty>
+          <div class="text-center py-12">
+            <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-gray-300 border-t-blue-600"></div>
+            <p class="mt-4 text-gray-600">Ładowanie użytkowników...</p>
+          </div>
+        </template>
         <template #rows>
           <AdminTableRow
             v-for="user in filteredUsers"
@@ -297,6 +390,14 @@ onMounted(() => {
           </AdminTableRow>
         </template>
       </AdminTable>
+
+      <Pagination
+        v-if="!isLoadingUsers && totalUsers > 0"
+        :current-page="currentPage"
+        :total-items="totalUsers"
+        :items-per-page="limit"
+        @page-change="handlePageChange"
+      />
     </MaxWidthWrapper>
 
     <Modal :is-open="isModalOpen" @update:is-open="handleCloseModal">
@@ -354,6 +455,23 @@ onMounted(() => {
         </div>
       </div>
     </Modal>
+
+    <ConfirmModal
+      :is-open="isRoleChangeModalOpen"
+      title="Zmiana roli użytkownika"
+      :message="userToChangeRole ? `Czy na pewno chcesz zmienić rolę użytkownika ${userToChangeRole.username} z ${userToChangeRole.role === 'ADMIN' ? 'Administratora' : 'Użytkownika'} na ${userToChangeRole.role === 'ADMIN' ? 'Użytkownika' : 'Administratora'}?` : ''"
+      confirm-text="Tak, zmień rolę"
+      cancel-text="Anuluj"
+      variant="warning"
+      :is-loading="isChangingRole"
+      @confirm="handleConfirmRoleChange"
+      @cancel="handleCancelRoleChange"
+      @update:is-open="handleCancelRoleChange"
+    >
+      <div v-if="roleChangeError" class="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+        <p class="text-sm text-red-700">{{ roleChangeError }}</p>
+      </div>
+    </ConfirmModal>
   </div>
 </template>
 

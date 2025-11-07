@@ -51,6 +51,7 @@ const variantMap: Record<string, 'danger' | 'primary' | 'secondary'> = {
     <p class="text-gray-700">
       {{ message }}
     </p>
+    <slot />
 
     <template #footer>
       <Action

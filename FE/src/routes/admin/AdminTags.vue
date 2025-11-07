@@ -10,6 +10,7 @@ import AdminTable from '@/components/admin/AdminTable.vue'
 import AdminTableRow from '@/components/admin/AdminTableRow.vue'
 import Action from '@/components/ui/Action.vue'
 import ConfirmModal from '@/components/ui/ConfirmModal.vue'
+import Pagination from '@/components/ui/Pagination.vue'
 import type { Tag } from '@/types/Admin'
 import { getTags, deleteTag } from '@/services/adminService'
 
@@ -30,6 +31,11 @@ const isDeleteModalOpen = ref(false)
 const tagToDelete = ref<Tag | null>(null)
 const isDeleting = ref(false)
 
+// Paginacja
+const currentPage = ref(1)
+const limit = ref(10)
+const totalTags = ref(0)
+
 const filteredTags = computed(() => {
   if (!tags.value) return []
   if (!searchQuery.value) return tags.value
@@ -44,13 +50,23 @@ async function fetchTags() {
   error.value = null
 
   try {
-    tags.value = await getTags()
+    const response = await getTags({
+      page: currentPage.value,
+      limit: limit.value
+    })
+    tags.value = response.data.items
+    totalTags.value = response.data.total
   } catch (err: any) {
     error.value = err.message || 'Nie udało się pobrać tagów'
     console.error('Error fetching tags:', err)
   } finally {
     isLoading.value = false
   }
+}
+
+function handlePageChange(page: number) {
+  currentPage.value = page
+  fetchTags()
 }
 
 function handleEditTag(tag?: Tag) {
@@ -201,6 +217,14 @@ onMounted(() => {
           </AdminTableRow>
         </template>
       </AdminTable>
+
+      <Pagination
+        v-if="!isLoading && totalTags > 0"
+        :current-page="currentPage"
+        :total-items="totalTags"
+        :items-per-page="limit"
+        @page-change="handlePageChange"
+      />
     </MaxWidthWrapper>
 
     <ConfirmModal

@@ -13,9 +13,10 @@ import type {
   ApiResponse,
   ApiListResponse,
   ApiTagsResponse,
+  UsersListsResponse,
 } from '../types/Admin'
 import type { CourseListItem, CourseDetails } from '../types/Course'
-import type { Video } from '../types/Video'
+import type { User } from '../types/user'
 
 // ==================== KURSY ====================
 
@@ -58,11 +59,16 @@ export async function reorderCourseVideos(
 // ==================== TAGI ====================
 
 /**
- * Pobierz wszystkie tagi
+ * Pobierz wszystkie tagi z paginacją
  */
-export async function getTags(): Promise<Tag[]> {
-  const response = await httpClient.get<ApiTagsResponse>('/tags')
-  return response.data.data
+export async function getTags(params?: { page?: number; limit?: number }): Promise<ApiListResponse<Tag>> {
+  const response = await httpClient.get<ApiListResponse<Tag>>('/tags', {
+    params: {
+      page: params?.page || 1,
+      limit: params?.limit || 10
+    }
+  })
+  return response.data
 }
 
 /**
@@ -227,12 +233,29 @@ export async function getUserCourses(userId: string): Promise<ApiListResponse<Co
 // ==================== POMOCNICZE ====================
 
 /**
- * Pobierz wszystkich użytkowników (TODO: endpoint do dodania w BE)
+ * Pobierz wszystkich użytkowników z paginacją
  */
-export async function getAllUsers(): Promise<any[]> {
-  // Ten endpoint nie istnieje w dokumentacji, więc zwracamy pustą tablicę
-  // TODO: Dodać endpoint GET /api/users w backend
-  console.warn('Endpoint GET /api/users nie istnieje jeszcze w API')
-  return []
+export async function getAllUsers(params?: { page?: number; limit?: number }): Promise<UsersListsResponse> {
+  const response = await httpClient.get<UsersListsResponse>('/users', {
+    params: {
+      page: params?.page || 1,
+      limit: params?.limit || 10
+    }
+  })
+
+  return response.data
+}
+
+/**
+ * Zmień rolę użytkownika
+ */
+export async function updateUserRole(
+  userId: string,
+  role: 'USER' | 'ADMIN'
+): Promise<ApiResponse<{ user: User }>> {
+  const response = await httpClient.patch<ApiResponse<{ user: User }>>(`/users/${userId}/role`, {
+    role
+  })
+  return response.data
 }
 

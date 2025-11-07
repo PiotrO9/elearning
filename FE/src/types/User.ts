@@ -7,6 +7,11 @@ export interface User {
     role: UserRole
 }
 
+export interface UserAdminPanelListItem extends User {
+  coursesCount: number
+}
+
+
 export type LoginResponse = {
     success: boolean
     message: string

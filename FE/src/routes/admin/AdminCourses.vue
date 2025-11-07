@@ -12,6 +12,7 @@ import TagList from '@/components/admin/TagList.vue'
 import PublishStatusBadge from '@/components/admin/PublishStatusBadge.vue'
 import Action from '@/components/ui/Action.vue'
 import ConfirmModal from '@/components/ui/ConfirmModal.vue'
+import Pagination from '@/components/ui/Pagination.vue'
 import type { CourseListItem } from '@/types/Course'
 import { getCourses } from '@/services/courseService'
 import { deleteCourse, updateCourse } from '@/services/adminService'
@@ -35,6 +36,11 @@ const isDeleteModalOpen = ref(false)
 const courseToDelete = ref<CourseListItem | null>(null)
 const isDeleting = ref(false)
 
+// Paginacja
+const currentPage = ref(1)
+const limit = ref(10)
+const totalCourses = ref(0)
+
 const filteredCourses = computed(() => {
   if (!courses.value) return []
   if (!searchQuery.value) return courses.value
@@ -50,14 +56,23 @@ async function fetchCourses() {
   error.value = null
 
   try {
-    const response = await getCourses()
+    const response = await getCourses({
+      page: currentPage.value,
+      limit: limit.value
+    })
     courses.value = response.courses
+    totalCourses.value = response.total
   } catch (err: any) {
     error.value = err.message || 'Nie udało się pobrać kursów'
     console.error('Error fetching courses:', err)
   } finally {
     isLoading.value = false
   }
+}
+
+function handlePageChange(page: number) {
+  currentPage.value = page
+  fetchCourses()
 }
 
 function handleEditCourse(course?: CourseListItem) {
@@ -234,6 +249,14 @@ onMounted(() => {
           </AdminTableRow>
         </template>
       </AdminTable>
+
+      <Pagination
+        v-if="!isLoading && totalCourses > 0"
+        :current-page="currentPage"
+        :total-items="totalCourses"
+        :items-per-page="limit"
+        @page-change="handlePageChange"
+      />
     </MaxWidthWrapper>
 
     <ConfirmModal

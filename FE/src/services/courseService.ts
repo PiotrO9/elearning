@@ -5,6 +5,8 @@ import type { Tag } from '../types/Admin'
 
 export interface GetCoursesParams {
   tag?: string
+  page?: number
+  limit?: number
 }
 
 export interface GetCoursesResponse {
