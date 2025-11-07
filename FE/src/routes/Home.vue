@@ -1,38 +1,205 @@
 <script setup lang="ts">
-import Carousel from '@/components/Carousel.vue'
-import LoginCard from '@/components/LoginCard.vue'
-import Modal from '@/components/ui/Modal.vue'
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 
-const isopen = ref<boolean>(false)
+const router = useRouter()
+
+const featuredCourses = ref([
+    {
+        id: 1,
+        title: 'Kurs Tworzenia Stron',
+        description: 'Naucz się HTML, CSS, JavaScript i nowoczesnych frameworków',
+        price: '199 zł',
+        rating: 4.8,
+        students: 12500,
+        image: '🎨',
+    },
+    {
+        id: 2,
+        title: 'Machine Learning',
+        description: 'Opanuj Python, algorytmy ML i analizę danych',
+        price: '249 zł',
+        rating: 4.9,
+        students: 8900,
+        image: '📊',
+    },
+    {
+        id: 3,
+        title: 'Projektowanie UI/UX',
+        description: 'Twórz piękne i przyjazne interfejsy użytkownika',
+        price: '159 zł',
+        rating: 4.7,
+        students: 6700,
+        image: '✨',
+    },
+])
+
+const navigateToCourses = () => {
+    router.push('/courses')
+}
 </script>
 
 <template>
-    <div>
-        <div class="border-3 w-32 h-32 border-dotted scale-3d rounded-full animate-spins" />
-        <p v-on:click="isopen = true">open</p>
-        <Modal v-on:update:is-open="isopen = false" :is-open="isopen">
-            <LoginCard />
-        </Modal>
-        <Carousel
-            :images="['/placeholder.jpg', 'placeholder.webp']"
-            auto-play
-            :auto-play-interval="2000"
-        />
+    <div class="min-h-screen">
+        <section
+            class="relative bg-gradient-to-br from-primary to-footer-bg text-white py-20 px-6 overflow-hidden"
+        >
+            <div
+                class="absolute top-0 right-0 w-96 h-96 bg-accent rounded-full opacity-10 blur-3xl"
+            ></div>
+            <div
+                class="absolute bottom-0 left-0 w-72 h-72 bg-secondary rounded-full opacity-10 blur-3xl"
+            ></div>
+
+            <div class="max-w-7xl mx-auto relative z-10">
+                <div class="grid md:grid-cols-2 gap-12 items-center">
+                    <div class="space-y-6">
+                        <div
+                            class="inline-block bg-secondary text-button-secondary-text px-4 py-2 rounded-full text-sm font-semibold"
+                        >
+                            🎓 Zacznij Się Uczyć Dziś
+                        </div>
+                        <h1 class="text-5xl md:text-6xl font-bold leading-tight">
+                            Odkryj Swój <span class="text-secondary"> Potencjał</span>
+                        </h1>
+                        <p class="text-xl text-text-on-dark-muted leading-relaxed">
+                            Uzyskaj dostęp do tysięcy kursów prowadzonych przez ekspertów
+                            branżowych. Ucz się we własnym tempie i osiągaj swoje cele.
+                        </p>
+                        <div class="flex flex-wrap gap-4 pt-4">
+                            <button
+                                @click="navigateToCourses"
+                                class="bg-secondary hover:bg-button-secondary-text text-button-secondary-text hover:text-white px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+                            >
+                                Przeglądaj Kursy
+                            </button>
+                            <button
+                                class="border-2 border-white hover:bg-white hover:text-primary px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-300"
+                            >
+                                Dowiedz Się Więcej
+                            </button>
+                        </div>
+                        <div class="flex items-center gap-8 pt-6">
+                            <div>
+                                <div class="text-3xl font-bold">50K+</div>
+                                <div class="text-text-on-dark-muted text-sm">
+                                    Aktywnych Studentów
+                                </div>
+                            </div>
+                            <div class="w-px h-12 bg-white opacity-30"></div>
+                            <div>
+                                <div class="text-3xl font-bold">1000+</div>
+                                <div class="text-text-on-dark-muted text-sm">Kursów</div>
+                            </div>
+                            <div class="w-px h-12 bg-white opacity-30"></div>
+                            <div>
+                                <div class="text-3xl font-bold">4.8★</div>
+                                <div class="text-text-on-dark-muted text-sm">Średnia Ocena</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="hidden md:block">
+                        <div class="relative">
+                            <div
+                                class="w-full h-96 bg-accent bg-opacity-20 rounded-3xl backdrop-blur-sm border border-white border-opacity-20 flex items-center justify-center"
+                            >
+                                <div class="text-center space-y-4">
+                                    <div class="text-8xl">📚</div>
+                                    <div class="text-2xl font-semibold">
+                                        Twoja Podróż Edukacyjna
+                                    </div>
+                                    <div class="text-text-on-dark-muted">Zaczyna Się Tutaj</div>
+                                </div>
+                            </div>
+                            <div
+                                class="absolute -top-6 -right-6 bg-white text-primary px-6 py-4 rounded-2xl shadow-xl transform rotate-3"
+                            >
+                                <div class="font-bold text-lg">Nowy Kurs!</div>
+                                <div class="text-sm">Dodany Dzisiaj</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section class="py-20 px-6 bg-background">
+            <div class="max-w-7xl mx-auto">
+                <div class="text-center mb-16 space-y-4">
+                    <div
+                        class="inline-block bg-accent text-primary px-4 py-2 rounded-full text-sm font-semibold"
+                    >
+                        Polecane Kursy
+                    </div>
+                    <h2 class="text-4xl md:text-5xl font-bold text-text">
+                        Najpopularniejsze <span class="text-primary">Teraz</span>
+                    </h2>
+                    <p class="text-lg text-text-muted max-w-2xl mx-auto">
+                        Odkryj nasze najpopularniejsze kursy wybrane przez tysiące studentów z
+                        całego świata
+                    </p>
+                </div>
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <div
+                        v-for="course in featuredCourses"
+                        :key="course.id"
+                        class="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden group cursor-pointer transform hover:-translate-y-2"
+                    >
+                        <div
+                            class="h-48 bg-gradient-to-br from-primary to-accent flex items-center justify-center text-8xl group-hover:scale-110 transition-transform duration-300"
+                        >
+                            {{ course.image }}
+                        </div>
+                        <div class="p-6 space-y-4">
+                            <h3
+                                class="text-xl font-bold text-text group-hover:text-primary transition-colors"
+                            >
+                                {{ course.title }}
+                            </h3>
+                            <p class="text-text-secondary line-clamp-2">
+                                {{ course.description }}
+                            </p>
+                            <div class="flex items-center gap-4 text-sm text-text-muted">
+                                <div class="flex items-center gap-1">
+                                    <span class="text-secondary">★</span>
+                                    <span class="font-semibold">{{ course.rating }}</span>
+                                </div>
+                                <div class="w-1 h-1 bg-border rounded-full"></div>
+                                <div>{{ course.students.toLocaleString() }} studentów</div>
+                            </div>
+                            <div
+                                class="flex items-center justify-between pt-4 border-t border-border"
+                            >
+                                <div class="text-2xl font-bold text-primary">
+                                    {{ course.price }}
+                                </div>
+                                <button
+                                    class="bg-primary hover:bg-button-primary-hover text-white px-6 py-2 rounded-lg font-semibold transition-colors duration-300"
+                                >
+                                    Zapisz Się
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="text-center mt-12">
+                    <button
+                        @click="navigateToCourses"
+                        class="bg-secondary hover:bg-button-secondary-text text-button-secondary-text hover:text-white px-10 py-4 rounded-lg font-semibold text-lg transition-all duration-300 shadow-md hover:shadow-xl"
+                    >
+                        Zobacz Wszystkie Kursy →
+                    </button>
+                </div>
+            </div>
+        </section>
     </div>
 </template>
 
 <style scoped>
-@keyframes spin {
-    0% {
-        transform: rotateZ(0deg);
-    }
-    100% {
-        transform: rotateZ(360deg);
-    }
-}
-
-.animate-spins {
-    animation: spin 20s linear infinite;
+.line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 </style>
