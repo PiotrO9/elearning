@@ -1,38 +1,13 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import CourseCard from '@/components/course/CourseCard.vue'
+import { useCourses } from '@/composables/useCourses'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
 
-const featuredCourses = ref([
-    {
-        id: 1,
-        title: 'Kurs Tworzenia Stron',
-        description: 'Naucz się HTML, CSS, JavaScript i nowoczesnych frameworków',
-        price: '199 zł',
-        rating: 4.8,
-        students: 12500,
-        image: '🎨',
-    },
-    {
-        id: 2,
-        title: 'Machine Learning',
-        description: 'Opanuj Python, algorytmy ML i analizę danych',
-        price: '249 zł',
-        rating: 4.9,
-        students: 8900,
-        image: '📊',
-    },
-    {
-        id: 3,
-        title: 'Projektowanie UI/UX',
-        description: 'Twórz piękne i przyjazne interfejsy użytkownika',
-        price: '159 zł',
-        rating: 4.7,
-        students: 6700,
-        image: '✨',
-    },
-])
+const { getHomePageCourses } = useCourses()
+
+const mockCourses = getHomePageCourses()
 
 const navigateToCourses = () => {
     router.push('/courses')
@@ -139,47 +114,7 @@ const navigateToCourses = () => {
                     </p>
                 </div>
                 <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    <div
-                        v-for="course in featuredCourses"
-                        :key="course.id"
-                        class="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden group cursor-pointer transform hover:-translate-y-2"
-                    >
-                        <div
-                            class="h-48 bg-gradient-to-br from-primary to-accent flex items-center justify-center text-8xl group-hover:scale-110 transition-transform duration-300"
-                        >
-                            {{ course.image }}
-                        </div>
-                        <div class="p-6 space-y-4">
-                            <h3
-                                class="text-xl font-bold text-text group-hover:text-primary transition-colors"
-                            >
-                                {{ course.title }}
-                            </h3>
-                            <p class="text-text-secondary line-clamp-2">
-                                {{ course.description }}
-                            </p>
-                            <div class="flex items-center gap-4 text-sm text-text-muted">
-                                <div class="flex items-center gap-1">
-                                    <span class="text-secondary">★</span>
-                                    <span class="font-semibold">{{ course.rating }}</span>
-                                </div>
-                                <div class="w-1 h-1 bg-border rounded-full"></div>
-                                <div>{{ course.students.toLocaleString() }} studentów</div>
-                            </div>
-                            <div
-                                class="flex items-center justify-between pt-4 border-t border-border"
-                            >
-                                <div class="text-2xl font-bold text-primary">
-                                    {{ course.price }}
-                                </div>
-                                <button
-                                    class="bg-primary hover:bg-button-primary-hover text-white px-6 py-2 rounded-lg font-semibold transition-colors duration-300"
-                                >
-                                    Zapisz Się
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+                    <CourseCard v-for="course in mockCourses" :course="course" :key="course.id" />
                 </div>
                 <div class="text-center mt-12">
                     <button
