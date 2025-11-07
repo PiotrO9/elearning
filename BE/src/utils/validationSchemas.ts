@@ -96,3 +96,13 @@ export const enrollUserSchema = z.object({
 export const userIdParamSchema = z.object({
 	userId: z.string().uuid('Invalid user id'),
 });
+
+export const userRoleParamSchema = z.object({
+	id: z.string().uuid('Invalid user id'),
+});
+
+export const updateUserRoleSchema = z.object({
+	role: z.enum(['USER', 'ADMIN', 'SUPERADMIN'], {
+		errorMap: () => ({ message: 'Role must be USER, ADMIN, or SUPERADMIN' }),
+	}),
+});

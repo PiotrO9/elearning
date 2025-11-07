@@ -31,6 +31,10 @@ export interface UpdatePasswordData {
 	newPassword: string;
 }
 
+export interface UpdateUserRoleData {
+	role: UserRole;
+}
+
 export interface PaginationParams {
 	page: number;
 	limit: number;

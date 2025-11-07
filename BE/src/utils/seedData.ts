@@ -22,6 +22,12 @@ export async function seedUsers() {
 
 	const users = [
 		{
+			email: 'superadmin@elearning.pl',
+			username: 'superadmin',
+			password: 'SuperAdmin123!',
+			role: UserRole.SUPERADMIN,
+		},
+		{
 			email: 'admin@elearning.pl',
 			username: 'admin',
 			password: 'Admin123!',
@@ -817,6 +823,7 @@ export async function runSeed() {
 	console.log(`   Użytkownicy: ${users.length}`);
 	console.log(`   Kursy: ${courses.length}`);
 	console.log(`   Tagi: ${tags.length}`);
+	console.log(`   Superadmin: superadmin@elearning.pl / SuperAdmin123!`);
 	console.log(`   Admin: admin@elearning.pl / Admin123!`);
 	console.log(`   Użytkownicy testowi: *@example.com / User123!`);
 }

@@ -149,7 +149,7 @@ export const authorizeUserModification = (
 };
 
 /**
- * Middleware to require admin role
+ * Middleware to require admin role (ADMIN or SUPERADMIN)
  */
 export const requireAdmin = (req: Request, res: Response, next: NextFunction): void => {
 	if (!req.user) {
@@ -160,11 +160,35 @@ export const requireAdmin = (req: Request, res: Response, next: NextFunction): v
 		return;
 	}
 
-	if (req.user.role !== UserRole.ADMIN) {
+	if (req.user.role !== UserRole.ADMIN && req.user.role !== UserRole.SUPERADMIN) {
 		res.status(403).json({
 			success: false,
 			message: 'Admin access required',
 			code: 'ADMIN_ACCESS_REQUIRED',
+		});
+		return;
+	}
+
+	next();
+};
+
+/**
+ * Middleware to require superadmin role
+ */
+export const requireSuperAdmin = (req: Request, res: Response, next: NextFunction): void => {
+	if (!req.user) {
+		res.status(401).json({
+			success: false,
+			message: 'Authentication required',
+		});
+		return;
+	}
+
+	if (req.user.role !== UserRole.SUPERADMIN) {
+		res.status(403).json({
+			success: false,
+			message: 'Superadmin access required',
+			code: 'SUPERADMIN_ACCESS_REQUIRED',
 		});
 		return;
 	}
@@ -202,8 +226,8 @@ export const checkCourseAccess = async (
 			return;
 		}
 
-		// Admin has access to everything
-		if (req.user.role === UserRole.ADMIN) {
+		// Admin and Superadmin have access to everything
+		if (req.user.role === UserRole.ADMIN || req.user.role === UserRole.SUPERADMIN) {
 			next();
 			return;
 		}
