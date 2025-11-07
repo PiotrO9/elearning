@@ -10,6 +10,7 @@ import {
 	UserStatus,
 	UserServiceError,
 } from '../types/user';
+import { Pagination } from '../types/api';
 import { UserRole } from '@prisma/client';
 
 // use shared prisma instance
@@ -80,15 +81,16 @@ export class UserService {
 			coursesCount: user._count.courseEnrollments,
 		}));
 
+		const pagination: Pagination = {
+			currentPage: page,
+			totalPages,
+			totalItems: totalUsers,
+			limit,
+		};
+
 		return {
-			users: usersWithCoursesCount,
-			pagination: {
-				currentPage: page,
-				totalPages,
-				totalUsers,
-				hasNext: page < totalPages,
-				hasPrev: page > 1,
-			},
+			items: usersWithCoursesCount,
+			pagination,
 		};
 	}
 

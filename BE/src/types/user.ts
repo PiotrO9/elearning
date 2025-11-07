@@ -1,4 +1,5 @@
 import { UserRole } from '@prisma/client';
+import { PaginatedListResponse } from './api';
 
 export { UserRole };
 
@@ -41,16 +42,7 @@ export interface PaginationParams {
 	limit: number;
 }
 
-export interface PaginatedUsersResponse {
-	users: UserBasic[];
-	pagination: {
-		currentPage: number;
-		totalPages: number;
-		totalUsers: number;
-		hasNext: boolean;
-		hasPrev: boolean;
-	};
-}
+export interface PaginatedUsersResponse extends PaginatedListResponse<UserBasic> {}
 
 export interface UserStatus {
 	status: 'online' | 'offline';

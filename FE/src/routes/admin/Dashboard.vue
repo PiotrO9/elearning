@@ -1,38 +1,74 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import MaxWidthWrapper from '@/components/wrappers/MaxWidthWrapper.vue'
 import AdminNav from '@/components/admin/AdminNav.vue'
-import { getCourses } from '@/services/courseService'
-import { getTags } from '@/services/adminService'
+import { getDashboard } from '@/services/adminService'
 
 const stats = ref({
   totalCourses: 0,
-  totalUsers: 0, // Wymaga endpoint GET /api/users
+  totalUsers: 0,
   totalTags: 0,
   activeCourses: 0
 })
 
+const recentActivities = ref<Array<{
+  description: string
+  timeAgo: string
+  timestamp: string
+  type: 'course_added' | 'course_updated' | 'tag_added' | 'tag_updated' | 'user_registered'
+}>>([])
+
 const isLoading = ref(false)
+const error = ref<string | null>(null)
 
 async function fetchStats() {
   isLoading.value = true
+  error.value = null
 
   try {
-    const [coursesResponse, tagsResponse] = await Promise.all([
-      getCourses(),
-      getTags()
-    ])
+    const response = await getDashboard()
 
-    stats.value.totalCourses = coursesResponse.total || coursesResponse.courses.length
-    stats.value.activeCourses = coursesResponse.courses.filter(c => c.isPublished).length
-    stats.value.totalTags = tagsResponse.length
+    if (response.success && response.data) {
+      const metrics = response.data.metrics
 
-    // totalUsers wymaga endpoint GET /api/users
-    stats.value.totalUsers = 0
-  } catch (err) {
+      stats.value = {
+        totalCourses: metrics.totalCourses,
+        activeCourses: metrics.activeCourses,
+        totalUsers: metrics.totalUsers,
+        totalTags: metrics.totalTags
+      }
+
+      recentActivities.value = response.data.recentActivities || []
+    } else {
+      error.value = 'Nie udało się pobrać statystyk'
+    }
+  } catch (err: unknown) {
+    const errorMessage = err && typeof err === 'object' && 'response' in err
+      ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
+      : err && typeof err === 'object' && 'message' in err
+      ? String((err as { message: unknown }).message)
+      : 'Wystąpił błąd podczas pobierania statystyk'
+    error.value = errorMessage || 'Wystąpił błąd podczas pobierania statystyk'
     console.error('Error fetching stats:', err)
   } finally {
     isLoading.value = false
+  }
+}
+
+function getActivityColor(type: string): string {
+  switch (type) {
+    case 'course_added':
+      return 'bg-blue-500'
+    case 'course_updated':
+      return 'bg-blue-400'
+    case 'tag_added':
+      return 'bg-green-500'
+    case 'tag_updated':
+      return 'bg-green-400'
+    case 'user_registered':
+      return 'bg-purple-500'
+    default:
+      return 'bg-gray-500'
   }
 }
 
@@ -54,7 +90,16 @@ onMounted(() => {
         </p>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div v-if="error" class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+        <p class="text-sm text-red-700">{{ error }}</p>
+      </div>
+
+      <div v-if="isLoading" class="text-center py-12">
+        <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-gray-300 border-t-blue-600"></div>
+        <p class="mt-4 text-gray-600">Ładowanie statystyk...</p>
+      </div>
+
+      <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-blue-500">
           <div class="flex items-center justify-between">
             <div>
@@ -104,7 +149,7 @@ onMounted(() => {
         </div>
       </div>
 
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div v-if="!isLoading" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div class="lg:col-span-2 bg-white rounded-xl shadow-md p-6">
           <h2 class="text-xl font-bold text-gray-900 mb-4">Szybkie akcje</h2>
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -136,26 +181,19 @@ onMounted(() => {
 
         <div class="bg-white rounded-xl shadow-md p-6">
           <h2 class="text-xl font-bold text-gray-900 mb-4">Ostatnie aktywności</h2>
-          <div class="space-y-4">
-            <div class="flex items-start">
-              <div class="w-2 h-2 bg-blue-500 rounded-full mt-2 mr-3"></div>
+          <div v-if="recentActivities.length === 0" class="text-center py-8 text-gray-500">
+            <p class="text-sm">Brak ostatnich aktywności</p>
+          </div>
+          <div v-else class="space-y-4">
+            <div
+              v-for="(activity, index) in recentActivities.slice(0, 2)"
+              :key="index"
+              class="flex items-start"
+            >
+              <div :class="['w-2 h-2 rounded-full mt-2 mr-3', getActivityColor(activity.type)]"></div>
               <div class="flex-1">
-                <p class="text-sm font-medium text-gray-900">Dodano nowy kurs</p>
-                <p class="text-xs text-gray-500">5 minut temu</p>
-              </div>
-            </div>
-            <div class="flex items-start">
-              <div class="w-2 h-2 bg-green-500 rounded-full mt-2 mr-3"></div>
-              <div class="flex-1">
-                <p class="text-sm font-medium text-gray-900">Zaktualizowano tag</p>
-                <p class="text-xs text-gray-500">1 godzinę temu</p>
-              </div>
-            </div>
-            <div class="flex items-start">
-              <div class="w-2 h-2 bg-purple-500 rounded-full mt-2 mr-3"></div>
-              <div class="flex-1">
-                <p class="text-sm font-medium text-gray-900">Nowy użytkownik</p>
-                <p class="text-xs text-gray-500">2 godziny temu</p>
+                <p class="text-sm font-medium text-gray-900">{{ activity.description }}</p>
+                <p class="text-xs text-gray-500">{{ activity.timeAgo }}</p>
               </div>
             </div>
           </div>

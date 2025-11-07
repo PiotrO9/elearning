@@ -1,25 +1,45 @@
 import { Request, Response } from 'express';
 import * as tagService from '../services/tagService';
 import { CreateTagInput, UpdateTagInput } from '../types/tag';
+import { sendSuccess, sendError, buildValidationErrors } from '../utils/response';
+import { PaginatedListResponse, Pagination, ValidationError } from '../types/api';
+import { tagSortSchema } from '../utils/validationSchemas';
 
 /**
  * Get all tags
  * GET /api/tags
  */
-export async function getAllTags(_req: Request, res: Response): Promise<void> {
+export async function getAllTags(req: Request, res: Response): Promise<void> {
 	try {
-		const tags = await tagService.getAllTags();
+		const queryValidation = tagSortSchema.safeParse(req.query);
+		if (!queryValidation.success) {
+			const errors = buildValidationErrors(queryValidation.error.issues);
+			throw new ValidationError('Invalid query parameters', errors);
+		}
 
-		res.status(200).json({
-			success: true,
-			data: tags,
-		});
+		const { page, limit, sortBy, sortOrder } = queryValidation.data;
+		const result = await tagService.getAllTags(page, limit, sortBy, sortOrder);
+
+		const totalPages = Math.ceil(result.total / limit);
+		const pagination: Pagination = {
+			currentPage: page,
+			totalPages,
+			totalItems: result.total,
+			limit,
+		};
+
+		const response: PaginatedListResponse<(typeof result.items)[0]> = {
+			items: result.items,
+			pagination,
+		};
+
+		sendSuccess(res, response);
 	} catch (error) {
+		if (error instanceof ValidationError) {
+			return sendError(res, error.message, error.statusCode, error.code, error.errors);
+		}
 		console.error('Error getting all tags:', error);
-		res.status(500).json({
-			success: false,
-			message: 'Nie udało się pobrać tagów',
-		});
+		sendError(res, 'Nie udało się pobrać tagów');
 	}
 }
 
@@ -334,15 +354,21 @@ export async function getTagsForCourse(req: Request, res: Response): Promise<voi
 
 		const tags = await tagService.getTagsForCourse(courseId);
 
-		res.status(200).json({
-			success: true,
-			data: tags,
-		});
+		const pagination: Pagination = {
+			currentPage: 1,
+			totalPages: 1,
+			totalItems: tags.length,
+			limit: tags.length,
+		};
+
+		const response: PaginatedListResponse<(typeof tags)[0]> = {
+			items: tags,
+			pagination,
+		};
+
+		sendSuccess(res, response);
 	} catch (error) {
 		console.error('Error getting tags for course:', error);
-		res.status(500).json({
-			success: false,
-			message: 'Nie udało się pobrać tagów kursu',
-		});
+		sendError(res, 'Nie udało się pobrać tagów kursu');
 	}
 }

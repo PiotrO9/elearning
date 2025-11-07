@@ -31,7 +31,7 @@ withDefaults(defineProps<AdminTableProps>(), {
               :class="{
                 'text-left': column.align === 'left' || !column.align,
                 'text-right': column.align === 'right',
-                'text-center': column.align === 'center'
+                'text-center': column.align === 'center',
               }"
             >
               {{ column.label }}

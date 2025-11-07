@@ -60,7 +60,7 @@ function handleKeyDown(event: KeyboardEvent, action: () => void) {
 </script>
 
 <template>
-  <nav class="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-50">
+  <nav class="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-1">
     <MaxWidthWrapper>
       <div class="flex items-center justify-between h-16">
         <!-- Logo i desktop menu -->

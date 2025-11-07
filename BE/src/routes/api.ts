@@ -6,6 +6,7 @@ import enrollmentRoutes from './enrollmentRoutes';
 import seedRoutes from './seedRoutes';
 import tagRoutes from './tagRoutes';
 import { userRoutes } from './userRoutes';
+import { dashboardRoutes } from './dashboardRoutes';
 
 const router = Router();
 
@@ -16,6 +17,7 @@ router.use('/courses', enrollmentRoutes);
 router.use('/seed', seedRoutes);
 router.use('/tags', tagRoutes);
 router.use('/users', userRoutes);
+router.use('/admin/dashboard', dashboardRoutes);
 
 export { router as apiRoutes };
 
@@ -27,4 +29,5 @@ export const apiChildrenRouters = [
 	{ base: '/seed', router: seedRoutes },
 	{ base: '/tags', router: tagRoutes },
 	{ base: '/users', router: userRoutes },
+	{ base: '/admin/dashboard', router: dashboardRoutes },
 ];

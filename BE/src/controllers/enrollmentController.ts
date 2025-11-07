@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { sendSuccess, sendNoContent, sendError, buildValidationErrors } from '../utils/response';
-import { ValidationError } from '../types/api';
+import { ValidationError, PaginatedListResponse, Pagination } from '../types/api';
 import {
 	enrollUserByCourse,
 	unenrollUser,
@@ -13,6 +13,8 @@ import {
 	enrollUserSchema,
 	courseIdParamSchema,
 	userIdParamSchema,
+	enrollmentSortSchema,
+	userCourseSortSchema,
 } from '../utils/validationSchemas';
 import { EnrollmentDto, UserCourseDto } from '../types/enrollment';
 
@@ -125,10 +127,17 @@ export async function handleGetCourseEnrollments(req: Request, res: Response): P
 			throw new ValidationError('Invalid course id', errors);
 		}
 
-		const { id: courseId } = paramsValidation.data;
-		const enrollments = await getCourseEnrollments(courseId);
+		const queryValidation = enrollmentSortSchema.safeParse(req.query);
+		if (!queryValidation.success) {
+			const errors = buildValidationErrors(queryValidation.error.issues);
+			throw new ValidationError('Invalid query parameters', errors);
+		}
 
-		const payload: EnrollmentDto[] = enrollments.map(e => ({
+		const { id: courseId } = paramsValidation.data;
+		const { page, limit, sortBy, sortOrder } = queryValidation.data;
+		const result = await getCourseEnrollments(courseId, page, limit, sortBy, sortOrder);
+
+		const payload: EnrollmentDto[] = result.items.map(e => ({
 			id: e.id,
 			userId: e.user.id,
 			username: e.user.username,
@@ -137,7 +146,20 @@ export async function handleGetCourseEnrollments(req: Request, res: Response): P
 			enrolledBy: e.enrolledBy,
 		}));
 
-		sendSuccess(res, { items: payload, total: payload.length });
+		const totalPages = Math.ceil(result.total / limit);
+		const pagination: Pagination = {
+			currentPage: page,
+			totalPages,
+			totalItems: result.total,
+			limit,
+		};
+
+		const response: PaginatedListResponse<EnrollmentDto> = {
+			items: payload,
+			pagination,
+		};
+
+		sendSuccess(res, response);
 	} catch (error) {
 		if (error instanceof ValidationError) {
 			return sendError(res, error.message, error.statusCode, error.code, error.errors);
@@ -158,10 +180,17 @@ export async function handleGetUserCourses(req: Request, res: Response): Promise
 			throw new ValidationError('Invalid user id', errors);
 		}
 
-		const { userId } = paramsValidation.data;
-		const enrollments = await getUserEnrollments(userId);
+		const queryValidation = userCourseSortSchema.safeParse(req.query);
+		if (!queryValidation.success) {
+			const errors = buildValidationErrors(queryValidation.error.issues);
+			throw new ValidationError('Invalid query parameters', errors);
+		}
 
-		const payload: UserCourseDto[] = enrollments.map(e => ({
+		const { userId } = paramsValidation.data;
+		const { page, limit, sortBy, sortOrder } = queryValidation.data;
+		const result = await getUserEnrollments(userId, page, limit, sortBy, sortOrder);
+
+		const payload: UserCourseDto[] = result.items.map(e => ({
 			id: e.course.id,
 			title: e.course.title,
 			summary: e.course.summary,
@@ -170,7 +199,20 @@ export async function handleGetUserCourses(req: Request, res: Response): Promise
 			enrolledAt: e.createdAt,
 		}));
 
-		sendSuccess(res, { items: payload, total: payload.length });
+		const totalPages = Math.ceil(result.total / limit);
+		const pagination: Pagination = {
+			currentPage: page,
+			totalPages,
+			totalItems: result.total,
+			limit,
+		};
+
+		const response: PaginatedListResponse<UserCourseDto> = {
+			items: payload,
+			pagination,
+		};
+
+		sendSuccess(res, response);
 	} catch (error) {
 		if (error instanceof ValidationError) {
 			return sendError(res, error.message, error.statusCode, error.code, error.errors);

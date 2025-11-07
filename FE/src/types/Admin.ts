@@ -91,7 +91,15 @@ export interface ApiListResponse<T> {
   data: {
     items: T[]
     total: number
+    pagination: Pagination
   }
+}
+
+export interface Pagination {
+  currentPage: number
+  limit: number
+  totalPages: number
+  totalItems: number
 }
 
 export interface ApiTagsResponse {
@@ -110,4 +118,19 @@ export interface UsersePagination {
   hasNext: boolean
   hasPrevious: boolean
   totalUsers: number
+}
+
+export interface DashboardStats {
+  metrics: {
+    activeCourses: number
+    totalCourses: number
+    totalTags: number
+    totalUsers: number
+  },
+  recentActivities: {
+    description: string
+    timeAgo: string
+    timestamp: string
+    type: 'course_added' | 'course_updated' | 'tag_added' | 'tag_updated' | 'user_registered';
+  }[]
 }

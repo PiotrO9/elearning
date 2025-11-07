@@ -144,59 +144,120 @@ export async function unenrollUser(userId: string, courseId: string): Promise<vo
 /**
  * Pobierz listę użytkowników zapisanych na kurs
  */
-export async function getCourseEnrollments(courseId: string): Promise<EnrollmentWithUser[]> {
-	const enrollments = await prisma.courseEnrollment.findMany({
-		where: { courseId },
-		include: {
-			user: {
-				select: {
-					id: true,
-					username: true,
-					email: true,
+export async function getCourseEnrollments(
+	courseId: string,
+	page?: number,
+	limit?: number,
+	sortBy?: string,
+	sortOrder?: 'asc' | 'desc',
+): Promise<{ items: EnrollmentWithUser[]; total: number }> {
+	const skip = page && limit ? (page - 1) * limit : undefined;
+	const take = limit;
+
+	// Validate and set sortBy
+	const validSortFields = ['createdAt', 'username', 'email'];
+	const sortField = sortBy && validSortFields.includes(sortBy) ? sortBy : 'createdAt';
+	const order = sortOrder || 'desc';
+
+	// Build orderBy based on sort field
+	let orderBy: any;
+	if (sortField === 'username' || sortField === 'email') {
+		orderBy = { user: { [sortField]: order } };
+	} else {
+		orderBy = { [sortField]: order };
+	}
+
+	const [enrollments, total] = await Promise.all([
+		prisma.courseEnrollment.findMany({
+			where: { courseId },
+			include: {
+				user: {
+					select: {
+						id: true,
+						username: true,
+						email: true,
+					},
 				},
 			},
-		},
-		orderBy: { createdAt: 'desc' },
-	});
+			skip,
+			take,
+			orderBy,
+		}),
+		prisma.courseEnrollment.count({ where: { courseId } }),
+	]);
 
-	return enrollments.map(e => ({
-		id: e.id,
-		userId: e.userId,
-		courseId: e.courseId,
-		enrolledBy: e.enrolledBy,
-		createdAt: e.createdAt,
-		user: e.user,
-	}));
+	return {
+		items: enrollments.map(e => ({
+			id: e.id,
+			userId: e.userId,
+			courseId: e.courseId,
+			enrolledBy: e.enrolledBy,
+			createdAt: e.createdAt,
+			user: e.user,
+		})),
+		total,
+	};
 }
 
 /**
  * Pobierz listę kursów użytkownika
  */
-export async function getUserEnrollments(userId: string): Promise<EnrollmentWithCourse[]> {
-	const enrollments = await prisma.courseEnrollment.findMany({
-		where: { userId },
-		include: {
-			course: {
-				select: {
-					id: true,
-					title: true,
-					summary: true,
-					imagePath: true,
-					isPublic: true,
+export async function getUserEnrollments(
+	userId: string,
+	page?: number,
+	limit?: number,
+	sortBy?: string,
+	sortOrder?: 'asc' | 'desc',
+): Promise<{ items: EnrollmentWithCourse[]; total: number }> {
+	const skip = page && limit ? (page - 1) * limit : undefined;
+	const take = limit;
+
+	// Validate and set sortBy
+	const validSortFields = ['title', 'enrolledAt'];
+	const sortField = sortBy && validSortFields.includes(sortBy) ? sortBy : 'enrolledAt';
+	const order = sortOrder || 'desc';
+
+	// Build orderBy based on sort field
+	let orderBy: any;
+	if (sortField === 'title') {
+		orderBy = { course: { title: order } };
+	} else {
+		// enrolledAt maps to createdAt
+		orderBy = { createdAt: order };
+	}
+
+	const [enrollments, total] = await Promise.all([
+		prisma.courseEnrollment.findMany({
+			where: { userId },
+			include: {
+				course: {
+					select: {
+						id: true,
+						title: true,
+						summary: true,
+						imagePath: true,
+						isPublic: true,
+					},
 				},
 			},
-		},
-		orderBy: { createdAt: 'desc' },
-	});
+			skip,
+			take,
+			orderBy,
+		}),
+		prisma.courseEnrollment.count({ where: { userId } }),
+	]);
 
-	return enrollments.map(e => ({
-		id: e.id,
-		userId: e.userId,
-		courseId: e.courseId,
-		enrolledBy: e.enrolledBy,
-		createdAt: e.createdAt,
-		course: e.course,
-	}));
+	return {
+		items: enrollments.map(e => ({
+			id: e.id,
+			userId: e.userId,
+			courseId: e.courseId,
+			enrolledBy: e.enrolledBy,
+			createdAt: e.createdAt,
+			course: e.course,
+		})),
+		total,
+	};
 }
 
 /**

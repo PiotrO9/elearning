@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import MaxWidthWrapper from '@/components/wrappers/MaxWidthWrapper.vue'
-import Modal from '@/components/ui/Modal.vue'
 import ConfirmModal from '@/components/ui/ConfirmModal.vue'
 import AdminNav from '@/components/admin/AdminNav.vue'
 import AdminTableHeader from '@/components/admin/AdminTableHeader.vue'
@@ -10,11 +10,11 @@ import AdminTable from '@/components/admin/AdminTable.vue'
 import AdminTableRow from '@/components/admin/AdminTableRow.vue'
 import Action from '@/components/ui/Action.vue'
 import Pagination from '@/components/ui/Pagination.vue'
+import CopyableText from '@/components/ui/CopyableText.vue'
 import type { User, UserAdminPanelListItem } from '@/types/user'
-import type { CourseListItem } from '@/types/Course'
-import { getCourses } from '@/services/courseService'
-import { getAllUsers, enrollUserToCourse, unenrollUserFromCourse, getUserCourses, updateUserRole } from '@/services/adminService'
-import { type ApiResponse, type UsersListsResponse } from '@/types/Admin'
+import { getAllUsers, updateUserRole } from '@/services/adminService'
+
+const router = useRouter()
 
 const tableColumns = [
   { label: 'Użytkownik', align: 'left' as const },
@@ -29,18 +29,16 @@ interface UserWithCourses extends User {
   enrolledAt?: string
 }
 
-const users = ref<UserWithCourses[]>([])
-const courses = ref<CourseListItem[]>([])
-const usersWithCourses = ref<Map<string, string[]>>(new Map())
+interface UserListItem extends UserAdminPanelListItem {
+  enrolledCourses: string[]
+}
 
-const isModalOpen = ref(false)
+const users = ref<UserListItem[]>([])
+
 const isRoleChangeModalOpen = ref(false)
 const isChangingRole = ref(false)
 const searchQuery = ref('')
-const selectedUser = ref<User | null>(null)
 const userToChangeRole = ref<UserWithCourses | null>(null)
-const selectedCourseIds = ref<string[]>([])
-const isLoading = ref(false)
 const isLoadingUsers = ref(false)
 const error = ref<string | null>(null)
 const roleChangeError = ref<string | null>(null)
@@ -50,57 +48,35 @@ const currentPage = ref(1)
 const limit = ref(10)
 const totalUsers = ref(0)
 
-const filteredUsers = computed(() => {
-  if (!users.value) return []
-  if (!searchQuery.value) return users.value
-
-  return users.value.filter(user =>
-    user.username.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-    user.email.toLowerCase().includes(searchQuery.value.toLowerCase())
-  )
-})
-
 async function fetchUsers() {
   isLoadingUsers.value = true
   error.value = null
 
   try {
-    const response: UsersListsResponse = await getAllUsers({
+    const response = await getAllUsers({
       page: currentPage.value,
       limit: limit.value
     })
 
-    console.log('API Response:', response)
-
-    if (response.success && response.data) {
-      // Konwertuj User[] na UserWithCourses[]
-      users.value = response.data.users.map(user => ({
+    if (response.data && response.success && response.data.items) {
+      users.value = response.data.items.map((user): UserListItem => ({
         ...user,
-        enrolledCourses: usersWithCourses.value.get(user.id) || []
+        enrolledCourses: []
       }))
-      totalUsers.value = response.data.pagination.totalUsers
 
-      // Pobierz kursy dla każdego użytkownika (nie blokuj wyświetlania użytkowników jeśli to się nie powiedzie)
-      for (const user of users.value) {
-        try {
-          const enrolledCourseIds = await fetchUserCourses(user.id)
-          usersWithCourses.value.set(user.id, enrolledCourseIds)
-          const userIndex = users.value.findIndex(u => u.id === user.id)
-          if (userIndex !== -1 && users.value[userIndex]) {
-            users.value[userIndex].enrolledCourses = enrolledCourseIds
-          }
-        } catch (courseErr: any) {
-          console.warn(`Error fetching courses for user ${user.id}:`, courseErr)
-          // Kontynuuj dla innych użytkowników
-        }
-      }
+      totalUsers.value = response.data.pagination.totalItems
     } else {
       error.value = 'Nie udało się pobrać użytkowników'
       users.value = []
       totalUsers.value = 0
     }
-  } catch (err: any) {
-    error.value = err.response?.data?.message || err.message || 'Wystąpił błąd podczas pobierania użytkowników'
+  } catch (err: unknown) {
+    const errorMessage = err && typeof err === 'object' && 'response' in err
+      ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
+      : err && typeof err === 'object' && 'message' in err
+      ? String((err as { message: unknown }).message)
+      : 'Wystąpił błąd podczas pobierania użytkowników'
+    error.value = errorMessage || 'Wystąpił błąd podczas pobierania użytkowników'
     console.error('Error fetching users:', err)
     users.value = []
     totalUsers.value = 0
@@ -109,72 +85,8 @@ async function fetchUsers() {
   }
 }
 
-async function fetchCourses() {
-  try {
-    const response = await getCourses()
-    courses.value = response.courses
-  } catch (err: any) {
-    console.error('Error fetching courses:', err)
-  }
-}
-
-async function fetchUserCourses(userId: string) {
-  try {
-    const response = await getUserCourses(userId)
-    return response.data.items.map(c => c.id.toString())
-  } catch (err: any) {
-    console.error('Error fetching user courses:', err)
-    return []
-  }
-}
-
-function getCourseTitle(courseId: string): string {
-  return courses.value.find(c => c.id.toString() === courseId)?.title || 'Nieznany kurs'
-}
-
-async function handleOpenModal(user: UserWithCourses) {
-  selectedUser.value = user
-  isLoading.value = true
-
-  try {
-    const enrolledCourseIds = await fetchUserCourses(user.id)
-    selectedCourseIds.value = enrolledCourseIds
-  } catch (err) {
-    selectedCourseIds.value = user.enrolledCourses || []
-  } finally {
-    isLoading.value = false
-  }
-
-  isModalOpen.value = true
-}
-
-function handleCloseModal() {
-  isModalOpen.value = false
-  selectedUser.value = null
-  selectedCourseIds.value = []
-}
-
-function handleToggleCourse(courseId: string) {
-  const index = selectedCourseIds.value.indexOf(courseId)
-  if (index > -1) {
-    selectedCourseIds.value.splice(index, 1)
-  } else {
-    selectedCourseIds.value.push(courseId)
-  }
-}
-
-async function handleSaveAssignments() {
-  if (!selectedUser.value) return
-
-  try {
-    // TODO: Implement enrollment/unenrollment based on differences
-    // For now, just close the modal
-    alert('Funkcjonalność zapisu wymaga implementacji logiki porównywania zmian')
-    handleCloseModal()
-  } catch (err: any) {
-    alert('Błąd podczas zapisywania: ' + (err.message || 'Nieznany błąd'))
-    console.error('Error saving assignments:', err)
-  }
+function handleManageCourses(user: UserWithCourses) {
+  router.push(`/admin/users/${user.id}/courses`)
 }
 
 function handleToggleRole(user: UserWithCourses) {
@@ -195,15 +107,23 @@ async function handleConfirmRoleChange() {
     if (response.success && response.data?.user) {
       // Aktualizuj rolę w liście użytkowników
       const index = users.value.findIndex(u => u.id === userToChangeRole.value!.id)
-      if (index !== -1) {
-        users.value[index].role = response.data.user.role
+      const userData = response.data?.user
+      if (index !== -1 && userData && users.value[index]) {
+        users.value[index].role = userData.role
       }
     }
 
     isRoleChangeModalOpen.value = false
     userToChangeRole.value = null
-  } catch (err: any) {
-    const errorResponse = err.response?.data
+  } catch (err: unknown) {
+    interface ErrorResponse {
+      code?: string
+      message?: string
+    }
+
+    const errorResponse: ErrorResponse | null = err && typeof err === 'object' && 'response' in err
+      ? (err as { response?: { data?: ErrorResponse } }).response?.data || null
+      : null
 
     if (errorResponse?.code === 'INSUFFICIENT_PERMISSIONS') {
       roleChangeError.value = 'Brak uprawnień. Administrator może tylko awansować użytkowników z roli USER na ADMIN.'
@@ -231,7 +151,6 @@ function handlePageChange(page: number) {
 }
 
 onMounted(() => {
-  fetchCourses()
   fetchUsers()
 })
 </script>
@@ -258,7 +177,7 @@ onMounted(() => {
 
       <AdminTable
         :columns="tableColumns"
-        :is-empty="!isLoadingUsers && filteredUsers.length === 0"
+        :is-empty="!isLoadingUsers && users.length === 0"
         empty-message="Nie znaleziono użytkowników"
       >
         <template v-if="isLoadingUsers" #empty>
@@ -269,7 +188,7 @@ onMounted(() => {
         </template>
         <template #rows>
           <AdminTableRow
-            v-for="user in filteredUsers"
+            v-for="user in users"
             :key="user.id"
             :item="user"
           >
@@ -296,7 +215,13 @@ onMounted(() => {
                     <p class="font-semibold text-gray-900 group-hover:text-purple-700 transition-colors truncate">
                       {{ user.username }}
                     </p>
-                    <p class="text-xs text-gray-500 mt-0.5">ID: {{ user.id }}</p>
+                    <div class="mt-0.5">
+                      <CopyableText
+                        :text="user.id"
+                        label="ID:"
+                        :show-icon="true"
+                      />
+                    </div>
                   </div>
                 </div>
               </td>
@@ -305,7 +230,10 @@ onMounted(() => {
                   <svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                   </svg>
-                  <span class="truncate">{{ user.email }}</span>
+                  <CopyableText
+                    :text="user.email"
+                    :show-icon="true"
+                  />
                 </div>
               </td>
               <td class="px-6 py-4">
@@ -344,45 +272,28 @@ onMounted(() => {
                 </button>
               </td>
               <td class="px-6 py-4">
-                <div v-if="user.enrolledCourses.length > 0" class="flex flex-col gap-1.5">
-                  <div class="flex flex-wrap gap-1">
-                    <span
-                      v-for="courseId in user.enrolledCourses.slice(0, 2)"
-                      :key="courseId"
-                      class="inline-flex items-center gap-1 text-xs bg-blue-50 text-blue-700 px-2.5 py-1 rounded-md font-medium border border-blue-100"
-                    >
-                      <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                      </svg>
-                      <span class="truncate max-w-[120px]">{{ getCourseTitle(courseId) }}</span>
-                    </span>
-                  </div>
-                  <span
-                    v-if="user.enrolledCourses.length > 2"
-                    class="text-xs text-gray-500 font-medium"
-                  >
-                    +{{ user.enrolledCourses.length - 2 }} więcej
-                  </span>
-                </div>
-                <span v-else class="inline-flex items-center gap-1.5 text-sm text-gray-400">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="inline-flex items-center gap-1.5 text-sm text-gray-600">
+                  <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                   </svg>
-                  Brak przypisanych kursów
-                </span>
+                  <span v-if="user.coursesCount !== undefined">
+                    {{ user.coursesCount }} {{ user.coursesCount === 1 ? 'kurs' : user.coursesCount < 5 ? 'kursy' : 'kursów' }}
+                  </span>
+                  <span v-else class="text-gray-400">—</span>
+                </div>
               </td>
               <td class="px-6 py-4">
                 <div class="flex items-center justify-end">
                   <Action
-                    @click="handleOpenModal(user)"
+                    @click="handleManageCourses(user)"
                     variant="outline"
                     size="sm"
+                    circle
                     aria-label="Zarządzaj kursami użytkownika"
                   >
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
                     </svg>
-                    <span class="hidden sm:inline">Zarządzaj kursami</span>
                   </Action>
                 </div>
               </td>
@@ -399,62 +310,6 @@ onMounted(() => {
         @page-change="handlePageChange"
       />
     </MaxWidthWrapper>
-
-    <Modal :is-open="isModalOpen" @update:is-open="handleCloseModal">
-      <div class="p-6">
-        <h2 class="text-2xl font-bold text-gray-900 mb-2">
-          Przypisz kursy
-        </h2>
-        <p class="text-gray-600 mb-6">
-          Użytkownik: <span class="font-semibold">{{ selectedUser?.username }}</span>
-        </p>
-
-        <div class="mb-6 max-h-96 overflow-y-auto">
-          <div v-if="isLoading" class="text-center py-8">
-            <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-gray-300 border-t-blue-600"></div>
-          </div>
-          <div v-else-if="courses.length === 0" class="text-center py-8 text-gray-500">
-            Brak dostępnych kursów
-          </div>
-          <div v-else class="space-y-3">
-            <label
-              v-for="course in courses"
-              :key="course.id"
-              class="flex items-center gap-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
-            >
-              <input
-                type="checkbox"
-                :checked="selectedCourseIds.includes(course.id.toString())"
-                @change="handleToggleCourse(course.id.toString())"
-                class="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
-              />
-              <div class="flex-1">
-                <p class="font-medium text-gray-900">{{ course.title }}</p>
-              </div>
-            </label>
-          </div>
-        </div>
-
-        <div class="flex justify-end gap-3">
-          <Action
-            @click="handleCloseModal"
-            variant="ghost"
-            size="md"
-            aria-label="Anuluj"
-          >
-            Anuluj
-          </Action>
-          <Action
-            @click="handleSaveAssignments"
-            variant="primary"
-            size="md"
-            aria-label="Zapisz zmiany"
-          >
-            Zapisz zmiany
-          </Action>
-        </div>
-      </div>
-    </Modal>
 
     <ConfirmModal
       :is-open="isRoleChangeModalOpen"

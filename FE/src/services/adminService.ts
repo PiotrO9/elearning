@@ -13,10 +13,10 @@ import type {
   ApiResponse,
   ApiListResponse,
   ApiTagsResponse,
-  UsersListsResponse,
+  DashboardStats,
 } from '../types/Admin'
 import type { CourseListItem, CourseDetails } from '../types/Course'
-import type { User } from '../types/user'
+import type { User, UserAdminPanelListItem } from '../types/user'
 
 // ==================== KURSY ====================
 
@@ -233,10 +233,18 @@ export async function getUserCourses(userId: string): Promise<ApiListResponse<Co
 // ==================== POMOCNICZE ====================
 
 /**
+ * Pobierz statystyki dashboardu
+ */
+export async function getDashboard(): Promise<ApiResponse<DashboardStats>> {
+  const response = await httpClient.get<ApiResponse<DashboardStats>>('/admin/dashboard')
+  return response.data
+}
+
+/**
  * Pobierz wszystkich użytkowników z paginacją
  */
-export async function getAllUsers(params?: { page?: number; limit?: number }): Promise<UsersListsResponse> {
-  const response = await httpClient.get<UsersListsResponse>('/users', {
+export async function getAllUsers(params?: { page?: number; limit?: number }): Promise<ApiListResponse<UserAdminPanelListItem>> {
+  const response = await httpClient.get<ApiListResponse<UserAdminPanelListItem>>('/users', {
     params: {
       page: params?.page || 1,
       limit: params?.limit || 10

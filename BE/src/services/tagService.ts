@@ -16,23 +16,44 @@ function generateSlug(name: string): string {
 /**
  * Get all tags
  */
-export async function getAllTags(): Promise<TagDto[]> {
-	const tags = await prisma.tag.findMany({
-		include: {
-			_count: {
-				select: { courses: true },
-			},
-		},
-		orderBy: { name: 'asc' },
-	});
+export async function getAllTags(
+	page?: number,
+	limit?: number,
+	sortBy?: string,
+	sortOrder?: 'asc' | 'desc',
+): Promise<{ items: TagDto[]; total: number }> {
+	const skip = page && limit ? (page - 1) * limit : undefined;
+	const take = limit;
 
-	return tags.map(tag => ({
-		id: tag.id,
-		name: tag.name,
-		slug: tag.slug,
-		description: tag.description,
-		coursesCount: tag._count.courses,
-	}));
+	// Validate and set sortBy
+	const validSortFields = ['name', 'createdAt'];
+	const sortField = sortBy && validSortFields.includes(sortBy) ? sortBy : 'name';
+	const order = sortOrder || 'asc';
+
+	const [tags, total] = await Promise.all([
+		prisma.tag.findMany({
+			include: {
+				_count: {
+					select: { courses: true },
+				},
+			},
+			skip,
+			take,
+			orderBy: { [sortField]: order },
+		}),
+		prisma.tag.count(),
+	]);
+
+	return {
+		items: tags.map(tag => ({
+			id: tag.id,
+			name: tag.name,
+			slug: tag.slug,
+			description: tag.description,
+			coursesCount: tag._count.courses,
+		})),
+		total,
+	};
 }
 
 /**

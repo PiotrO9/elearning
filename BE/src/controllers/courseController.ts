@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { sendSuccess, sendNoContent, sendError, buildValidationErrors } from '../utils/response';
-import { ValidationError } from '../types/api';
+import { ValidationError, PaginatedListResponse, Pagination } from '../types/api';
 import {
 	listPublishedCourses,
 	getCourseDetail,
@@ -14,17 +14,24 @@ import {
 	createCourseSchema,
 	updateCourseSchema,
 	reorderCourseVideosSchema,
+	courseSortSchema,
 } from '../utils/validationSchemas';
 import { CourseListItemDto, CourseDetailDto } from '../types/course';
 import { VideoDto } from '../types/video';
 
 export async function handleGetCourses(req: Request, res: Response): Promise<void> {
 	try {
-		// Get optional tag filter from query params
+		const queryValidation = courseSortSchema.safeParse(req.query);
+		if (!queryValidation.success) {
+			const errors = buildValidationErrors(queryValidation.error.issues);
+			throw new ValidationError('Invalid query parameters', errors);
+		}
+
+		const { page, limit, sortBy, sortOrder } = queryValidation.data;
 		const tagSlug = req.query.tag as string | undefined;
 
-		const courses = await listPublishedCourses(tagSlug);
-		const payload: CourseListItemDto[] = courses.map(course => ({
+		const result = await listPublishedCourses(tagSlug, page, limit, sortBy, sortOrder);
+		const payload: CourseListItemDto[] = result.items.map(course => ({
 			id: course.id,
 			title: course.title,
 			description: course.summary,
@@ -33,8 +40,24 @@ export async function handleGetCourses(req: Request, res: Response): Promise<voi
 			tags: course.tags,
 		}));
 
-		sendSuccess(res, { items: payload, total: payload.length });
+		const totalPages = Math.ceil(result.total / limit);
+		const pagination: Pagination = {
+			currentPage: page,
+			totalPages,
+			totalItems: result.total,
+			limit,
+		};
+
+		const response: PaginatedListResponse<CourseListItemDto> = {
+			items: payload,
+			pagination,
+		};
+
+		sendSuccess(res, response);
 	} catch (error) {
+		if (error instanceof ValidationError) {
+			return sendError(res, error.message, error.statusCode, error.code, error.errors);
+		}
 		sendError(res, 'Failed to fetch courses');
 	}
 }

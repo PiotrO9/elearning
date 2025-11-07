@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import MaxWidthWrapper from '@/components/wrappers/MaxWidthWrapper.vue'
 import AdminNav from '@/components/admin/AdminNav.vue'
@@ -15,15 +15,15 @@ import ConfirmModal from '@/components/ui/ConfirmModal.vue'
 import Pagination from '@/components/ui/Pagination.vue'
 import type { CourseListItem } from '@/types/Course'
 import { getCourses } from '@/services/courseService'
-import { deleteCourse, updateCourse } from '@/services/adminService'
+import { deleteCourse } from '@/services/adminService'
 
 const tableColumns = [
   { label: 'Kurs', align: 'left' as const },
-  { label: 'Instruktor', align: 'left' as const },
-  { label: 'Tagi', align: 'left' as const },
-  { label: 'Status', align: 'left' as const },
-  { label: 'Data utworzenia', align: 'left' as const },
-  { label: 'Akcje', align: 'right' as const }
+  { label: 'Instruktor', align: 'center' as const },
+  { label: 'Tagi', align: 'center' as const },
+  { label: 'Status', align: 'center' as const },
+  { label: 'Data utworzenia', align: 'center' as const },
+  { label: 'Akcje', align: 'center' as const }
 ]
 
 const router = useRouter()
@@ -41,15 +41,7 @@ const currentPage = ref(1)
 const limit = ref(10)
 const totalCourses = ref(0)
 
-const filteredCourses = computed(() => {
-  if (!courses.value) return []
-  if (!searchQuery.value) return courses.value
-
-  return courses.value.filter(course =>
-    course.title.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-    (course.description && course.description.toLowerCase().includes(searchQuery.value.toLowerCase()))
-  )
-})
+// Usuwamy filtrowanie po stronie klienta - paginacja działa na danych z API
 
 async function fetchCourses() {
   isLoading.value = true
@@ -112,18 +104,6 @@ function cancelDeleteCourse() {
   courseToDelete.value = null
 }
 
-async function handleTogglePublish(course: CourseListItem) {
-  try {
-    await updateCourse(course.id.toString(), {
-      isPublished: !course.isPublished
-    })
-    await fetchCourses()
-  } catch (err: any) {
-    alert('Błąd podczas zmiany statusu: ' + (err.message || 'Nieznany błąd'))
-    console.error('Error toggling publish:', err)
-  }
-}
-
 onMounted(() => {
   fetchCourses()
 })
@@ -158,12 +138,12 @@ onMounted(() => {
       <AdminTable
         v-else
         :columns="tableColumns"
-        :is-empty="filteredCourses.length === 0"
+        :is-empty="courses.length === 0"
         empty-message="Nie znaleziono kursów"
       >
         <template #rows>
           <AdminTableRow
-            v-for="course in filteredCourses"
+            v-for="course in courses"
             :key="course.id"
             :item="course"
           >
@@ -207,8 +187,6 @@ onMounted(() => {
               <td class="px-6 py-4">
                 <PublishStatusBadge
                   :is-published="course.isPublished"
-                  :clickable="true"
-                  @toggle="handleTogglePublish(course)"
                 />
               </td>
               <td class="px-6 py-4">
@@ -225,23 +203,23 @@ onMounted(() => {
                     @click="handleEditCourse(course)"
                     variant="primary"
                     size="sm"
+                    circle
                     aria-label="Edytuj kurs"
                   >
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                     </svg>
-                    <span class="hidden sm:inline">Edytuj</span>
                   </Action>
                   <Action
                     @click="handleDeleteCourse(course)"
                     variant="danger"
                     size="sm"
+                    circle
                     aria-label="Usuń kurs"
                   >
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                     </svg>
-                    <span class="hidden sm:inline">Usuń</span>
                   </Action>
                 </div>
               </td>

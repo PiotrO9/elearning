@@ -43,29 +43,58 @@ export async function detachVideoFromCourse(videoId: string): Promise<void> {
 	await prisma.video.delete({ where: { id: videoId } });
 }
 
-export async function listAllVideos(): Promise<Video[]> {
-	const videos = await prisma.video.findMany({
-		select: {
-			id: true,
-			courseId: true,
-			title: true,
-			order: true,
-			isTrailer: true,
-			sourceUrl: true,
-			durationSeconds: true,
-		},
-		orderBy: [{ courseId: 'asc' }, { order: 'asc' }],
-	});
+export async function listAllVideos(
+	page?: number,
+	limit?: number,
+	sortBy?: string,
+	sortOrder?: 'asc' | 'desc',
+): Promise<{ items: Video[]; total: number }> {
+	const skip = page && limit ? (page - 1) * limit : undefined;
+	const take = limit;
 
-	return videos.map(v => ({
-		id: v.id,
-		courseId: v.courseId,
-		title: v.title,
-		order: v.order,
-		isTrailer: v.isTrailer,
-		sourceUrl: v.sourceUrl,
-		durationSeconds: v.durationSeconds ?? null,
-	}));
+	// Validate and set sortBy
+	const validSortFields = ['title', 'order', 'createdAt', 'courseId'];
+	const sortField = sortBy && validSortFields.includes(sortBy) ? sortBy : 'courseId';
+	const order = sortOrder || 'asc';
+
+	// For courseId and order, use multiple sort fields
+	let orderBy: any;
+	if (sortField === 'courseId') {
+		orderBy = [{ courseId: order }, { order: 'asc' }];
+	} else {
+		orderBy = { [sortField]: order };
+	}
+
+	const [videos, total] = await Promise.all([
+		prisma.video.findMany({
+			select: {
+				id: true,
+				courseId: true,
+				title: true,
+				order: true,
+				isTrailer: true,
+				sourceUrl: true,
+				durationSeconds: true,
+			},
+			skip,
+			take,
+			orderBy,
+		}),
+		prisma.video.count(),
+	]);
+
+	return {
+		items: videos.map(v => ({
+			id: v.id,
+			courseId: v.courseId,
+			title: v.title,
+			order: v.order,
+			isTrailer: v.isTrailer,
+			sourceUrl: v.sourceUrl,
+			durationSeconds: v.durationSeconds ?? null,
+		})),
+		total,
+	};
 }
 
 export async function getVideoById(videoId: string): Promise<Video | null> {

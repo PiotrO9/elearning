@@ -38,7 +38,13 @@ function mapListItem(course: {
 	};
 }
 
-export async function listPublishedCourses(tagSlug?: string): Promise<CourseListItem[]> {
+export async function listPublishedCourses(
+	tagSlug?: string,
+	page?: number,
+	limit?: number,
+	sortBy?: string,
+	sortOrder?: 'asc' | 'desc',
+): Promise<{ items: CourseListItem[]; total: number }> {
 	const whereClause: any = { isPublished: true };
 
 	// If tagSlug is provided, filter courses by tag
@@ -52,31 +58,47 @@ export async function listPublishedCourses(tagSlug?: string): Promise<CourseList
 		};
 	}
 
-	const courses = await prisma.course.findMany({
-		where: whereClause,
-		select: {
-			id: true,
-			title: true,
-			summary: true,
-			imagePath: true,
-			isPublic: true,
-			tags: {
-				select: {
-					tag: {
-						select: {
-							id: true,
-							name: true,
-							slug: true,
-							description: true,
+	const skip = page && limit ? (page - 1) * limit : undefined;
+	const take = limit;
+
+	// Validate and set sortBy
+	const validSortFields = ['title', 'createdAt', 'updatedAt'];
+	const sortField = sortBy && validSortFields.includes(sortBy) ? sortBy : 'createdAt';
+	const order = sortOrder || 'desc';
+
+	const [courses, total] = await Promise.all([
+		prisma.course.findMany({
+			where: whereClause,
+			select: {
+				id: true,
+				title: true,
+				summary: true,
+				imagePath: true,
+				isPublic: true,
+				tags: {
+					select: {
+						tag: {
+							select: {
+								id: true,
+								name: true,
+								slug: true,
+								description: true,
+							},
 						},
 					},
 				},
 			},
-		},
-		orderBy: { createdAt: 'desc' },
-	});
+			skip,
+			take,
+			orderBy: { [sortField]: order },
+		}),
+		prisma.course.count({ where: whereClause }),
+	]);
 
-	return courses.map(mapListItem);
+	return {
+		items: courses.map(mapListItem),
+		total,
+	};
 }
 
 export async function getCourseDetail(

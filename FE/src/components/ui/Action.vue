@@ -1,17 +1,20 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 interface ActionProps {
   variant?: 'primary' | 'secondary' | 'danger' | 'ghost' | 'outline'
   size?: 'sm' | 'md' | 'lg'
   disabled?: boolean
   ariaLabel?: string
   tabindex?: number
+  circle?: boolean
 }
 
 const props = withDefaults(defineProps<ActionProps>(), {
   variant: 'primary',
   size: 'md',
   disabled: false,
-  tabindex: 0
+  tabindex: 0,
+  circle: false
 })
 
 const emit = defineEmits<{
@@ -46,13 +49,29 @@ const variantClasses = {
   outline: 'border-2 border-blue-600 text-blue-600 hover:bg-blue-50 focus-visible:ring-blue-500'
 }
 
-const sizeClasses = {
-  sm: 'px-3 py-1.5 text-sm',
-  md: 'px-4 py-2 text-sm',
-  lg: 'px-6 py-3 text-base'
-}
+const sizeClasses = computed(() => {
+  if (props.circle) {
+    return {
+      sm: 'p-2 text-sm',
+      md: 'p-2.5 text-sm',
+      lg: 'p-3 text-base'
+    }[props.size]
+  }
+  return {
+    sm: 'px-3 py-1.5 text-sm',
+    md: 'px-4 py-2 text-sm',
+    lg: 'px-6 py-3 text-base'
+  }[props.size]
+})
 
-const baseClasses = 'inline-flex items-center justify-center gap-2 font-medium rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed'
+const baseClasses = computed(() => {
+  const classes = [
+    'inline-flex items-center justify-center',
+    props.circle ? 'rounded-full' : 'rounded-lg gap-2',
+    'font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed'
+  ]
+  return classes.join(' ')
+})
 </script>
 
 <template>
@@ -62,7 +81,7 @@ const baseClasses = 'inline-flex items-center justify-center gap-2 font-medium r
     :class="[
       baseClasses,
       variantClasses[variant],
-      sizeClasses[size],
+      sizeClasses,
       disabled && 'pointer-events-none'
     ]"
     @click="handleClick"

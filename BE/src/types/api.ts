@@ -62,3 +62,21 @@ export class ConflictError extends AppError {
 		this.name = 'ConflictError';
 	}
 }
+
+/**
+ * Ustandaryzowany format paginacji
+ */
+export interface Pagination {
+	currentPage: number;
+	totalPages: number;
+	totalItems: number;
+	limit: number;
+}
+
+/**
+ * Ustandaryzowany format odpowiedzi z listą elementów
+ */
+export interface PaginatedListResponse<T> {
+	items: T[];
+	pagination: Pagination;
+}

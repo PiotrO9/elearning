@@ -126,4 +126,52 @@ export const paginationQuerySchema = z.object({
 				.positive('Limit must be a positive integer')
 				.max(100, 'Limit cannot exceed 100'),
 		),
+	sortBy: z.string().optional(),
+	sortOrder: z.enum(['asc', 'desc']).optional().default('asc'),
+});
+
+// Schematy sortowania dla konkretnych typów
+export const courseSortSchema = paginationQuerySchema.extend({
+	sortBy: z
+		.enum(['title', 'createdAt', 'updatedAt'], {
+			message: 'sortBy must be one of: title, createdAt, updatedAt',
+		})
+		.optional()
+		.default('createdAt'),
+});
+
+export const videoSortSchema = paginationQuerySchema.extend({
+	sortBy: z
+		.enum(['title', 'order', 'createdAt', 'courseId'], {
+			message: 'sortBy must be one of: title, order, createdAt, courseId',
+		})
+		.optional()
+		.default('courseId'),
+});
+
+export const tagSortSchema = paginationQuerySchema.extend({
+	sortBy: z
+		.enum(['name', 'createdAt'], {
+			message: 'sortBy must be one of: name, createdAt',
+		})
+		.optional()
+		.default('name'),
+});
+
+export const enrollmentSortSchema = paginationQuerySchema.extend({
+	sortBy: z
+		.enum(['createdAt', 'username', 'email'], {
+			message: 'sortBy must be one of: createdAt, username, email',
+		})
+		.optional()
+		.default('createdAt'),
+});
+
+export const userCourseSortSchema = paginationQuerySchema.extend({
+	sortBy: z
+		.enum(['title', 'enrolledAt'], {
+			message: 'sortBy must be one of: title, enrolledAt',
+		})
+		.optional()
+		.default('enrolledAt'),
 });

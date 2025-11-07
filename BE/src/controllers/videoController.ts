@@ -1,12 +1,13 @@
 import { Request, Response } from 'express';
 import { sendSuccess, sendNoContent, sendError, buildValidationErrors } from '../utils/response';
-import { ConflictError, ValidationError } from '../types/api';
+import { ConflictError, ValidationError, PaginatedListResponse, Pagination } from '../types/api';
 import {
 	createVideoSchema,
 	updateVideoSchema,
 	videoIdParamSchema,
 	courseIdParamSchema,
 	attachVideoToCourseSchema,
+	videoSortSchema,
 } from '../utils/validationSchemas';
 import {
 	createVideo,
@@ -41,10 +42,16 @@ export async function handleCreateVideo(req: Request, res: Response): Promise<vo
 }
 
 export async function handleListVideos(req: Request, res: Response): Promise<void> {
-	req;
 	try {
-		const videos = await listAllVideos();
-		const payload: VideoDto[] = videos.map(v => ({
+		const queryValidation = videoSortSchema.safeParse(req.query);
+		if (!queryValidation.success) {
+			const errors = buildValidationErrors(queryValidation.error.issues);
+			throw new ValidationError('Invalid query parameters', errors);
+		}
+
+		const { page, limit, sortBy, sortOrder } = queryValidation.data;
+		const result = await listAllVideos(page, limit, sortBy, sortOrder);
+		const payload: VideoDto[] = result.items.map(v => ({
 			id: v.id,
 			courseId: v.courseId,
 			title: v.title,
@@ -53,8 +60,25 @@ export async function handleListVideos(req: Request, res: Response): Promise<voi
 			sourceUrl: v.sourceUrl,
 			durationSeconds: v.durationSeconds,
 		}));
-		sendSuccess(res, { items: payload, total: payload.length });
+
+		const totalPages = Math.ceil(result.total / limit);
+		const pagination: Pagination = {
+			currentPage: page,
+			totalPages,
+			totalItems: result.total,
+			limit,
+		};
+
+		const response: PaginatedListResponse<VideoDto> = {
+			items: payload,
+			pagination,
+		};
+
+		sendSuccess(res, response);
 	} catch (error) {
+		if (error instanceof ValidationError) {
+			return sendError(res, error.message, error.statusCode, error.code, error.errors);
+		}
 		sendError(res, 'Failed to fetch videos');
 	}
 }
