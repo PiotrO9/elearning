@@ -3,11 +3,23 @@ import { ref, computed, onMounted } from 'vue'
 import MaxWidthWrapper from '@/components/wrappers/MaxWidthWrapper.vue'
 import Modal from '@/components/ui/Modal.vue'
 import AdminNav from '@/components/admin/AdminNav.vue'
+import AdminTableHeader from '@/components/admin/AdminTableHeader.vue'
+import AdminTableSearch from '@/components/admin/AdminTableSearch.vue'
+import AdminTable from '@/components/admin/AdminTable.vue'
+import AdminTableRow from '@/components/admin/AdminTableRow.vue'
 import Action from '@/components/ui/Action.vue'
 import type { User } from '@/types/User'
 import type { CourseListItem } from '@/types/Course'
 import { getCourses } from '@/services/courseService'
 import { getAllUsers, enrollUserToCourse, unenrollUserFromCourse, getUserCourses } from '@/services/adminService'
+
+const tableColumns = [
+  { label: 'Użytkownik', align: 'left' as const },
+  { label: 'Email', align: 'left' as const },
+  { label: 'Rola', align: 'left' as const },
+  { label: 'Przypisane kursy', align: 'left' as const },
+  { label: 'Akcje', align: 'right' as const }
+]
 
 interface UserWithCourses extends User {
   enrolledCourses: string[]
@@ -146,116 +158,145 @@ onMounted(() => {
     <AdminNav />
     <MaxWidthWrapper class="py-8">
       <div class="mb-8">
-        <div class="mb-4">
-          <h1 class="text-4xl font-bold text-gray-900 mb-2">
-            Zarządzanie użytkownikami
-          </h1>
-          <p class="text-lg text-gray-600">
-            Przypisuj użytkowników do kursów i zarządzaj rolami
-          </p>
-        </div>
+        <AdminTableHeader
+          title="Zarządzanie użytkownikami"
+          description="Przypisuj użytkowników do kursów i zarządzaj rolami"
+        />
 
-        <input
+        <AdminTableSearch
           v-model="searchQuery"
-          type="text"
           placeholder="Szukaj użytkownika..."
-          class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
       </div>
 
-      <div class="bg-white rounded-xl shadow-md overflow-hidden">
-        <div class="overflow-x-auto">
-          <table class="w-full">
-            <thead class="bg-gray-50 border-b border-gray-200">
-              <tr>
-                <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Użytkownik</th>
-                <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Email</th>
-                <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Rola</th>
-                <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Przypisane kursy</th>
-                <th class="px-6 py-4 text-right text-sm font-semibold text-gray-900">Akcje</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-200">
-              <tr
-                v-for="user in filteredUsers"
-                :key="user.id"
-                class="hover:bg-gray-50 transition-colors"
-              >
-                <td class="px-6 py-4">
-                  <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                      <span class="text-blue-600 font-semibold">
+      <AdminTable
+        :columns="tableColumns"
+        :is-empty="filteredUsers.length === 0"
+        empty-message="Nie znaleziono użytkowników"
+      >
+        <template #rows>
+          <AdminTableRow
+            v-for="user in filteredUsers"
+            :key="user.id"
+            :item="user"
+          >
+            <template #default="{ item: user }">
+              <td class="px-6 py-4">
+                <div class="flex items-center gap-3">
+                  <div class="relative flex-shrink-0">
+                    <div class="w-11 h-11 bg-gradient-to-br from-purple-400 to-blue-500 rounded-full flex items-center justify-center shadow-sm ring-2 ring-white group-hover:ring-purple-200 transition-all">
+                      <span class="text-white font-semibold text-sm">
                         {{ user.username.charAt(0).toUpperCase() }}
                       </span>
                     </div>
-                    <div>
-                      <p class="font-semibold text-gray-900">{{ user.username }}</p>
-                      <p class="text-sm text-gray-500">ID: {{ user.id }}</p>
+                    <div
+                      v-if="user.role === 'ADMIN'"
+                      class="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-yellow-400 rounded-full border-2 border-white flex items-center justify-center"
+                      title="Administrator"
+                    >
+                      <svg class="w-2.5 h-2.5 text-yellow-900" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
                     </div>
                   </div>
-                </td>
-                <td class="px-6 py-4 text-sm text-gray-700">
-                  {{ user.email }}
-                </td>
-                <td class="px-6 py-4">
-                  <button
-                    @click="handleToggleRole(user)"
-                    class="inline-flex items-center gap-2"
+                  <div class="min-w-0 flex-1">
+                    <p class="font-semibold text-gray-900 group-hover:text-purple-700 transition-colors truncate">
+                      {{ user.username }}
+                    </p>
+                    <p class="text-xs text-gray-500 mt-0.5">ID: {{ user.id }}</p>
+                  </div>
+                </div>
+              </td>
+              <td class="px-6 py-4">
+                <div class="flex items-center gap-2 text-sm text-gray-700">
+                  <svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                  <span class="truncate">{{ user.email }}</span>
+                </div>
+              </td>
+              <td class="px-6 py-4">
+                <button
+                  @click="handleToggleRole(user)"
+                  class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all hover:scale-105 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+                  tabindex="0"
+                  aria-label="Zmień rolę użytkownika"
+                  @keydown="(e) => e.key === 'Enter' && handleToggleRole(user)"
+                >
+                  <span
+                    class="px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1.5"
+                    :class="user.role === 'ADMIN'
+                      ? 'bg-purple-100 text-purple-700'
+                      : 'bg-gray-100 text-gray-700'"
                   >
-                    <span
-                      class="px-3 py-1 rounded-full text-xs font-medium"
-                      :class="user.role === 'ADMIN'
-                        ? 'bg-purple-100 text-purple-700'
-                        : 'bg-gray-100 text-gray-700'"
+                    <svg
+                      v-if="user.role === 'ADMIN'"
+                      class="w-3.5 h-3.5"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
                     >
-                      {{ user.role === 'ADMIN' ? '👑 Admin' : '👤 Użytkownik' }}
-                    </span>
-                  </button>
-                </td>
-                <td class="px-6 py-4">
-                  <div v-if="user.enrolledCourses.length > 0" class="flex flex-col gap-1">
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                    </svg>
+                    <svg
+                      v-else
+                      class="w-3.5 h-3.5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                    {{ user.role === 'ADMIN' ? 'Admin' : 'Użytkownik' }}
+                  </span>
+                </button>
+              </td>
+              <td class="px-6 py-4">
+                <div v-if="user.enrolledCourses.length > 0" class="flex flex-col gap-1.5">
+                  <div class="flex flex-wrap gap-1">
                     <span
                       v-for="courseId in user.enrolledCourses.slice(0, 2)"
                       :key="courseId"
-                      class="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded inline-block"
+                      class="inline-flex items-center gap-1 text-xs bg-blue-50 text-blue-700 px-2.5 py-1 rounded-md font-medium border border-blue-100"
                     >
-                      {{ getCourseTitle(courseId) }}
-                    </span>
-                    <span
-                      v-if="user.enrolledCourses.length > 2"
-                      class="text-xs text-gray-500"
-                    >
-                      +{{ user.enrolledCourses.length - 2 }} więcej
+                      <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                      </svg>
+                      <span class="truncate max-w-[120px]">{{ getCourseTitle(courseId) }}</span>
                     </span>
                   </div>
-                  <span v-else class="text-sm text-gray-400">
-                    Brak przypisanych kursów
+                  <span
+                    v-if="user.enrolledCourses.length > 2"
+                    class="text-xs text-gray-500 font-medium"
+                  >
+                    +{{ user.enrolledCourses.length - 2 }} więcej
                   </span>
-                </td>
-                <td class="px-6 py-4">
-                  <div class="flex items-center justify-end gap-2">
-                    <Action
-                      @click="handleOpenModal(user)"
-                      variant="outline"
-                      size="sm"
-                      aria-label="Zarządzaj kursami użytkownika"
-                    >
-                      Zarządzaj kursami
-                    </Action>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <div
-          v-if="filteredUsers.length === 0"
-          class="text-center py-12"
-        >
-          <p class="text-gray-500">Nie znaleziono użytkowników</p>
-        </div>
-      </div>
+                </div>
+                <span v-else class="inline-flex items-center gap-1.5 text-sm text-gray-400">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                  </svg>
+                  Brak przypisanych kursów
+                </span>
+              </td>
+              <td class="px-6 py-4">
+                <div class="flex items-center justify-end">
+                  <Action
+                    @click="handleOpenModal(user)"
+                    variant="outline"
+                    size="sm"
+                    aria-label="Zarządzaj kursami użytkownika"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                    </svg>
+                    <span class="hidden sm:inline">Zarządzaj kursami</span>
+                  </Action>
+                </div>
+              </td>
+            </template>
+          </AdminTableRow>
+        </template>
+      </AdminTable>
     </MaxWidthWrapper>
 
     <Modal :is-open="isModalOpen" @update:is-open="handleCloseModal">

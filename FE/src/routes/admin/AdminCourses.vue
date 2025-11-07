@@ -3,11 +3,27 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import MaxWidthWrapper from '@/components/wrappers/MaxWidthWrapper.vue'
 import AdminNav from '@/components/admin/AdminNav.vue'
-import ConfirmModal from '@/components/ui/ConfirmModal.vue'
+import AdminTableHeader from '@/components/admin/AdminTableHeader.vue'
+import AdminTableSearch from '@/components/admin/AdminTableSearch.vue'
+import AdminTableLoading from '@/components/admin/AdminTableLoading.vue'
+import AdminTable from '@/components/admin/AdminTable.vue'
+import AdminTableRow from '@/components/admin/AdminTableRow.vue'
+import TagList from '@/components/admin/TagList.vue'
+import PublishStatusBadge from '@/components/admin/PublishStatusBadge.vue'
 import Action from '@/components/ui/Action.vue'
+import ConfirmModal from '@/components/ui/ConfirmModal.vue'
 import type { CourseListItem } from '@/types/Course'
 import { getCourses } from '@/services/courseService'
 import { deleteCourse, updateCourse } from '@/services/adminService'
+
+const tableColumns = [
+  { label: 'Kurs', align: 'left' as const },
+  { label: 'Instruktor', align: 'left' as const },
+  { label: 'Tagi', align: 'left' as const },
+  { label: 'Status', align: 'left' as const },
+  { label: 'Data utworzenia', align: 'left' as const },
+  { label: 'Akcje', align: 'right' as const }
+]
 
 const router = useRouter()
 
@@ -103,156 +119,121 @@ onMounted(() => {
     <AdminNav />
     <MaxWidthWrapper class="py-8">
       <div class="mb-8">
-        <div class="flex items-center justify-between mb-4">
-          <div>
-            <h1 class="text-4xl font-bold text-gray-900 mb-2">
-              Zarządzanie kursami
-            </h1>
-            <p class="text-lg text-gray-600">
-              Dodawaj, edytuj i usuwaj kursy
-            </p>
-          </div>
-          <Action
-            @click="handleEditCourse()"
-            variant="primary"
-            size="lg"
-            aria-label="Dodaj nowy kurs"
-          >
-            <span class="text-xl">+</span>
-            Dodaj kurs
-          </Action>
-        </div>
+        <AdminTableHeader
+          title="Zarządzanie kursami"
+          description="Dodawaj, edytuj i usuwaj kursy"
+          add-button-text="Dodaj kurs"
+          add-button-aria-label="Dodaj nowy kurs"
+          @add="handleEditCourse()"
+        />
 
         <div v-if="error" class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
           {{ error }}
         </div>
 
-        <div class="flex gap-4">
-          <input
-            v-model="searchQuery"
-            type="text"
-            placeholder="Szukaj kursu..."
-            class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            :disabled="isLoading"
-          />
-        </div>
+        <AdminTableSearch
+          v-model="searchQuery"
+          placeholder="Szukaj kursu..."
+          :disabled="isLoading"
+        />
       </div>
 
-      <div v-if="isLoading" class="text-center py-12">
-        <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-gray-300 border-t-blue-600"></div>
-        <p class="mt-4 text-gray-600">Ładowanie kursów...</p>
-      </div>
+      <AdminTableLoading v-if="isLoading" message="Ładowanie kursów..." />
 
-      <div v-else class="bg-white rounded-xl shadow-md overflow-hidden">
-        <div class="overflow-x-auto">
-          <table class="w-full">
-            <thead class="bg-gray-50 border-b border-gray-200">
-              <tr>
-                <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Kurs</th>
-                <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Instruktor</th>
-                <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Tagi</th>
-                <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Status</th>
-                <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Data utworzenia</th>
-                <th class="px-6 py-4 text-right text-sm font-semibold text-gray-900">Akcje</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-200">
-              <tr
-                v-for="course in filteredCourses"
-                :key="course.id"
-                class="hover:bg-gray-50 transition-colors"
-              >
-                <td class="px-6 py-4">
-                  <div class="flex items-center gap-3">
+      <AdminTable
+        v-else
+        :columns="tableColumns"
+        :is-empty="filteredCourses.length === 0"
+        empty-message="Nie znaleziono kursów"
+      >
+        <template #rows>
+          <AdminTableRow
+            v-for="course in filteredCourses"
+            :key="course.id"
+            :item="course"
+          >
+            <template #default="{ item: course }">
+              <td class="px-6 py-4">
+                <div class="flex items-center gap-4">
+                  <div class="relative flex-shrink-0">
                     <img
                       :src="course.thumbnail"
                       :alt="course.title"
-                      class="w-16 h-16 object-cover rounded-lg"
+                      class="w-14 h-14 object-cover rounded-lg shadow-sm ring-1 ring-gray-200 group-hover:ring-purple-300 transition-all"
                     />
-                    <div>
-                      <p class="font-semibold text-gray-900">{{ course.title }}</p>
-                      <p class="text-sm text-gray-500 line-clamp-1">{{ course.description }}</p>
-                    </div>
+                    <div
+                      v-if="course.isPublished"
+                      class="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white"
+                      title="Opublikowany"
+                    />
                   </div>
-                </td>
-                <td class="px-6 py-4 text-sm text-gray-700">
-                  {{ course.instructor }}
-                </td>
-                <td class="px-6 py-4">
-                  <div class="flex flex-wrap gap-1">
-                    <span
-                      v-for="tag in (Array.isArray(course.tags) ? course.tags.slice(0, 2) : [])"
-                      :key="typeof tag === 'string' ? tag : tag.id"
-                      class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full"
-                    >
-                      {{ typeof tag === 'string' ? tag : tag.name }}
-                    </span>
-                    <span
-                      v-if="course.tags && course.tags.length > 2"
-                      class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full"
-                    >
-                      +{{ course.tags.length - 2 }}
-                    </span>
+                  <div class="min-w-0 flex-1">
+                    <p class="font-semibold text-gray-900 group-hover:text-purple-700 transition-colors truncate">
+                      {{ course.title }}
+                    </p>
+                    <p class="text-sm text-gray-500 line-clamp-1 mt-0.5">{{ course.description }}</p>
                   </div>
-                </td>
-                <td class="px-6 py-4">
+                </div>
+              </td>
+              <td class="px-6 py-4">
+                <div class="flex items-center gap-2 text-sm text-gray-700">
+                  <svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                  <span class="truncate">{{ course.instructor || 'Brak instruktora' }}</span>
+                </div>
+              </td>
+              <td class="px-6 py-4">
+                <TagList
+                  :tags="course.tags"
+                  :max-visible="2"
+                />
+              </td>
+              <td class="px-6 py-4">
+                <PublishStatusBadge
+                  :is-published="course.isPublished"
+                  :clickable="true"
+                  @toggle="handleTogglePublish(course)"
+                />
+              </td>
+              <td class="px-6 py-4">
+                <div class="flex items-center gap-2 text-sm text-gray-600">
+                  <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  <span>{{ course.createdAt }}</span>
+                </div>
+              </td>
+              <td class="px-6 py-4">
+                <div class="flex items-center justify-end gap-1.5">
                   <Action
-                    @click="handleTogglePublish(course)"
-                    variant="ghost"
+                    @click="handleEditCourse(course)"
+                    variant="primary"
                     size="sm"
-                    aria-label="Zmień status publikacji"
+                    aria-label="Edytuj kurs"
                   >
-                    <span
-                      class="px-3 py-1 rounded-full text-xs font-medium"
-                      :class="course.isPublished
-                        ? 'bg-green-100 text-green-700'
-                        : 'bg-gray-100 text-gray-700'"
-                    >
-                      {{ course.isPublished ? 'Opublikowany' : 'Wersja robocza' }}
-                    </span>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                    <span class="hidden sm:inline">Edytuj</span>
                   </Action>
-                </td>
-                <td class="px-6 py-4 text-sm text-gray-700">
-                  {{ course.createdAt }}
-                </td>
-                <td class="px-6 py-4">
-                  <div class="flex items-center justify-end gap-2">
-                    <Action
-                      @click="handleEditCourse(course)"
-                      variant="primary"
-                      size="sm"
-                      aria-label="Edytuj kurs"
-                    >
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                      </svg>
-                      Edytuj
-                    </Action>
-                    <Action
-                      @click="handleDeleteCourse(course)"
-                      variant="danger"
-                      size="sm"
-                      aria-label="Usuń kurs"
-                    >
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                      Usuń
-                    </Action>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <div
-          v-if="filteredCourses.length === 0"
-          class="text-center py-12"
-        >
-          <p class="text-gray-500">Nie znaleziono kursów</p>
-        </div>
-      </div>
+                  <Action
+                    @click="handleDeleteCourse(course)"
+                    variant="danger"
+                    size="sm"
+                    aria-label="Usuń kurs"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                    <span class="hidden sm:inline">Usuń</span>
+                  </Action>
+                </div>
+              </td>
+            </template>
+          </AdminTableRow>
+        </template>
+      </AdminTable>
     </MaxWidthWrapper>
 
     <ConfirmModal
