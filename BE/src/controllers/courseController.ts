@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
-import { sendSuccess, sendNoContent, sendError, buildValidationErrors } from '../utils/response';
-import { ValidationError, PaginatedListResponse, Pagination } from '../types/api';
+import { sendSuccess, sendNoContent, sendError } from '../utils/response';
+import { asyncHandler } from '../middleware/asyncHandler';
+import { handlePrismaError } from '../utils/prismaErrors';
 import {
 	listPublishedCourses,
 	getCourseDetail,
@@ -9,68 +10,40 @@ import {
 	updateCourse,
 	reorderCourseVideos,
 } from '../services/courseService';
-import {
-	courseIdParamSchema,
-	createCourseSchema,
-	updateCourseSchema,
-	reorderCourseVideosSchema,
-	courseSortSchema,
-} from '../utils/validationSchemas';
-import { CourseListItemDto, CourseDetailDto } from '../types/course';
-import { VideoDto } from '../types/video';
+import { CourseListItemDto } from '../types/course';
+import { mapCourseToDetailDto } from '../utils/mappers/courseMapper';
+import { buildPagination } from '../utils/pagination';
+import { PaginatedListResponse } from '../types/api';
 
-export async function handleGetCourses(req: Request, res: Response): Promise<void> {
-	try {
-		const queryValidation = courseSortSchema.safeParse(req.query);
-		if (!queryValidation.success) {
-			const errors = buildValidationErrors(queryValidation.error.issues);
-			throw new ValidationError('Invalid query parameters', errors);
-		}
+export const handleGetCourses = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+	const { page, limit, sortBy, sortOrder } = req.query as any as {
+		page: number;
+		limit: number;
+		sortBy: string;
+		sortOrder: 'asc' | 'desc';
+	};
+	const tagSlug = (req.query as any).tag as string | undefined;
 
-		const { page, limit, sortBy, sortOrder } = queryValidation.data;
-		const tagSlug = req.query.tag as string | undefined;
+	const result = await listPublishedCourses(tagSlug, page, limit, sortBy, sortOrder);
+	const payload: CourseListItemDto[] = result.items.map(course => ({
+		id: course.id,
+		title: course.title,
+		description: course.summary,
+		imagePath: course.imagePath,
+		isPublic: course.isPublic,
+		tags: course.tags,
+	}));
 
-		const result = await listPublishedCourses(tagSlug, page, limit, sortBy, sortOrder);
-		const payload: CourseListItemDto[] = result.items.map(course => ({
-			id: course.id,
-			title: course.title,
-			description: course.summary,
-			imagePath: course.imagePath,
-			isPublic: course.isPublic,
-			tags: course.tags,
-		}));
+	const response: PaginatedListResponse<CourseListItemDto> = {
+		items: payload,
+		pagination: buildPagination(result.total, page, limit),
+	};
+	sendSuccess(res, response);
+});
 
-		const totalPages = Math.ceil(result.total / limit);
-		const pagination: Pagination = {
-			currentPage: page,
-			totalPages,
-			totalItems: result.total,
-			limit,
-		};
-
-		const response: PaginatedListResponse<CourseListItemDto> = {
-			items: payload,
-			pagination,
-		};
-
-		sendSuccess(res, response);
-	} catch (error) {
-		if (error instanceof ValidationError) {
-			return sendError(res, error.message, error.statusCode, error.code, error.errors);
-		}
-		sendError(res, 'Failed to fetch courses');
-	}
-}
-
-export async function handleGetCourseById(req: Request, res: Response): Promise<void> {
-	try {
-		const parsed = courseIdParamSchema.safeParse(req.params);
-
-		if (!parsed.success) {
-			throw new ValidationError('Invalid course id', [{ message: 'Invalid id', field: 'id' }]);
-		}
-
-		const { id } = parsed.data;
+export const handleGetCourseById = asyncHandler(
+	async (req: Request, res: Response): Promise<void> => {
+		const { id } = req.params as { id: string };
 
 		const isAuthenticated = Boolean(req.user?.userId);
 		const course = await getCourseDetail(id, isAuthenticated);
@@ -78,151 +51,79 @@ export async function handleGetCourseById(req: Request, res: Response): Promise<
 			return sendError(res, 'Course not found', 404, 'COURSE_NOT_FOUND');
 		}
 
-		const payload: CourseDetailDto = {
-			id: course.id,
-			title: course.title,
-			description: course.descriptionMarkdown,
-			imagePath: course.imagePath,
-			isPublic: course.isPublic,
-			videos: course.videos.map(v => ({
-				id: v.id,
-				courseId: v.courseId,
-				title: v.title,
-				order: v.order,
-				isTrailer: v.isTrailer,
-				sourceUrl: v.sourceUrl,
-				durationSeconds: v.durationSeconds,
-			})) as VideoDto[],
-			tags: course.tags,
-		};
-
+		const payload = mapCourseToDetailDto(course);
 		sendSuccess(res, payload);
-	} catch (error) {
-		sendError(res, 'Failed to fetch course');
-	}
-}
+	},
+);
 
-export async function handleCreateCourse(req: Request, res: Response): Promise<void> {
-	try {
-		const parsed = createCourseSchema.safeParse(req.body);
-		if (!parsed.success) {
-			const errors = buildValidationErrors(parsed.error.issues);
-			throw new ValidationError('Validation failed', errors);
-		}
-
-		const course = await createCourse(parsed.data);
-		const payload: CourseDetailDto = {
-			id: course.id,
-			title: course.title,
-			description: course.descriptionMarkdown,
-			imagePath: course.imagePath,
-			isPublic: course.isPublic,
-			videos: course.videos.map(v => ({
-				id: v.id,
-				courseId: v.courseId,
-				title: v.title,
-				order: v.order,
-				isTrailer: v.isTrailer,
-				sourceUrl: v.sourceUrl,
-				durationSeconds: v.durationSeconds,
-			})) as VideoDto[],
-			tags: course.tags,
-		};
+export const handleCreateCourse = asyncHandler(
+	async (req: Request, res: Response): Promise<void> => {
+		const course = await createCourse(req.body);
+		const payload = mapCourseToDetailDto(course);
 
 		sendSuccess(res, payload, 'Course created', 201);
-	} catch (error) {
-		sendError(res, 'Failed to create course');
-	}
-}
+	},
+);
 
-export async function handleDeleteCourse(req: Request, res: Response): Promise<void> {
-	try {
-		const parsed = courseIdParamSchema.safeParse(req.params);
-		if (!parsed.success) {
-			throw new ValidationError('Invalid course id', [{ message: 'Invalid id', field: 'id' }]);
-		}
-
-		const { id } = parsed.data;
+export const handleDeleteCourse = asyncHandler(
+	async (req: Request, res: Response): Promise<void> => {
+		const { id } = req.params as { id: string };
 		await deleteCourse(id);
 		sendNoContent(res);
-	} catch (error: any) {
-		if (error?.code === 'P2025') {
-			return sendError(res, 'Course not found', 404, 'COURSE_NOT_FOUND');
+	},
+	(error: unknown, _req: Request, res: Response) => {
+		const prismaError = handlePrismaError(error, 'course');
+		if (prismaError) {
+			sendError(res, prismaError.message, prismaError.statusCode, prismaError.code);
+			return true;
 		}
-		return sendError(res, 'Failed to delete course');
-	}
-}
+		return false;
+	},
+);
 
-export async function handleUpdateCourse(req: Request, res: Response): Promise<void> {
-	try {
-		const params = courseIdParamSchema.safeParse(req.params);
-		if (!params.success) {
-			throw new ValidationError('Invalid course id', [{ message: 'Invalid id', field: 'id' }]);
-		}
-
-		const body = updateCourseSchema.safeParse(req.body);
-		if (!body.success) {
-			const errors = buildValidationErrors(body.error.issues);
-			throw new ValidationError('Validation failed', errors);
-		}
-
-		const course = await updateCourse(params.data.id, body.data);
-		const payload: CourseDetailDto = {
-			id: course.id,
-			title: course.title,
-			description: course.descriptionMarkdown,
-			imagePath: course.imagePath,
-			isPublic: course.isPublic,
-			videos: course.videos.map(v => ({
-				id: v.id,
-				courseId: v.courseId,
-				title: v.title,
-				order: v.order,
-				isTrailer: v.isTrailer,
-				sourceUrl: v.sourceUrl,
-				durationSeconds: v.durationSeconds,
-			})) as VideoDto[],
-			tags: course.tags,
-		};
+export const handleUpdateCourse = asyncHandler(
+	async (req: Request, res: Response): Promise<void> => {
+		const { id } = req.params as { id: string };
+		const course = await updateCourse(id, req.body);
+		const payload = mapCourseToDetailDto(course);
 
 		sendSuccess(res, payload);
-	} catch (error: any) {
-		if (error?.code === 'P2025') {
-			return sendError(res, 'Course not found', 404, 'COURSE_NOT_FOUND');
+	},
+	(error: unknown, _req: Request, res: Response) => {
+		const prismaError = handlePrismaError(error, 'course');
+		if (prismaError) {
+			sendError(res, prismaError.message, prismaError.statusCode, prismaError.code);
+			return true;
 		}
-		return sendError(res, 'Failed to update course');
-	}
-}
+		return false;
+	},
+);
 
-export async function handleReorderCourseVideos(req: Request, res: Response): Promise<void> {
-	try {
-		const params = courseIdParamSchema.safeParse(req.params);
-		if (!params.success) {
-			throw new ValidationError('Invalid course id', [{ message: 'Invalid id', field: 'id' }]);
-		}
+export const handleReorderCourseVideos = asyncHandler(
+	async (req: Request, res: Response): Promise<void> => {
+		const { id } = req.params as { id: string };
+		const { items } = req.body as { items: { id: string; order: number }[] };
 
-		const body = reorderCourseVideosSchema.safeParse(req.body);
-		if (!body.success) {
-			const errors = buildValidationErrors(body.error.issues);
-			throw new ValidationError('Validation failed', errors);
-		}
-
-		await reorderCourseVideos(params.data.id, body.data.items);
+		await reorderCourseVideos(id, items);
 		sendNoContent(res);
-	} catch (error: any) {
-		if (error?.code === 'VIDEO_NOT_IN_COURSE') {
-			return sendError(res, 'Video not in course', 404, 'VIDEO_NOT_IN_COURSE');
+	},
+	(error: unknown, _req: Request, res: Response) => {
+		if (error && typeof error === 'object' && 'code' in error) {
+			const errorCode = (error as any).code;
+			if (errorCode === 'VIDEO_NOT_IN_COURSE') {
+				sendError(res, 'Video not in course', 404, 'VIDEO_NOT_IN_COURSE');
+				return true;
+			}
+			if (errorCode === 'DUPLICATE_ORDER') {
+				sendError(res, 'Duplicate order values', 400, 'DUPLICATE_ORDER');
+				return true;
+			}
 		}
-		if (error?.code === 'DUPLICATE_ORDER') {
-			return sendError(res, 'Duplicate order values', 400, 'DUPLICATE_ORDER');
+		const prismaError = handlePrismaError(error, 'video_order');
+		if (prismaError) {
+			sendError(res, prismaError.message, prismaError.statusCode, prismaError.code);
+			return true;
 		}
-		if (error instanceof ValidationError) {
-			return sendError(res, error.message, error.statusCode, error.code, error.errors);
-		}
-		// Prisma unique constraint
-		if (error?.code === 'P2002') {
-			return sendError(res, 'Order must be unique within course', 409, 'VIDEO_ORDER_CONFLICT');
-		}
-		return sendError(res, 'Failed to reorder course videos');
-	}
-}
+		return false;
+	},
+);

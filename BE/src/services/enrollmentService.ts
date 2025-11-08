@@ -1,4 +1,5 @@
 import { prisma } from '../utils/prisma';
+import { buildOrderBy } from '../utils/sorting';
 import { EnrollmentWithUser, EnrollmentWithCourse } from '../types/enrollment';
 
 export class EnrollmentServiceError extends Error {
@@ -154,18 +155,15 @@ export async function getCourseEnrollments(
 	const skip = page && limit ? (page - 1) * limit : undefined;
 	const take = limit;
 
-	// Validate and set sortBy
-	const validSortFields = ['createdAt', 'username', 'email'];
-	const sortField = sortBy && validSortFields.includes(sortBy) ? sortBy : 'createdAt';
-	const order = sortOrder || 'desc';
-
-	// Build orderBy based on sort field
-	let orderBy: any;
-	if (sortField === 'username' || sortField === 'email') {
-		orderBy = { user: { [sortField]: order } };
-	} else {
-		orderBy = { [sortField]: order };
-	}
+	const orderBy = buildOrderBy(sortBy, {
+		validSortFields: ['createdAt', 'username', 'email'],
+		defaultField: 'createdAt',
+		defaultOrder: 'desc',
+		relationSorts: {
+			username: 'user.username',
+			email: 'user.email',
+		},
+	}, sortOrder);
 
 	const [enrollments, total] = await Promise.all([
 		prisma.courseEnrollment.findMany({
@@ -212,19 +210,17 @@ export async function getUserEnrollments(
 	const skip = page && limit ? (page - 1) * limit : undefined;
 	const take = limit;
 
-	// Validate and set sortBy
-	const validSortFields = ['title', 'enrolledAt'];
-	const sortField = sortBy && validSortFields.includes(sortBy) ? sortBy : 'enrolledAt';
-	const order = sortOrder || 'desc';
-
-	// Build orderBy based on sort field
-	let orderBy: any;
-	if (sortField === 'title') {
-		orderBy = { course: { title: order } };
-	} else {
-		// enrolledAt maps to createdAt
-		orderBy = { createdAt: order };
-	}
+	const orderBy = buildOrderBy(sortBy, {
+		validSortFields: ['title', 'enrolledAt'],
+		defaultField: 'enrolledAt',
+		defaultOrder: 'desc',
+		fieldMapping: {
+			enrolledAt: 'createdAt',
+		},
+		relationSorts: {
+			title: 'course.title',
+		},
+	}, sortOrder);
 
 	const [enrollments, total] = await Promise.all([
 		prisma.courseEnrollment.findMany({

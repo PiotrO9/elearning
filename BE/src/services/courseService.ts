@@ -1,4 +1,5 @@
 import { prisma } from '../utils/prisma';
+import { buildOrderBy } from '../utils/sorting';
 import {
 	CourseListItem,
 	CourseDetail,
@@ -61,10 +62,11 @@ export async function listPublishedCourses(
 	const skip = page && limit ? (page - 1) * limit : undefined;
 	const take = limit;
 
-	// Validate and set sortBy
-	const validSortFields = ['title', 'createdAt', 'updatedAt'];
-	const sortField = sortBy && validSortFields.includes(sortBy) ? sortBy : 'createdAt';
-	const order = sortOrder || 'desc';
+	const orderBy = buildOrderBy(sortBy, {
+		validSortFields: ['title', 'createdAt', 'updatedAt'],
+		defaultField: 'createdAt',
+		defaultOrder: 'desc',
+	}, sortOrder);
 
 	const [courses, total] = await Promise.all([
 		prisma.course.findMany({
@@ -90,7 +92,7 @@ export async function listPublishedCourses(
 			},
 			skip,
 			take,
-			orderBy: { [sortField]: order },
+			orderBy,
 		}),
 		prisma.course.count({ where: whereClause }),
 	]);

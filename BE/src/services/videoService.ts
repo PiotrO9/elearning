@@ -1,4 +1,5 @@
 import { prisma } from '../utils/prisma';
+import { buildOrderBy } from '../utils/sorting';
 import { CreateVideoInput, UpdateVideoInput, AttachVideoOptions, Video } from '../types/video';
 
 export async function createVideo(input: CreateVideoInput): Promise<string> {
@@ -52,18 +53,18 @@ export async function listAllVideos(
 	const skip = page && limit ? (page - 1) * limit : undefined;
 	const take = limit;
 
-	// Validate and set sortBy
-	const validSortFields = ['title', 'order', 'createdAt', 'courseId'];
-	const sortField = sortBy && validSortFields.includes(sortBy) ? sortBy : 'courseId';
-	const order = sortOrder || 'asc';
-
-	// For courseId and order, use multiple sort fields
-	let orderBy: any;
-	if (sortField === 'courseId') {
-		orderBy = [{ courseId: order }, { order: 'asc' }];
-	} else {
-		orderBy = { [sortField]: order };
-	}
+	const orderBy = buildOrderBy(
+		sortBy,
+		{
+			validSortFields: ['title', 'order', 'createdAt', 'courseId'],
+			defaultField: 'courseId',
+			defaultOrder: 'asc',
+			multiSorts: {
+				courseId: [{ field: 'order', order: 'asc' }],
+			},
+		},
+		sortOrder,
+	);
 
 	const [videos, total] = await Promise.all([
 		prisma.video.findMany({

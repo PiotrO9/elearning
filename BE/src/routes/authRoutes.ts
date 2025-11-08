@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import { register, login, refresh, logout, me } from '../controllers/authController';
 import { authenticateToken } from '../middleware/auth';
+import { validateBody } from '../middleware/validation';
+import { registerSchema, loginSchema } from '../utils/validationSchemas';
 
 const router = Router();
 
@@ -9,14 +11,14 @@ const router = Router();
  * @desc Register a new user
  * @access Public
  */
-router.post('/register', register);
+router.post('/register', validateBody(registerSchema), register);
 
 /**
  * @route POST /api/auth/login
  * @desc Login user and get tokens
  * @access Public
  */
-router.post('/login', login);
+router.post('/login', validateBody(loginSchema), login);
 
 /**
  * @route POST /api/auth/refresh

@@ -1,4 +1,5 @@
 import { prisma } from '../utils/prisma';
+import { buildOrderBy } from '../utils/sorting';
 import { Tag, TagDto, CreateTagInput, UpdateTagInput, TagWithCourses } from '../types/tag';
 
 /**
@@ -25,10 +26,11 @@ export async function getAllTags(
 	const skip = page && limit ? (page - 1) * limit : undefined;
 	const take = limit;
 
-	// Validate and set sortBy
-	const validSortFields = ['name', 'createdAt'];
-	const sortField = sortBy && validSortFields.includes(sortBy) ? sortBy : 'name';
-	const order = sortOrder || 'asc';
+	const orderBy = buildOrderBy(sortBy, {
+		validSortFields: ['name', 'createdAt'],
+		defaultField: 'name',
+		defaultOrder: 'asc',
+	}, sortOrder);
 
 	const [tags, total] = await Promise.all([
 		prisma.tag.findMany({
@@ -39,7 +41,7 @@ export async function getAllTags(
 			},
 			skip,
 			take,
-			orderBy: { [sortField]: order },
+			orderBy,
 		}),
 		prisma.tag.count(),
 	]);
