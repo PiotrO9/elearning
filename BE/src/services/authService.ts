@@ -146,6 +146,7 @@ export async function getUserData(userId: string): Promise<UserData> {
 			email: true,
 			username: true,
 			createdAt: true,
+			role: true,
 			lastSeen: true,
 			deletedAt: true,
 		},
