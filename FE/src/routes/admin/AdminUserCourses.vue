@@ -3,8 +3,9 @@ import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import MaxWidthWrapper from '@/components/wrappers/MaxWidthWrapper.vue'
 import AdminNav from '@/components/admin/AdminNav.vue'
-import AdminTableHeader from '@/components/admin/AdminTableHeader.vue'
+import AdminTableHeader from '@/components/admin/table/AdminTableHeader.vue'
 import Action from '@/components/ui/Action.vue'
+import Icon from '@/components/ui/Icon.vue'
 import { getCourses } from '@/services/courseService'
 import { getUserCourses, enrollUserToCourse, unenrollUserFromCourse } from '@/services/adminService'
 import type { CourseListItem } from '@/types/Course'
@@ -117,9 +118,10 @@ onMounted(async () => {
             aria-label="Wróć do listy użytkowników"
             @keydown="(e) => e.key === 'Enter' && handleBack()"
           >
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
+            <Icon
+              name="arrow-left"
+              class="w-6 h-6"
+            />
           </button>
           <AdminTableHeader
             :title="`Zarządzanie kursami użytkownika`"
@@ -161,27 +163,30 @@ onMounted(async () => {
                   v-if="course.isPublished"
                   class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700"
                 >
-                  <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                  </svg>
+                  <Icon
+                    name="check"
+                    class="w-3.5 h-3.5"
+                  />
                   Opublikowany
                 </span>
                 <span
                   v-else
                   class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700"
                 >
-                  <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
-                  </svg>
+                  <Icon
+                    name="close"
+                    class="w-3.5 h-3.5"
+                  />
                   Nieopublikowany
                 </span>
                 <span
                   v-if="isEnrolled(course.id.toString())"
                   class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700"
                 >
-                  <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                  </svg>
+                  <Icon
+                    name="check"
+                    class="w-3.5 h-3.5"
+                  />
                   Przypisany
                 </span>
               </div>
@@ -194,24 +199,16 @@ onMounted(async () => {
                 :disabled="isLoading"
                 :aria-label="isEnrolled(course.id.toString()) ? 'Usuń z kursu' : 'Przypisz do kursu'"
               >
-                <svg
+                <Icon
                   v-if="isEnrolled(course.id.toString())"
+                  name="close"
                   class="w-5 h-5 mr-2"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-                <svg
+                />
+                <Icon
                   v-else
+                  name="plus"
                   class="w-5 h-5 mr-2"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                </svg>
+                />
                 {{ isEnrolled(course.id.toString()) ? 'Usuń z kursu' : 'Przypisz do kursu' }}
               </Action>
             </div>

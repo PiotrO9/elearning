@@ -148,15 +148,19 @@ export async function getCourseEnrollments(
 	const skip = page && limit ? (page - 1) * limit : undefined;
 	const take = limit;
 
-	const orderBy = buildOrderBy(sortBy, {
-		validSortFields: ['createdAt', 'username', 'email'],
-		defaultField: 'createdAt',
-		defaultOrder: 'desc',
-		relationSorts: {
-			username: 'user.username',
-			email: 'user.email',
+	const orderBy = buildOrderBy(
+		sortBy,
+		{
+			validSortFields: ['createdAt', 'username', 'email'],
+			defaultField: 'createdAt',
+			defaultOrder: 'desc',
+			relationSorts: {
+				username: 'user.username',
+				email: 'user.email',
+			},
 		},
-	}, sortOrder);
+		sortOrder,
+	);
 
 	const [enrollments, total] = await Promise.all([
 		prisma.courseEnrollment.findMany({
@@ -203,17 +207,21 @@ export async function getUserEnrollments(
 	const skip = page && limit ? (page - 1) * limit : undefined;
 	const take = limit;
 
-	const orderBy = buildOrderBy(sortBy, {
-		validSortFields: ['title', 'enrolledAt'],
-		defaultField: 'enrolledAt',
-		defaultOrder: 'desc',
-		fieldMapping: {
-			enrolledAt: 'createdAt',
+	const orderBy = buildOrderBy(
+		sortBy,
+		{
+			validSortFields: ['title', 'enrolledAt'],
+			defaultField: 'enrolledAt',
+			defaultOrder: 'desc',
+			fieldMapping: {
+				enrolledAt: 'createdAt',
+			},
+			relationSorts: {
+				title: 'course.title',
+			},
 		},
-		relationSorts: {
-			title: 'course.title',
-		},
-	}, sortOrder);
+		sortOrder,
+	);
 
 	const [enrollments, total] = await Promise.all([
 		prisma.courseEnrollment.findMany({

@@ -1,6 +1,4 @@
-import type { Course, CourseListItem } from './Course'
 import type { UserAdminPanelListItem } from './user'
-import type { Video } from './Video'
 
 // Tag types
 export interface Tag {
@@ -9,6 +7,7 @@ export interface Tag {
   slug: string
   description?: string
   coursesCount?: number
+  createdAt?: string
 }
 
 export interface CreateTagInput {

@@ -3,11 +3,11 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import MaxWidthWrapper from '@/components/wrappers/MaxWidthWrapper.vue'
 import AdminNav from '@/components/admin/AdminNav.vue'
-import AdminTableHeader from '@/components/admin/AdminTableHeader.vue'
-import AdminTableSearch from '@/components/admin/AdminTableSearch.vue'
-import AdminTableLoading from '@/components/admin/AdminTableLoading.vue'
-import AdminTable from '@/components/admin/AdminTable.vue'
-import AdminTableRow from '@/components/admin/AdminTableRow.vue'
+import AdminTableHeader from '@/components/admin/table/AdminTableHeader.vue'
+import AdminTableSearch from '@/components/admin/table/AdminTableSearch.vue'
+import AdminTableLoading from '@/components/admin/table/AdminTableLoading.vue'
+import AdminTable from '@/components/admin/table/AdminTable.vue'
+import AdminTableRow from '@/components/admin/table/AdminTableRow.vue'
 import Action from '@/components/ui/Action.vue'
 import ConfirmModal from '@/components/ui/ConfirmModal.vue'
 import Pagination from '@/components/ui/Pagination.vue'
@@ -31,13 +31,9 @@ const error = ref<string | null>(null)
 const isDeleteModalOpen = ref(false)
 const tagToDelete = ref<Tag | null>(null)
 const isDeleting = ref(false)
-
-// Paginacja
 const currentPage = ref(1)
 const limit = ref(10)
 const totalTags = ref(0)
-
-// Usuwamy filtrowanie po stronie klienta - paginacja działa na danych z API
 
 async function fetchTags() {
   isLoading.value = true
@@ -50,8 +46,11 @@ async function fetchTags() {
     })
     tags.value = response.data.items
     totalTags.value = response.data.total
-  } catch (err: any) {
-    error.value = err.message || 'Nie udało się pobrać tagów'
+  } catch (err: unknown) {
+    const errorMessage = err && typeof err === 'object' && 'message' in err
+      ? String((err as { message: unknown }).message)
+      : 'Nie udało się pobrać tagów'
+    error.value = errorMessage
     console.error('Error fetching tags:', err)
   } finally {
     isLoading.value = false
@@ -87,8 +86,11 @@ async function confirmDeleteTag() {
     await fetchTags()
     isDeleteModalOpen.value = false
     tagToDelete.value = null
-  } catch (err: any) {
-    error.value = err.message || 'Nie udało się usunąć tagu'
+  } catch (err: unknown) {
+    const errorMessage = err && typeof err === 'object' && 'message' in err
+      ? String((err as { message: unknown }).message)
+      : 'Nie udało się usunąć tagu'
+    error.value = errorMessage
     console.error('Error deleting tag:', err)
   } finally {
     isDeleting.value = false
@@ -118,8 +120,8 @@ onMounted(() => {
 <template>
   <div class="min-h-screen bg-gray-50">
     <AdminNav />
-    <MaxWidthWrapper class="py-8">
-      <div class="mb-8">
+    <MaxWidthWrapper class="py-8 flex flex-col gap-4">
+      <div>
         <AdminTableHeader
           title="Zarządzanie tagami"
           description="Dodawaj, edytuj i usuwaj tagi kursów"
@@ -128,7 +130,7 @@ onMounted(() => {
           @add="handleEditTag()"
         />
 
-        <div v-if="error" class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
+        <div v-if="error" class="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
           {{ error }}
         </div>
 
@@ -153,7 +155,7 @@ onMounted(() => {
             :key="tag.id"
             :item="tag"
           >
-            <template #default="{ item: tag }">
+            <template #default="{ item }">
               <td class="px-6 py-4">
                 <div class="flex items-center gap-2">
                   <Icon
@@ -161,7 +163,7 @@ onMounted(() => {
                     class="w-4 h-4 text-blue-500 flex-shrink-0"
                   />
                   <span class="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium bg-blue-100 text-blue-700 group-hover:bg-blue-200 transition-colors">
-                    {{ tag.name }}
+                    {{ item.name }}
                   </span>
                 </div>
               </td>
@@ -171,8 +173,8 @@ onMounted(() => {
                     name="books"
                     class="w-4 h-4 text-gray-400"
                   />
-                  <span class="font-medium">{{ tag.coursesCount || 0 }}</span>
-                  <span class="text-gray-500">{{ tag.coursesCount === 1 ? 'kurs' : 'kursów' }}</span>
+                  <span class="font-medium">{{ item.coursesCount || 0 }}</span>
+                  <span class="text-gray-500">{{ item.coursesCount === 1 ? 'kurs' : 'kursów' }}</span>
                 </div>
               </td>
               <td class="px-6 py-4">
@@ -181,13 +183,13 @@ onMounted(() => {
                     name="calendar"
                     class="w-4 h-4 text-gray-400"
                   />
-                  <span>{{ tag.createdAt }}</span>
+                  <span>{{ item.createdAt || '—' }}</span>
                 </div>
               </td>
               <td class="px-6 py-4">
                 <div class="flex items-center justify-end gap-1.5">
                   <Action
-                    @click="handleEditTag(tag)"
+                    @click="handleEditTag(item)"
                     variant="primary"
                     size="sm"
                     circle
@@ -199,7 +201,7 @@ onMounted(() => {
                     />
                   </Action>
                   <Action
-                    @click="handleDeleteTag(tag)"
+                    @click="handleDeleteTag(item)"
                     variant="danger"
                     size="sm"
                     circle

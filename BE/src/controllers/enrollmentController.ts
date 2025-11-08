@@ -57,13 +57,20 @@ export const handleUnenrollUser = asyncHandler(
 export const handleGetCourseEnrollments = asyncHandler(
 	async (req: Request, res: Response): Promise<void> => {
 		const { id: courseId } = req.params as any as { id: string };
-		const { page, limit, sortBy, sortOrder } = req.query as any as {
+		const { page, limit, sortBy, sortOrder } = req.query as unknown as {
 			page: number;
 			limit: number;
-			sortBy: string;
-			sortOrder: 'asc' | 'desc';
+			sortBy?: string;
+			sortOrder?: 'asc' | 'desc';
 		};
-		const result = await getCourseEnrollments(courseId, page, limit, sortBy, sortOrder);
+
+		const result = await getCourseEnrollments(
+			courseId,
+			page,
+			limit,
+			sortBy,
+			sortOrder,
+		);
 
 		const payload: EnrollmentDto[] = result.items.map(e => ({
 			id: e.id,
@@ -89,13 +96,20 @@ export const handleGetCourseEnrollments = asyncHandler(
 export const handleGetUserCourses = asyncHandler(
 	async (req: Request, res: Response): Promise<void> => {
 		const { userId } = req.params as any as { userId: string };
-		const { page, limit, sortBy, sortOrder } = req.query as any as {
+		const { page, limit, sortBy, sortOrder } = req.query as unknown as {
 			page: number;
 			limit: number;
-			sortBy: string;
-			sortOrder: 'asc' | 'desc';
+			sortBy?: string;
+			sortOrder?: 'asc' | 'desc';
 		};
-		const result = await getUserEnrollments(userId, page, limit, sortBy, sortOrder);
+
+		const result = await getUserEnrollments(
+			userId,
+			page,
+			limit,
+			sortBy,
+			sortOrder,
+		);
 
 		const payload: UserCourseDto[] = result.items.map(e => ({
 			id: e.course.id,

@@ -12,7 +12,11 @@ const userService = new UserService();
  */
 export const handleGetAllUsers = asyncHandler(
 	async (req: Request, res: Response): Promise<void> => {
-		const { page, limit } = req.query as any as { page: number; limit: number };
+		const { page, limit } = req.query as unknown as {
+			page: number;
+			limit: number;
+		};
+		
 		const result = await userService.getAllUsers({ page, limit });
 
 		sendSuccess(res, result, 'Users retrieved successfully', 200);

@@ -136,7 +136,6 @@ const descriptionLength = computed(() => formData.value.descriptionMarkdown.leng
     </h2>
 
     <form @submit.prevent="handleSubmit" class="space-y-6">
-      <!-- Tytuł -->
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-2">
           Tytuł kursu *
@@ -157,7 +156,6 @@ const descriptionLength = computed(() => formData.value.descriptionMarkdown.leng
         </p>
       </div>
 
-      <!-- Krótki opis -->
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-2">
           Krótki opis *
@@ -178,7 +176,6 @@ const descriptionLength = computed(() => formData.value.descriptionMarkdown.leng
         </p>
       </div>
 
-      <!-- Pełny opis (Markdown) -->
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-2">
           Pełny opis (Markdown) *
@@ -201,7 +198,6 @@ const descriptionLength = computed(() => formData.value.descriptionMarkdown.leng
         </p>
       </div>
 
-      <!-- Ścieżka do obrazu -->
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-2">
           Ścieżka do obrazu *
@@ -221,7 +217,6 @@ const descriptionLength = computed(() => formData.value.descriptionMarkdown.leng
         </p>
       </div>
 
-      <!-- Preview obrazu -->
       <div v-if="formData.imagePath" class="border rounded-lg p-4 bg-gray-50">
         <p class="text-sm font-medium text-gray-700 mb-2">Podgląd:</p>
         <img
@@ -232,7 +227,6 @@ const descriptionLength = computed(() => formData.value.descriptionMarkdown.leng
         />
       </div>
 
-      <!-- Tagi -->
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-2">
           Tagi (opcjonalne)
@@ -256,7 +250,6 @@ const descriptionLength = computed(() => formData.value.descriptionMarkdown.leng
         </div>
       </div>
 
-      <!-- Checkboxy -->
       <div class="space-y-3">
         <label class="flex items-center gap-3 cursor-pointer">
           <input
@@ -287,7 +280,6 @@ const descriptionLength = computed(() => formData.value.descriptionMarkdown.leng
         </label>
       </div>
 
-      <!-- Przyciski -->
       <div class="flex justify-end gap-3 pt-4 border-t">
         <Action
           @click="handleCancel"

@@ -42,14 +42,24 @@ export function validateParams<T extends ZodType>(schema: T) {
  */
 export function validateQuery<T extends ZodType>(schema: T) {
 	return (req: Request, res: Response, next: NextFunction): void => {
-		const result = schema.safeParse(req.query);
+		try {
+			const result = schema.safeParse(req.query);
 
-		if (!result.success) {
-			const errors = buildValidationErrors(result.error.issues);
-			return sendError(res, 'Invalid query parameters', 400, 'VALIDATION_ERROR', errors);
+			if (!result.success) {
+				const errors = buildValidationErrors(result.error.issues);
+				return sendError(res, 'Invalid query parameters', 400, 'VALIDATION_ERROR', errors);
+			}
+
+			Object.defineProperty(req, 'query', {
+				value: result.data,
+				writable: true,
+				enumerable: true,
+				configurable: true,
+			});
+			next();
+		} catch (error) {
+			console.error('Error in validateQuery middleware:', error);
+			return sendError(res, 'Validation error', 500, 'VALIDATION_ERROR');
 		}
-
-		(req as any).query = result.data;
-		next();
 	};
 }

@@ -11,17 +11,21 @@ import { asyncHandler } from '../middleware/asyncHandler';
  * GET /api/tags
  */
 export const getAllTags = asyncHandler(async (req: Request, res: Response): Promise<void> => {
-	const { page, limit, sortBy, sortOrder } = (req.query as any) as {
-		page: number;
-		limit: number;
-		sortBy: string;
-		sortOrder: 'asc' | 'desc';
-	};
-	const result = await tagService.getAllTags(page, limit, sortBy, sortOrder);
+	const { page, limit, sortBy, sortOrder } = req.query;
+
+	const pageNumber = parseInt(String(page), 10);
+	const limitNumber = parseInt(String(limit), 10);
+
+	const result = await tagService.getAllTags(
+		pageNumber,
+		limitNumber,
+		sortBy as string,
+		sortOrder as 'asc' | 'desc',
+	);
 
 	const response: PaginatedListResponse<(typeof result.items)[0]> = {
 		items: result.items,
-		pagination: buildPagination(result.total, page, limit),
+		pagination: buildPagination(result.total, pageNumber, limitNumber),
 	};
 	sendSuccess(res, response);
 });

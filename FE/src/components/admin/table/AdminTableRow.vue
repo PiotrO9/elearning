@@ -1,6 +1,6 @@
-<script setup lang="ts">
+<script setup lang="ts" generic="T">
 interface AdminTableRowProps {
-  item: unknown
+  item: T
 }
 
 defineProps<AdminTableRowProps>()

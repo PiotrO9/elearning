@@ -3,11 +3,11 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import MaxWidthWrapper from '@/components/wrappers/MaxWidthWrapper.vue'
 import AdminNav from '@/components/admin/AdminNav.vue'
-import AdminTableHeader from '@/components/admin/AdminTableHeader.vue'
-import AdminTableSearch from '@/components/admin/AdminTableSearch.vue'
-import AdminTableLoading from '@/components/admin/AdminTableLoading.vue'
-import AdminTable from '@/components/admin/AdminTable.vue'
-import AdminTableRow from '@/components/admin/AdminTableRow.vue'
+import AdminTableHeader from '@/components/admin/table/AdminTableHeader.vue'
+import AdminTableSearch from '@/components/admin/table/AdminTableSearch.vue'
+import AdminTableLoading from '@/components/admin/table/AdminTableLoading.vue'
+import AdminTable from '@/components/admin/table/AdminTable.vue'
+import AdminTableRow from '@/components/admin/table/AdminTableRow.vue'
 import TagList from '@/components/admin/TagList.vue'
 import PublishStatusBadge from '@/components/admin/PublishStatusBadge.vue'
 import Action from '@/components/ui/Action.vue'
@@ -55,8 +55,11 @@ async function fetchCourses() {
     })
     courses.value = response.courses
     totalCourses.value = response.total
-  } catch (err: any) {
-    error.value = err.message || 'Nie udało się pobrać kursów'
+  } catch (err: unknown) {
+    const errorMessage = err && typeof err === 'object' && 'message' in err
+      ? String((err as { message: unknown }).message)
+      : 'Nie udało się pobrać kursów'
+    error.value = errorMessage
     console.error('Error fetching courses:', err)
   } finally {
     isLoading.value = false
@@ -92,8 +95,11 @@ async function confirmDeleteCourse() {
     await fetchCourses()
     isDeleteModalOpen.value = false
     courseToDelete.value = null
-  } catch (err: any) {
-    error.value = err.message || 'Nie udało się usunąć kursu'
+  } catch (err: unknown) {
+    const errorMessage = err && typeof err === 'object' && 'message' in err
+      ? String((err as { message: unknown }).message)
+      : 'Nie udało się usunąć kursu'
+    error.value = errorMessage
     console.error('Error deleting course:', err)
   } finally {
     isDeleting.value = false
@@ -148,26 +154,26 @@ onMounted(() => {
             :key="course.id"
             :item="course"
           >
-            <template #default="{ item: course }">
+            <template #default="{ item }">
               <td class="px-6 py-4">
                 <div class="flex items-center gap-4">
                   <div class="relative flex-shrink-0">
                     <img
-                      :src="course.thumbnail"
-                      :alt="course.title"
+                      :src="item.thumbnail"
+                      :alt="item.title"
                       class="w-14 h-14 object-cover rounded-lg shadow-sm ring-1 ring-gray-200 group-hover:ring-purple-300 transition-all"
                     />
                     <div
-                      v-if="course.isPublished"
+                      v-if="item.isPublished"
                       class="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white"
                       title="Opublikowany"
                     />
                   </div>
                   <div class="min-w-0 flex-1">
                     <p class="font-semibold text-gray-900 group-hover:text-purple-700 transition-colors truncate">
-                      {{ course.title }}
+                      {{ item.title }}
                     </p>
-                    <p class="text-sm text-gray-500 line-clamp-1 mt-0.5">{{ course.description }}</p>
+                    <p class="text-sm text-gray-500 line-clamp-1 mt-0.5">{{ item.description }}</p>
                   </div>
                 </div>
               </td>
@@ -177,18 +183,18 @@ onMounted(() => {
                     name="user"
                     class="w-4 h-4 text-gray-400 flex-shrink-0"
                   />
-                  <span class="truncate">{{ course.instructor || 'Brak instruktora' }}</span>
+                  <span class="truncate">{{ item.instructor || 'Brak instruktora' }}</span>
                 </div>
               </td>
               <td class="px-6 py-4">
                 <TagList
-                  :tags="course.tags"
+                  :tags="item.tags"
                   :max-visible="2"
                 />
               </td>
               <td class="px-6 py-4">
                 <PublishStatusBadge
-                  :is-published="course.isPublished"
+                  :is-published="item.isPublished ?? false"
                 />
               </td>
               <td class="px-6 py-4">
@@ -197,13 +203,13 @@ onMounted(() => {
                     name="calendar"
                     class="w-4 h-4 text-gray-400"
                   />
-                  <span>{{ course.createdAt }}</span>
+                  <span>{{ item.createdAt }}</span>
                 </div>
               </td>
               <td class="px-6 py-4">
                 <div class="flex items-center justify-end gap-1.5">
                   <Action
-                    @click="handleEditCourse(course)"
+                    @click="handleEditCourse(item)"
                     variant="primary"
                     size="sm"
                     circle
@@ -215,7 +221,7 @@ onMounted(() => {
                     />
                   </Action>
                   <Action
-                    @click="handleDeleteCourse(course)"
+                    @click="handleDeleteCourse(item)"
                     variant="danger"
                     size="sm"
                     circle

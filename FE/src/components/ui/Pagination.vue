@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import Icon from '@/components/ui/Icon.vue'
 
 interface Props {
   currentPage: number
@@ -113,20 +114,11 @@ function handleKeyDown(event: KeyboardEvent, action: () => void) {
         @click="handlePrevious"
         @keydown="(e) => handleKeyDown(e, handlePrevious)"
       >
-        <svg
+        <Icon
+          name="arrow-left"
           class="w-5 h-5"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
           aria-hidden="true"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M15 19l-7-7 7-7"
-          />
-        </svg>
+        />
       </button>
 
       <button
@@ -202,20 +194,11 @@ function handleKeyDown(event: KeyboardEvent, action: () => void) {
         @click="handleNext"
         @keydown="(e) => handleKeyDown(e, handleNext)"
       >
-        <svg
+        <Icon
+          name="arrow-right"
           class="w-5 h-5"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
           aria-hidden="true"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M9 5l7 7-7 7"
-          />
-        </svg>
+        />
       </button>
     </nav>
   </div>

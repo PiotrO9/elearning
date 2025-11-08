@@ -33,9 +33,9 @@ const processedSvg = computed(() => {
   if (!svgContent.value) {
     return ''
   }
-  
+
   let svg = svgContent.value
-  
+
   // Upewnij się, że SVG używa currentColor dla koloru
   if (!svg.includes('currentColor') && svg.includes('stroke=')) {
     svg = svg.replace(/stroke="[^"]*"/g, 'stroke="currentColor"')
@@ -43,7 +43,7 @@ const processedSvg = computed(() => {
   if (!svg.includes('currentColor') && svg.includes('fill=')) {
     svg = svg.replace(/fill="[^"]*"/g, 'fill="currentColor"')
   }
-  
+
   // Dodaj lub zaktualizuj klasę w SVG
   if (props.class) {
     if (svg.includes('class=')) {
@@ -52,7 +52,7 @@ const processedSvg = computed(() => {
       svg = svg.replace('<svg', `<svg class="${props.class}"`)
     }
   }
-  
+
   return svg
 })
 
@@ -62,14 +62,14 @@ const iconStyle = computed(() => {
     '--icon-color': 'currentColor',
     color: 'var(--icon-color)'
   }
-  
+
   // Jeśli klasa zawiera rozmiar Tailwind (w-*, h-*), nie ustawiaj width/height przez style
   // Pozwól Tailwind na kontrolę rozmiaru
   if (!props.class || (!props.class.includes('w-') && !props.class.includes('h-'))) {
     style.width = 'var(--icon-size)'
     style.height = 'var(--icon-size)'
   }
-  
+
   return style
 })
 
@@ -93,8 +93,8 @@ watch(() => props.class, () => {
     :aria-label="ariaLabel"
     :aria-hidden="ariaHidden ? 'true' : undefined"
     :style="iconStyle"
-    :class="class"
-    class="inline-flex items-center justify-center [&>svg]:w-full [&>svg]:h-full [&>svg]:text-[var(--icon-color)] [&>svg]:fill-[var(--icon-color)]"
+    :class="props.class"
+    class="inline-flex items-center justify-center [&>svg]:w-full [&>svg]:h-full [&>svg]:text-[var(--icon-color)]"
   />
   <span v-else-if="isLoading" :style="iconStyle" class="inline-block" />
   <span v-else class="text-red-500 text-xs">Icon not found</span>

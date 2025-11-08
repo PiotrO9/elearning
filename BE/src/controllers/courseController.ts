@@ -16,13 +16,19 @@ import { buildPagination } from '../utils/pagination';
 import { PaginatedListResponse } from '../types/api';
 
 export const handleGetCourses = asyncHandler(async (req: Request, res: Response): Promise<void> => {
-	const { page, limit, sortBy, sortOrder } = req.query as any as {
+	const {
+		page,
+		limit,
+		sortBy,
+		sortOrder,
+		tag: tagSlug,
+	} = req.query as unknown as {
 		page: number;
 		limit: number;
-		sortBy: string;
-		sortOrder: 'asc' | 'desc';
+		sortBy?: string;
+		sortOrder?: 'asc' | 'desc';
+		tag?: string;
 	};
-	const tagSlug = (req.query as any).tag as string | undefined;
 
 	const result = await listPublishedCourses(tagSlug, page, limit, sortBy, sortOrder);
 	const payload: CourseListItemDto[] = result.items.map(course => ({

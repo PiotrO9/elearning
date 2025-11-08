@@ -4,14 +4,15 @@ import { useRouter } from 'vue-router'
 import MaxWidthWrapper from '@/components/wrappers/MaxWidthWrapper.vue'
 import ConfirmModal from '@/components/ui/ConfirmModal.vue'
 import AdminNav from '@/components/admin/AdminNav.vue'
-import AdminTableHeader from '@/components/admin/AdminTableHeader.vue'
-import AdminTableSearch from '@/components/admin/AdminTableSearch.vue'
-import AdminTable from '@/components/admin/AdminTable.vue'
-import AdminTableRow from '@/components/admin/AdminTableRow.vue'
+import AdminTableHeader from '@/components/admin/table/AdminTableHeader.vue'
+import AdminTableSearch from '@/components/admin/table/AdminTableSearch.vue'
+import AdminTable from '@/components/admin/table/AdminTable.vue'
+import AdminTableRow from '@/components/admin/table/AdminTableRow.vue'
 import Action from '@/components/ui/Action.vue'
 import Pagination from '@/components/ui/Pagination.vue'
 import CopyableText from '@/components/ui/CopyableText.vue'
-import type { User, UserAdminPanelListItem } from '@/types/user'
+import Icon from '@/components/ui/Icon.vue'
+import type { User, UserAdminPanelListItem } from '@/types/User'
 import { getAllUsers, updateUserRole } from '@/services/adminService'
 
 const router = useRouter()
@@ -158,8 +159,8 @@ onMounted(() => {
 <template>
   <div class="min-h-screen bg-gray-50">
     <AdminNav />
-    <MaxWidthWrapper class="py-8">
-      <div class="mb-8">
+    <MaxWidthWrapper class="py-8 flex flex-col gap-4">
+      <div>
         <AdminTableHeader
           title="Zarządzanie użytkownikami"
           description="Przypisuj użytkowników do kursów i zarządzaj rolami"
@@ -171,7 +172,7 @@ onMounted(() => {
         />
       </div>
 
-      <div v-if="error" class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+      <div v-if="error" class="p-4 bg-red-50 border border-red-200 rounded-lg">
         <p class="text-sm text-red-700">{{ error }}</p>
       </div>
 
@@ -192,32 +193,33 @@ onMounted(() => {
             :key="user.id"
             :item="user"
           >
-            <template #default="{ item: user }">
+            <template #default="{ item }">
               <td class="px-6 py-4">
                 <div class="flex items-center gap-3">
                   <div class="relative flex-shrink-0">
                     <div class="w-11 h-11 bg-gradient-to-br from-purple-400 to-blue-500 rounded-full flex items-center justify-center shadow-sm ring-2 ring-white group-hover:ring-purple-200 transition-all">
                       <span class="text-white font-semibold text-sm">
-                        {{ user.username.charAt(0).toUpperCase() }}
+                        {{ item.username.charAt(0).toUpperCase() }}
                       </span>
                     </div>
                     <div
-                      v-if="user.role === 'ADMIN'"
+                      v-if="item.role === 'ADMIN'"
                       class="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-yellow-400 rounded-full border-2 border-white flex items-center justify-center"
                       title="Administrator"
                     >
-                      <svg class="w-2.5 h-2.5 text-yellow-900" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                      </svg>
+                      <Icon
+                        name="star"
+                        class="w-2.5 h-2.5 text-yellow-900"
+                      />
                     </div>
                   </div>
                   <div class="min-w-0 flex-1">
                     <p class="font-semibold text-gray-900 group-hover:text-purple-700 transition-colors truncate">
-                      {{ user.username }}
+                      {{ item.username }}
                     </p>
                     <div class="mt-0.5">
                       <CopyableText
-                        :text="user.id"
+                        :text="item.id"
                         label="ID:"
                         :show-icon="true"
                       />
@@ -227,57 +229,52 @@ onMounted(() => {
               </td>
               <td class="px-6 py-4">
                 <div class="flex items-center gap-2 text-sm text-gray-700">
-                  <svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                  </svg>
+                  <Icon
+                    name="email"
+                    class="w-4 h-4 text-gray-400 flex-shrink-0"
+                  />
                   <CopyableText
-                    :text="user.email"
+                    :text="item.email"
                     :show-icon="true"
                   />
                 </div>
               </td>
               <td class="px-6 py-4">
                 <button
-                  @click="handleToggleRole(user)"
+                  @click="handleToggleRole(item)"
                   class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all hover:scale-105 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
                   tabindex="0"
                   aria-label="Zmień rolę użytkownika"
-                  @keydown="(e) => e.key === 'Enter' && handleToggleRole(user)"
+                  @keydown="(e) => e.key === 'Enter' && handleToggleRole(item)"
                 >
                   <span
                     class="px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1.5"
-                    :class="user.role === 'ADMIN'
+                    :class="item.role === 'ADMIN'
                       ? 'bg-purple-100 text-purple-700'
                       : 'bg-gray-100 text-gray-700'"
                   >
-                    <svg
-                      v-if="user.role === 'ADMIN'"
+                    <Icon
+                      v-if="item.role === 'ADMIN'"
+                      name="star"
                       class="w-3.5 h-3.5"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                    </svg>
-                    <svg
+                    />
+                    <Icon
                       v-else
+                      name="user"
                       class="w-3.5 h-3.5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
-                    {{ user.role === 'ADMIN' ? 'Admin' : 'Użytkownik' }}
+                    />
+                    {{ item.role === 'ADMIN' ? 'Admin' : 'Użytkownik' }}
                   </span>
                 </button>
               </td>
               <td class="px-6 py-4">
                 <div class="inline-flex items-center gap-1.5 text-sm text-gray-600">
-                  <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                  </svg>
-                  <span v-if="user.coursesCount !== undefined">
-                    {{ user.coursesCount }} {{ user.coursesCount === 1 ? 'kurs' : user.coursesCount < 5 ? 'kursy' : 'kursów' }}
+                  <Icon
+                    name="books"
+                    class="w-4 h-4 text-gray-400"
+                  />
+                  <span v-if="item.coursesCount !== undefined">
+                    {{ item.coursesCount }} {{ item.coursesCount === 1 ? 'kurs' : item.coursesCount < 5 ? 'kursy' : 'kursów' }}
                   </span>
                   <span v-else class="text-gray-400">—</span>
                 </div>
@@ -285,15 +282,16 @@ onMounted(() => {
               <td class="px-6 py-4">
                 <div class="flex items-center justify-end">
                   <Action
-                    @click="handleManageCourses(user)"
+                    @click="handleManageCourses(item)"
                     variant="outline"
                     size="sm"
                     circle
                     aria-label="Zarządzaj kursami użytkownika"
                   >
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
-                    </svg>
+                    <Icon
+                      name="settings"
+                      class="w-4 h-4"
+                    />
                   </Action>
                 </div>
               </td>

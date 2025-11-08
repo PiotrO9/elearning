@@ -64,7 +64,6 @@ function handleKeyDown(event: KeyboardEvent, action: () => void) {
   <nav class="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-1">
     <MaxWidthWrapper>
       <div class="flex items-center justify-between h-16">
-        <!-- Logo i desktop menu -->
         <div class="flex items-center gap-8">
           <router-link
             to="/admin"
@@ -78,7 +77,6 @@ function handleKeyDown(event: KeyboardEvent, action: () => void) {
             <span>Admin Panel</span>
           </router-link>
 
-          <!-- Desktop Navigation -->
           <div class="hidden md:flex items-center gap-1">
             <router-link
               v-for="item in navItems"
@@ -102,9 +100,7 @@ function handleKeyDown(event: KeyboardEvent, action: () => void) {
           </div>
         </div>
 
-        <!-- Right side - Back to home link and mobile button -->
         <div class="flex items-center gap-4">
-          <!-- Back to home link -->
           <router-link
             to="/"
             class="hidden md:flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors"
@@ -116,7 +112,6 @@ function handleKeyDown(event: KeyboardEvent, action: () => void) {
             <span>Wróć do strony głównej</span>
           </router-link>
 
-          <!-- Mobile menu button -->
           <button
             @click="isMobileMenuOpen = !isMobileMenuOpen"
             @keydown="(e) => handleKeyDown(e, () => isMobileMenuOpen = !isMobileMenuOpen)"
@@ -139,7 +134,6 @@ function handleKeyDown(event: KeyboardEvent, action: () => void) {
         </div>
       </div>
 
-      <!-- Mobile menu -->
       <Transition
         enter-active-class="transition ease-out duration-200"
         enter-from-class="opacity-0 -translate-y-1"
@@ -193,7 +187,6 @@ function handleKeyDown(event: KeyboardEvent, action: () => void) {
       </Transition>
     </MaxWidthWrapper>
 
-    <!-- Backdrop for mobile menu -->
     <Transition
       enter-active-class="transition-opacity ease-linear duration-200"
       enter-from-class="opacity-0"

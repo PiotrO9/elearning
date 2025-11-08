@@ -106,26 +106,15 @@ export const updateUserRoleSchema = z.object({
 });
 
 export const paginationQuerySchema = z.object({
-	page: z
-		.string()
-		.optional()
-		.default('1')
-		.transform(val => parseInt(val, 10))
-		.pipe(z.number().int().positive('Page must be a positive integer')),
-	limit: z
-		.string()
-		.optional()
-		.default('10')
-		.transform(val => parseInt(val, 10))
-		.pipe(
-			z
-				.number()
-				.int()
-				.positive('Limit must be a positive integer')
-				.max(100, 'Limit cannot exceed 100'),
-		),
+	page: z.coerce.number().int().positive('Page must be a positive integer').default(1),
+	limit: z.coerce
+		.number()
+		.int()
+		.positive('Limit must be a positive integer')
+		.max(100, 'Limit cannot exceed 100')
+		.default(10),
 	sortBy: z.string().optional(),
-		sortOrder: z.enum(['asc', 'desc']).optional().default('asc'),
+	sortOrder: z.enum(['asc', 'desc']).optional().default('asc'),
 });
 
 export const courseSortSchema = paginationQuerySchema.extend({
@@ -135,6 +124,7 @@ export const courseSortSchema = paginationQuerySchema.extend({
 		})
 		.optional()
 		.default('createdAt'),
+	tag: z.string().optional(),
 });
 
 export const videoSortSchema = paginationQuerySchema.extend({
