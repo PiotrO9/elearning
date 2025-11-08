@@ -1,37 +1,37 @@
 /**
- * Konfiguracja sortowania dla Prisma orderBy
+ * Sorting configuration for Prisma orderBy
  */
 export interface SortConfig {
 	/**
-	 * Lista dozwolonych pól do sortowania
+	 * List of allowed fields for sorting
 	 */
 	validSortFields: string[];
 	/**
-	 * Domyślne pole sortowania
+	 * Default sort field
 	 */
 	defaultField: string;
 	/**
-	 * Domyślny kierunek sortowania
+	 * Default sort direction
 	 */
 	defaultOrder?: 'asc' | 'desc';
 	/**
-	 * Mapowanie nazw pól (np. 'enrolledAt' -> 'createdAt')
+	 * Field name mapping (e.g. 'enrolledAt' -> 'createdAt')
 	 */
 	fieldMapping?: Record<string, string>;
 	/**
-	 * Konfiguracja sortowania przez relacje (nested)
-	 * Klucz to nazwa pola, wartość to ścieżka relacji
+	 * Configuration for sorting through relations (nested)
+	 * Key is field name, value is relation path
 	 */
 	relationSorts?: Record<string, string>;
 	/**
-	 * Konfiguracja wielokrotnego sortowania
-	 * Klucz to nazwa pola, wartość to tablica dodatkowych sortowań
+	 * Configuration for multiple sorting
+	 * Key is field name, value is array of additional sorts
 	 */
 	multiSorts?: Record<string, Array<{ field: string; order?: 'asc' | 'desc' }>>;
 }
 
 /**
- * Buduje obiekt orderBy dla Prisma na podstawie parametrów sortowania
+ * Builds orderBy object for Prisma based on sorting parameters
  */
 export function buildOrderBy(
 	sortBy: string | undefined,
@@ -47,21 +47,17 @@ export function buildOrderBy(
 		multiSorts,
 	} = config;
 
-	// Walidacja i wybór pola sortowania
 	const sortField = sortBy && validSortFields.includes(sortBy) ? sortBy : defaultField;
 	const order = sortOrder || defaultOrder;
 
-	// Mapowanie nazwy pola (np. enrolledAt -> createdAt)
 	const mappedField = fieldMapping?.[sortField] || sortField;
 
-	// Sprawdź czy to sortowanie przez relację
 	if (relationSorts && relationSorts[mappedField]) {
 		const relationPath = relationSorts[mappedField];
 		const pathParts = relationPath.split('.');
 		let orderBy: any = {};
 		let current = orderBy;
 
-		// Buduj zagnieżdżoną strukturę
 		for (let i = 0; i < pathParts.length - 1; i++) {
 			current[pathParts[i]] = {};
 			current = current[pathParts[i]];
@@ -71,12 +67,10 @@ export function buildOrderBy(
 		return orderBy;
 	}
 
-	// Sprawdź czy to wielokrotne sortowanie
 	if (multiSorts && multiSorts[mappedField]) {
 		const additionalSorts = multiSorts[mappedField];
 		return [{ [mappedField]: order }, ...additionalSorts.map(s => ({ [s.field]: s.order || 'asc' }))];
 	}
 
-	// Proste sortowanie
 	return { [mappedField]: order };
 }

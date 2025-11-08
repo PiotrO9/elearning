@@ -9,9 +9,9 @@ import { handlePrismaError } from '../utils/prismaErrors';
 type CustomErrorHandler = (error: unknown, req: Request, res: Response) => boolean;
 
 /**
- * Wrapper dla async handlerów - automatycznie obsługuje błędy
+ * Wrapper for async handlers - automatically handles errors
  * @param fn - Async handler function
- * @param customErrorHandler - Opcjonalna funkcja do customowej obsługi błędów
+ * @param customErrorHandler - Optional function for custom error handling
  * @returns Express RequestHandler
  */
 export function asyncHandler(
@@ -20,26 +20,22 @@ export function asyncHandler(
 ): RequestHandler {
 	return (req: Request, res: Response, next: NextFunction): void => {
 		Promise.resolve(fn(req, res, next)).catch((error: unknown) => {
-			// Jeśli jest custom error handler, spróbuj go użyć
 			if (customErrorHandler) {
 				const handled = customErrorHandler(error, req, res);
 				if (handled) {
-					return; // Błąd został obsłużony przez custom handler
+					return;
 				}
 			}
 
-			// Obsługa AppError i jego podklas (ValidationError, ConflictError, etc.)
 			if (error instanceof AppError) {
 				return sendError(res, error.message, error.statusCode, error.code, error.errors);
 			}
 
-			// Obsługa błędów Prisma
 			const prismaError = handlePrismaError(error);
 			if (prismaError) {
 				return sendError(res, prismaError.message, prismaError.statusCode, prismaError.code);
 			}
 
-			// Obsługa błędów z statusCode i message (np. ServiceError)
 			if (
 				error &&
 				typeof error === 'object' &&
@@ -52,7 +48,6 @@ export function asyncHandler(
 				return sendError(res, serviceError.message, serviceError.statusCode, serviceError.code);
 			}
 
-			// Obsługa custom error codes (np. VIDEO_NOT_IN_COURSE, DUPLICATE_ORDER)
 			if (error && typeof error === 'object' && 'code' in error) {
 				const errorCode = (error as any).code;
 				if (errorCode === 'VIDEO_NOT_IN_COURSE') {
@@ -63,7 +58,6 @@ export function asyncHandler(
 				}
 			}
 
-			// Domyślna obsługa - nieznany błąd
 			console.error('Unhandled error in async handler:', error);
 			return sendError(res, 'Internal server error', 500, 'INTERNAL_SERVER_ERROR');
 		});

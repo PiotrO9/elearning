@@ -10,14 +10,13 @@ export class EnrollmentServiceError extends Error {
 }
 
 /**
- * Admin przypisuje użytkownika do kursu
+ * Admin enrolls user to course
  */
 export async function enrollUserByCourse(
 	userId: string,
 	courseId: string,
 	enrolledByAdminId: string,
 ): Promise<void> {
-	// Sprawdź czy kurs istnieje
 	const course = await prisma.course.findUnique({
 		where: { id: courseId },
 		select: { id: true, isPublished: true },
@@ -35,7 +34,6 @@ export async function enrollUserByCourse(
 		);
 	}
 
-	// Sprawdź czy użytkownik istnieje
 	const user = await prisma.user.findUnique({
 		where: { id: userId },
 		select: { id: true, deletedAt: true },
@@ -45,7 +43,6 @@ export async function enrollUserByCourse(
 		throw new EnrollmentServiceError('User not found', 404, 'USER_NOT_FOUND');
 	}
 
-	// Sprawdź czy użytkownik jest już zapisany
 	const existingEnrollment = await prisma.courseEnrollment.findUnique({
 		where: {
 			userId_courseId: {
@@ -59,7 +56,6 @@ export async function enrollUserByCourse(
 		throw new EnrollmentServiceError('User already enrolled', 409, 'ALREADY_ENROLLED');
 	}
 
-	// Zapisz użytkownika
 	await prisma.courseEnrollment.create({
 		data: {
 			userId,
@@ -70,10 +66,9 @@ export async function enrollUserByCourse(
 }
 
 /**
- * Użytkownik dołącza do publicznego kursu
+ * User joins public course
  */
 export async function joinPublicCourse(userId: string, courseId: string): Promise<void> {
-	// Sprawdź czy kurs istnieje i jest publiczny
 	const course = await prisma.course.findUnique({
 		where: { id: courseId },
 		select: { id: true, isPublished: true, isPublic: true },
@@ -91,7 +86,6 @@ export async function joinPublicCourse(userId: string, courseId: string): Promis
 		throw new EnrollmentServiceError('Course is not public', 403, 'COURSE_NOT_PUBLIC');
 	}
 
-	// Sprawdź czy użytkownik jest już zapisany
 	const existingEnrollment = await prisma.courseEnrollment.findUnique({
 		where: {
 			userId_courseId: {
@@ -105,7 +99,6 @@ export async function joinPublicCourse(userId: string, courseId: string): Promis
 		throw new EnrollmentServiceError('Already enrolled', 409, 'ALREADY_ENROLLED');
 	}
 
-	// Zapisz użytkownika (bez enrolledBy bo to self-enrollment)
 	await prisma.courseEnrollment.create({
 		data: {
 			userId,
@@ -116,7 +109,7 @@ export async function joinPublicCourse(userId: string, courseId: string): Promis
 }
 
 /**
- * Admin usuwa dostęp użytkownika do kursu
+ * Admin removes user access to course
  */
 export async function unenrollUser(userId: string, courseId: string): Promise<void> {
 	const enrollment = await prisma.courseEnrollment.findUnique({
@@ -143,7 +136,7 @@ export async function unenrollUser(userId: string, courseId: string): Promise<vo
 }
 
 /**
- * Pobierz listę użytkowników zapisanych na kurs
+ * Get list of users enrolled in course
  */
 export async function getCourseEnrollments(
 	courseId: string,
@@ -198,7 +191,7 @@ export async function getCourseEnrollments(
 }
 
 /**
- * Pobierz listę kursów użytkownika
+ * Get list of user courses
  */
 export async function getUserEnrollments(
 	userId: string,
@@ -257,10 +250,9 @@ export async function getUserEnrollments(
 }
 
 /**
- * Sprawdź czy użytkownik ma dostęp do kursu
+ * Check if user has access to course
  */
 export async function checkUserCourseAccess(userId: string, courseId: string): Promise<boolean> {
-	// Sprawdź czy kurs jest publiczny
 	const course = await prisma.course.findUnique({
 		where: { id: courseId },
 		select: { isPublic: true, isPublished: true },
@@ -274,7 +266,6 @@ export async function checkUserCourseAccess(userId: string, courseId: string): P
 		return true;
 	}
 
-	// Sprawdź enrollment
 	const enrollment = await prisma.courseEnrollment.findUnique({
 		where: {
 			userId_courseId: {

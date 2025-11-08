@@ -15,7 +15,6 @@ export interface ApiErrorResponse {
 	message: string;
 	code?: string;
 	errors?: ApiErrorItem[];
-	// optional trace id for observability
 	traceId?: string;
 }
 

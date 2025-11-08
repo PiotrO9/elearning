@@ -13,7 +13,6 @@ import {
 import { Pagination } from '../types/api';
 import { UserRole } from '@prisma/client';
 
-// use shared prisma instance
 
 export class UserService {
 	/**
@@ -278,14 +277,11 @@ export class UserService {
 			throw new UserServiceError('User not found', 404, 'USER_NOT_FOUND');
 		}
 
-		// Check if role is being changed
 		if (user.role === newRole) {
 			throw new UserServiceError('User already has this role', 400, 'SAME_ROLE');
 		}
 
-		// Permission checks
 		if (requesterRole === UserRole.ADMIN) {
-			// ADMIN can only change USER -> ADMIN
 			if (user.role !== UserRole.USER || newRole !== UserRole.ADMIN) {
 				throw new UserServiceError(
 					'Admin can only promote users from USER to ADMIN',
@@ -294,7 +290,6 @@ export class UserService {
 				);
 			}
 		} else if (requesterRole === UserRole.SUPERADMIN) {
-			// SUPERADMIN can change ADMIN -> USER and USER -> ADMIN
 			if (
 				!(user.role === UserRole.USER && newRole === UserRole.ADMIN) &&
 				!(user.role === UserRole.ADMIN && newRole === UserRole.USER)

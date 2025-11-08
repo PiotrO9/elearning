@@ -40,7 +40,6 @@ export async function attachExistingVideoToCourse(
 }
 
 export async function detachVideoFromCourse(videoId: string): Promise<void> {
-	// Deleting the video to detach, assuming videos are always tied to a course
 	await prisma.video.delete({ where: { id: videoId } });
 }
 

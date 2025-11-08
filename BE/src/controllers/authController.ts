@@ -40,7 +40,6 @@ export const login = asyncHandler(async (req: Request, res: Response): Promise<v
 
 	setAuthCookies(res, result.accessToken, result.refreshToken);
 
-	// Set user status to online (ignore errors)
 	try {
 		await userService.setUserOnline(result.user.id);
 	} catch (error) {
@@ -85,7 +84,6 @@ export const logout = asyncHandler(async (req: Request, res: Response): Promise<
 		await logoutUser(refreshToken);
 	}
 
-	// Set user status to offline (ignore errors)
 	if (userId) {
 		try {
 			await userService.setUserOffline(userId);

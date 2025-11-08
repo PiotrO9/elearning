@@ -1,29 +1,29 @@
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 
 /**
- * Konfiguracja mapowania błędów Prisma na odpowiedzi API
+ * Configuration for mapping Prisma errors to API responses
  */
 export interface PrismaErrorMapping {
 	/**
-	 * Domyślny komunikat błędu dla danego kodu
+	 * Default error message for the given code
 	 */
 	defaultMessage: string;
 	/**
-	 * Domyślny kod błędu API
+	 * Default API error code
 	 */
 	defaultCode: string;
 	/**
-	 * Status HTTP
+	 * HTTP status code
 	 */
 	statusCode: number;
 	/**
-	 * Opcjonalne mapowanie komunikatów w zależności od kontekstu
+	 * Optional message mapping depending on context
 	 */
 	customMessages?: Record<string, { message: string; code: string }>;
 }
 
 /**
- * Mapowanie kodów błędów Prisma na konfigurację odpowiedzi
+ * Mapping of Prisma error codes to response configuration
  */
 const PRISMA_ERROR_MAPPINGS: Record<string, PrismaErrorMapping> = {
 	P2025: {
@@ -63,7 +63,7 @@ const PRISMA_ERROR_MAPPINGS: Record<string, PrismaErrorMapping> = {
 };
 
 /**
- * Sprawdza czy błąd jest błędem Prisma
+ * Checks if error is a Prisma error
  */
 export function isPrismaError(error: unknown): error is PrismaClientKnownRequestError {
 	return (
@@ -76,10 +76,10 @@ export function isPrismaError(error: unknown): error is PrismaClientKnownRequest
 }
 
 /**
- * Obsługuje błąd Prisma i zwraca odpowiednią konfigurację odpowiedzi API
- * @param error - Błąd do obsłużenia
- * @param context - Kontekst błędu (np. 'course', 'video', 'video_order') - używany do customizacji komunikatu
- * @returns Konfiguracja odpowiedzi lub null jeśli błąd nie jest błędem Prisma
+ * Handles Prisma error and returns appropriate API response configuration
+ * @param error - Error to handle
+ * @param context - Error context (e.g. 'course', 'video', 'video_order') - used for message customization
+ * @returns Response configuration or null if error is not a Prisma error
  */
 export function handlePrismaError(
 	error: unknown,
@@ -93,7 +93,6 @@ export function handlePrismaError(
 	const mapping = PRISMA_ERROR_MAPPINGS[errorCode];
 
 	if (!mapping) {
-		// Nieznany kod błędu Prisma
 		return {
 			message: 'Database error occurred',
 			statusCode: 500,
@@ -101,7 +100,6 @@ export function handlePrismaError(
 		};
 	}
 
-	// Sprawdź czy jest custom message dla danego kontekstu
 	if (context && mapping.customMessages?.[context]) {
 		const custom = mapping.customMessages[context];
 		return {
@@ -111,7 +109,6 @@ export function handlePrismaError(
 		};
 	}
 
-	// Zwróć domyślny komunikat
 	return {
 		message: mapping.defaultMessage,
 		statusCode: mapping.statusCode,

@@ -8,7 +8,7 @@ const userService = new UserService();
 
 /**
  * GET /users
- * Admin/Superadmin pobiera listę wszystkich użytkowników z paginacją
+ * Admin/Superadmin gets list of all users with pagination
  */
 export const handleGetAllUsers = asyncHandler(
 	async (req: Request, res: Response): Promise<void> => {
@@ -21,9 +21,9 @@ export const handleGetAllUsers = asyncHandler(
 
 /**
  * PATCH /users/:id/role
- * Admin/Superadmin zmienia rolę użytkownika
- * ADMIN może zmieniać USER -> ADMIN
- * SUPERADMIN może zmieniać ADMIN -> USER i USER -> ADMIN
+ * Admin/Superadmin changes user role
+ * ADMIN can change USER -> ADMIN
+ * SUPERADMIN can change ADMIN -> USER and USER -> ADMIN
  */
 export const handleUpdateUserRole = asyncHandler(
 	async (req: Request, res: Response): Promise<void> => {

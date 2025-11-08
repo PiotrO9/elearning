@@ -33,7 +33,6 @@ export const createCourseSchema = z.object({
 	isPublic: z.boolean().optional().default(false),
 });
 
-// Video and update schemas
 export const videoIdParamSchema = z.object({
 	id: z.string().min(10, 'Invalid video id'),
 });
@@ -88,7 +87,6 @@ export const reorderCourseVideosSchema = z.object({
 		.min(1, 'At least one item is required'),
 });
 
-// Enrollment schemas
 export const enrollUserSchema = z.object({
 	userId: z.string().uuid('Invalid user id'),
 });
@@ -127,10 +125,9 @@ export const paginationQuerySchema = z.object({
 				.max(100, 'Limit cannot exceed 100'),
 		),
 	sortBy: z.string().optional(),
-	sortOrder: z.enum(['asc', 'desc']).optional().default('asc'),
+		sortOrder: z.enum(['asc', 'desc']).optional().default('asc'),
 });
 
-// Schematy sortowania dla konkretnych typów
 export const courseSortSchema = paginationQuerySchema.extend({
 	sortBy: z
 		.enum(['title', 'createdAt', 'updatedAt'], {

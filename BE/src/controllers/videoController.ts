@@ -113,13 +113,11 @@ export const handleAttachVideoToCourse = asyncHandler(
 		sendNoContent(res);
 	},
 	(error: unknown, _req: Request, res: Response) => {
-		// Sprawdź najpierw błąd unique constraint (video_order)
 		const prismaErrorOrder = handlePrismaError(error, 'video_order');
 		if (prismaErrorOrder) {
 			sendError(res, prismaErrorOrder.message, prismaErrorOrder.statusCode, prismaErrorOrder.code);
 			return true;
 		}
-		// Sprawdź błąd not found (może być video lub course)
 		const prismaErrorNotFound = handlePrismaError(error);
 		if (prismaErrorNotFound) {
 			sendError(res, 'Video or Course not found', 404, 'NOT_FOUND');

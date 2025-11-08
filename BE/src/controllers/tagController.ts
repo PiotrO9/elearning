@@ -66,7 +66,6 @@ export const createTag = asyncHandler(
 	async (req: Request, res: Response): Promise<void> => {
 		const input: CreateTagInput = req.body;
 
-		// Validate input
 		if (!input.name || input.name.trim() === '') {
 			return sendError(res, 'Nazwa tagu jest wymagana', 400, 'VALIDATION_ERROR');
 		}
@@ -96,7 +95,6 @@ export const updateTag = asyncHandler(
 		const { id } = req.params;
 		const input: UpdateTagInput = req.body;
 
-		// Validate that at least one field is provided
 		if (!input.name && !input.slug && input.description === undefined) {
 			return sendError(res, 'Przynajmniej jedno pole musi być podane', 400, 'VALIDATION_ERROR');
 		}
@@ -154,7 +152,6 @@ export const assignTagsToCourse = asyncHandler(
 		const { courseId } = req.params;
 		const { tagIds } = req.body;
 
-		// Validate input
 		if (!Array.isArray(tagIds)) {
 			return sendError(res, 'tagIds musi być tablicą', 400, 'VALIDATION_ERROR');
 		}

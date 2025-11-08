@@ -48,7 +48,6 @@ export async function listPublishedCourses(
 ): Promise<{ items: CourseListItem[]; total: number }> {
 	const whereClause: any = { isPublished: true };
 
-	// If tagSlug is provided, filter courses by tag
 	if (tagSlug) {
 		whereClause.tags = {
 			some: {
@@ -266,21 +265,17 @@ export async function updateCourse(
 ): Promise<CourseDetail> {
 	const { tagIds, ...courseData } = data;
 
-	// Handle tags separately if provided
 	if (tagIds !== undefined) {
 		await prisma.$transaction(async tx => {
-			// Update course data
 			await tx.course.update({
 				where: { id: courseId },
 				data: courseData,
 			});
 
-			// Delete existing tags
 			await tx.courseTag.deleteMany({
 				where: { courseId },
 			});
 
-			// Create new tags
 			if (tagIds.length > 0) {
 				await tx.courseTag.createMany({
 					data: tagIds.map(tagId => ({
@@ -291,14 +286,12 @@ export async function updateCourse(
 			}
 		});
 	} else {
-		// Just update course data without touching tags
 		await prisma.course.update({
 			where: { id: courseId },
 			data: courseData,
 		});
 	}
 
-	// Fetch updated course with all relations
 	const updated = await prisma.course.findUniqueOrThrow({
 		where: { id: courseId },
 		select: {
@@ -366,7 +359,6 @@ export async function reorderCourseVideos(
 		return;
 	}
 
-	// Ensure unique orders and ids
 	const targetOrders = new Set(items.map(i => i.order));
 	if (targetOrders.size !== items.length) {
 		throw Object.assign(new Error('Duplicate order values'), {
@@ -380,14 +372,12 @@ export async function reorderCourseVideos(
 	}
 
 	await prisma.$transaction(async tx => {
-		// Fetch existing videos for the course
 		const existing = await tx.video.findMany({
 			where: { courseId },
 			select: { id: true },
 		});
 		const existingIds = new Set(existing.map(v => v.id));
 
-		// Validate that all provided ids belong to the course
 		for (const item of items) {
 			if (!existingIds.has(item.id)) {
 				throw Object.assign(new Error('Video not in course'), {
@@ -397,10 +387,6 @@ export async function reorderCourseVideos(
 			}
 		}
 
-		// Optionally, ensure the full set matches existing to keep contiguous sequence
-		// Not mandatory: allow partial reorder of subset
-
-		// Update orders
 		for (const item of items) {
 			await tx.video.update({ where: { id: item.id }, data: { order: item.order } });
 		}

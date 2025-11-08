@@ -69,7 +69,6 @@ async function getDashboardMetrics(): Promise<DashboardMetrics> {
 async function getRecentActivities(limit: number = 10): Promise<RecentActivity[]> {
 	const activities: RecentActivity[] = [];
 
-	// Get recent courses (created or updated)
 	const recentCourses = await prisma.course.findMany({
 		select: {
 			id: true,
@@ -78,11 +77,10 @@ async function getRecentActivities(limit: number = 10): Promise<RecentActivity[]
 			updatedAt: true,
 		},
 		orderBy: { updatedAt: 'desc' },
-		take: limit * 3, // Get more to have enough after filtering
+		take: limit * 3,
 	});
 
 	for (const course of recentCourses) {
-		// Add course creation activity
 		activities.push({
 			description: `Dodano nowy kurs: ${course.title}`,
 			timeAgo: formatTimeAgo(course.createdAt),
@@ -90,10 +88,8 @@ async function getRecentActivities(limit: number = 10): Promise<RecentActivity[]
 			timestamp: course.createdAt,
 		});
 
-		// Add course update activity only if updated more than 1 minute after creation
 		const timeDiff = course.updatedAt.getTime() - course.createdAt.getTime();
 		if (timeDiff > 60000) {
-			// More than 1 minute difference
 			activities.push({
 				description: `Zaktualizowano kurs: ${course.title}`,
 				timeAgo: formatTimeAgo(course.updatedAt),
@@ -103,7 +99,6 @@ async function getRecentActivities(limit: number = 10): Promise<RecentActivity[]
 		}
 	}
 
-	// Get recent tags (created or updated)
 	const recentTags = await prisma.tag.findMany({
 		select: {
 			id: true,
@@ -116,7 +111,6 @@ async function getRecentActivities(limit: number = 10): Promise<RecentActivity[]
 	});
 
 	for (const tag of recentTags) {
-		// Add tag creation activity
 		activities.push({
 			description: `Dodano nowy tag: ${tag.name}`,
 			timeAgo: formatTimeAgo(tag.createdAt),
@@ -124,10 +118,8 @@ async function getRecentActivities(limit: number = 10): Promise<RecentActivity[]
 			timestamp: tag.createdAt,
 		});
 
-		// Add tag update activity only if updated more than 1 minute after creation
 		const timeDiff = tag.updatedAt.getTime() - tag.createdAt.getTime();
 		if (timeDiff > 60000) {
-			// More than 1 minute difference
 			activities.push({
 				description: `Zaktualizowano tag: ${tag.name}`,
 				timeAgo: formatTimeAgo(tag.updatedAt),
@@ -137,7 +129,6 @@ async function getRecentActivities(limit: number = 10): Promise<RecentActivity[]
 		}
 	}
 
-	// Get recent users
 	const recentUsers = await prisma.user.findMany({
 		select: {
 			id: true,
@@ -159,7 +150,6 @@ async function getRecentActivities(limit: number = 10): Promise<RecentActivity[]
 		});
 	}
 
-	// Sort all activities by timestamp (most recent first) and take limit
 	return activities.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime()).slice(0, limit);
 }
 

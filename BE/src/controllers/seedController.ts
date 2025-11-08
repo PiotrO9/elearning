@@ -10,12 +10,9 @@ import { runSeed } from '../utils/seedData';
  * @access Admin only
  */
 export const seedDatabase = asyncHandler(async (_req: Request, res: Response): Promise<void> => {
-	console.log('🌱 Rozpoczynam seedowanie bazy danych przez API...');
+	console.log('🌱 Starting database seeding via API...');
 
-	// Wywołaj główną funkcję seedowania
 	await runSeed();
-
-	// Pobierz statystyki
 	const [usersCount, coursesCount, videosCount, enrollmentsCount] = await Promise.all([
 		prisma.user.count(),
 		prisma.course.count(),
@@ -57,9 +54,8 @@ export const seedDatabase = asyncHandler(async (_req: Request, res: Response): P
  */
 export const clearDatabaseController = asyncHandler(
 	async (_req: Request, res: Response): Promise<void> => {
-		console.log('🗑️  Czyszczenie bazy danych przez API...');
+		console.log('🗑️  Clearing database via API...');
 
-		// Import clearDatabase function
 		const { clearDatabase } = await import('../utils/seedData');
 		await clearDatabase();
 

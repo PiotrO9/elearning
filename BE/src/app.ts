@@ -32,7 +32,6 @@ app.use(
 	}),
 );
 
-// Trace id for correlation
 app.use((req: Request, res: Response, next: NextFunction) => {
 	const traceId = randomUUID();
 	(res as any).locals = { ...(res as any).locals, traceId };
@@ -110,13 +109,10 @@ app.get('/api', (_req: Request, res: Response) => {
 
 app.use('/api', apiRoutes);
 
-// 404 for unknown api routes
 app.use('/api', (_req: Request, _res: Response, next: NextFunction) => {
 	next(new NotFoundError('Route not found'));
 });
 
-// Global error handler
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 app.use((err: unknown, req: Request, res: Response, _next: NextFunction) => {
 	handleExpressError(err, req, res);
 });

@@ -29,11 +29,9 @@ export const authenticateToken = (req: Request, res: Response, next: NextFunctio
 			return sendError(res, 'Access token required', 401, 'ACCESS_TOKEN_REQUIRED');
 		}
 
-		// Verify access token
 		const decoded = verifyAccessToken(accessToken);
 		req.user = decoded;
 
-		// Generate new access token with refreshed expiration (sliding session)
 		if (SLIDING_SESSION_ENABLED) {
 			const newAccessToken = generateAccessToken({
 				userId: decoded.userId,
@@ -41,15 +39,13 @@ export const authenticateToken = (req: Request, res: Response, next: NextFunctio
 				role: decoded.role,
 			});
 
-			// Set refreshed access token cookie
 			res.cookie('accessToken', newAccessToken, {
 				httpOnly: true,
 				secure: process.env.NODE_ENV === 'production',
 				sameSite: 'strict',
-				maxAge: 15 * 60 * 1000, // 15 minutes refreshed
+				maxAge: 15 * 60 * 1000,
 			});
 
-			// Optional: Add header to indicate token was refreshed
 			res.setHeader('X-Token-Refreshed', 'true');
 		}
 
@@ -75,7 +71,6 @@ export const authenticateTokenWithoutRefresh = (
 			return sendError(res, 'Access token required', 401, 'ACCESS_TOKEN_REQUIRED');
 		}
 
-		// Verify access token
 		const decoded = verifyAccessToken(accessToken);
 		req.user = decoded;
 		next();
@@ -99,7 +94,6 @@ export function optionalAuth(req: Request, _res: Response, next: NextFunction): 
 		req.user = decoded;
 		next();
 	} catch (error) {
-		// treat as guest when token invalid/expired
 		next();
 	}
 }
@@ -178,13 +172,11 @@ export const checkCourseAccess = async (
 			return sendError(res, 'Course ID required', 400, 'COURSE_ID_REQUIRED');
 		}
 
-		// Admin and Superadmin have access to everything
 		if (req.user.role === UserRole.ADMIN || req.user.role === UserRole.SUPERADMIN) {
 			next();
 			return;
 		}
 
-		// Check if course exists and is public
 		const course = await prisma.course.findUnique({
 			where: { id: courseId },
 			select: { isPublic: true, isPublished: true },
@@ -198,13 +190,11 @@ export const checkCourseAccess = async (
 			return sendError(res, 'Course is not published', 403, 'COURSE_NOT_PUBLISHED');
 		}
 
-		// If course is public, allow access
 		if (course.isPublic) {
 			next();
 			return;
 		}
 
-		// Check if user is enrolled
 		const enrollment = await prisma.courseEnrollment.findUnique({
 			where: {
 				userId_courseId: {
