@@ -1,24 +1,21 @@
 <script setup lang="ts">
+import ChangePassword from '@/components/profile/ChangePassword.vue'
+import ProfileCard from '@/components/profile/ProfileCard.vue'
+import MaxWidthWrapper from '@/components/wrappers/MaxWidthWrapper.vue'
 import { useAuthStore } from '@/stores/auth'
 
 const authStore = useAuthStore()
 </script>
 
 <template>
-    <div class="max-w-4xl mx-auto p-6">
-        <h1 class="text-3xl font-bold mb-4">Profil Użytkownika</h1>
-
-        <div class="bg-white p-6 rounded-lg shadow">
-            <h2 class="text-xl font-semibold mb-4">Twoje dane</h2>
-
-            <div class="space-y-2">
-                <p><span class="font-medium">ID:</span> {{ authStore.user?.id }}</p>
-                <p><span class="font-medium">Email:</span> {{ authStore.user?.email }}</p>
-                <p>
-                    <span class="font-medium">Nazwa użytkownika:</span>
-                    {{ authStore.user?.username }}
-                </p>
+    <MaxWidthWrapper>
+        <div class="py-12">
+            <h1 class="text-4xl font-bold text-gray-900 mb-4">Mój Profil</h1>
+            <p>Zobacz swój profil i edytuj go.</p>
+            <div class="grid mg:grid-cols-2 grid-cols-3 items-baseline gap-6 mt-6">
+                <ProfileCard v-if="authStore.user" :user="authStore.user" />
+                <ChangePassword />
             </div>
         </div>
-    </div>
+    </MaxWidthWrapper>
 </template>
