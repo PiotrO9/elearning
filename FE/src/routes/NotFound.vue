@@ -1,3 +1,11 @@
+<script setup lang="ts">
+import { useHead } from '@vueuse/head'
+
+useHead({
+    title: 'Nie Znaleziono - E-Learning Platforma',
+})
+</script>
+
 <template>
     <div class="min-h-[80vh] flex flex-col justify-center items-center bg-gray-50">
         <h1 class="text-4xl font-bold mb-4">Strona nie znaleziona</h1>

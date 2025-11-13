@@ -5,6 +5,7 @@ import { useCourses } from '../composables/useCourses'
 import MaxWidthWrapper from '../components/wrappers/MaxWidthWrapper.vue'
 import CourseCard from '../components/course/CourseCard.vue'
 import { Icon } from '@iconify/vue'
+import { useHead } from '@vueuse/head'
 
 const router = useRouter()
 const { getAllCourses } = useCourses()
@@ -39,6 +40,10 @@ const tags = [
     { name: 'JavaScript', id: 3 },
     { name: 'Python', id: 4 },
 ]
+
+useHead({
+    title: 'Kursy - E-Learning Platforma',
+})
 </script>
 
 <template>

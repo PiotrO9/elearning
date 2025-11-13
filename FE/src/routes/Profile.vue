@@ -3,8 +3,13 @@ import ChangePassword from '@/components/profile/ChangePassword.vue'
 import ProfileCard from '@/components/profile/ProfileCard.vue'
 import MaxWidthWrapper from '@/components/wrappers/MaxWidthWrapper.vue'
 import { useAuthStore } from '@/stores/auth'
+import { useHead } from '@vueuse/head'
 
 const authStore = useAuthStore()
+
+useHead({
+    title: 'Mój Profil - E-Learning Platforma',
+})
 </script>
 
 <template>

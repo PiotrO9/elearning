@@ -5,6 +5,7 @@ import LoginCard from '@/components/LoginCard.vue'
 import RegisterCard from '@/components/RegisterCard.vue'
 import Carousel from '@/components/Carousel.vue'
 import MaxWidthWrapper from '@/components/wrappers/MaxWidthWrapper.vue'
+import { useHead } from '@vueuse/head'
 
 type mode = 'login' | 'register'
 
@@ -24,6 +25,10 @@ watch(
 
 onMounted(() => {
     currentMode.value = router.query.mode === 'register' ? 'register' : 'login'
+})
+
+useHead({
+    title: 'Autoryzacja - E-Learning Platforma',
 })
 </script>
 

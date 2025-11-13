@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import CourseCard from '@/components/course/CourseCard.vue'
 import { useCourses } from '@/composables/useCourses'
+import { useHead } from '@vueuse/head'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
@@ -12,6 +13,10 @@ const mockCourses = getHomePageCourses()
 const navigateToCourses = () => {
     router.push('/courses')
 }
+
+useHead({
+    title: 'Strona Główna - E-Learning Platforma',
+})
 </script>
 
 <template>
