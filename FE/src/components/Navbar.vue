@@ -22,10 +22,6 @@ function closeHamburger() {
 }
 
 import { links, getVisibleLinks } from '@/utils/linksUtils'
-
-// TODO: Nawigacja linki nested json najlepiej albo z footer links przeniesc do utilsów
-// TODO: Close button
-// TODO: Style jakieś fajne
 </script>
 
 <template>
@@ -44,10 +40,18 @@ import { links, getVisibleLinks } from '@/utils/linksUtils'
     </MaxWidthWrapper>
     <Transition name="from-right">
         <div
-            class="fixed right-0 top-0 w-3/4 md:w-1/3 h-full bg-surface shadow-xl z-50 px-6 py-12 flex flex-col"
+            class="fixed right-0 top-0 w-[100%] md:w-1/3 h-full bg-surface shadow-xl z-50 px-6 py-12 flex flex-col"
             v-if="isHamburgerOpen"
         >
-            <h1 class="text-3xl font-semibold italic mb-6">MENU</h1>
+            <h1 class="text-3xl font-semibold italic mb-6 flex justify-between">
+                MENU
+                <span
+                    ><Icon
+                        icon="fa7-solid:close"
+                        class="text-2xl cursor-pointer"
+                        @click="closeHamburger"
+                /></span>
+            </h1>
 
             <ul class="flex flex-col gap-3">
                 <li
