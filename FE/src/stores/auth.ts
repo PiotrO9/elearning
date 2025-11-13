@@ -42,6 +42,8 @@ export const useAuthStore = defineStore('auth', {
                 console.error('Register: ', err)
                 this.error = err.response?.data?.message || 'Rejestracja nie powiodła się'
                 return false
+            } finally {
+                this.loading = false
             }
         },
 
@@ -55,6 +57,7 @@ export const useAuthStore = defineStore('auth', {
             } finally {
                 this.user = null
                 this.error = null
+                this.loading = false
             }
         },
 
