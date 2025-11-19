@@ -12,13 +12,14 @@ export function useCourses() {
      * Pobiera wszystkie kursy
      * @param tag - Opcjonalny tag do filtrowania
      */
-    async function fetchCourses(tag?: string): Promise<void> {
+    async function fetchCourses(tag?: string): Promise<CourseListItem[] | void> {
         isLoading.value = true
         error.value = null
 
         try {
             const response = await getCourses(tag ? { tag } : undefined)
             courses.value = response.courses
+            return courses.value
         } catch (err) {
             error.value = 'Nie udało się pobrać kursów'
             console.error('Error fetching courses:', err)

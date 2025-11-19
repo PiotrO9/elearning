@@ -24,7 +24,7 @@ const filteredCourses = computed(() => {
     })
 })
 
-function handleCourseClick(courseId: number) {
+function handleCourseClick(courseId: string) {
     router.push(`/courses/${courseId}`)
 }
 
@@ -65,7 +65,7 @@ useHead({
 
             <div v-if="isLoading" class="text-center py-20">
                 <div
-                    class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-gray-300 border-primary"
+                    class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-primary"
                 ></div>
                 <p class="mt-4 text-gray-600">Ładowanie kursów...</p>
             </div>

@@ -11,7 +11,7 @@ import { useHead } from '@vueuse/head'
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
-const { currentCourse, isLoading, error, fetchCourseDetails, resetCurrentCourse } = useCourses()
+const { currentCourse, isLoading, error, fetchCourseDetails } = useCourses()
 
 const courseId = computed(() => route.params.id as string)
 
@@ -54,6 +54,11 @@ async function handleRetry() {
 
 onMounted(async () => {
     await fetchCourseDetails(courseId.value)
+    useHead({
+        title: filteredCourse.value
+            ? `${filteredCourse.value.title} - E-Learning Platforma`
+            : 'Szczegóły Kursu - E-Learning Platforma',
+    })
 })
 </script>
 
@@ -128,7 +133,7 @@ onMounted(async () => {
                             </p>
 
                             <div class="flex items-center mb-6">
-                                <UserAvatar :name="filteredCourse.instructor" />
+                                <UserAvatar :name="filteredCourse.instructor" class="bg-blue-300" />
                                 <div class="ml-4">
                                     <p class="text-sm text-gray-500">Instruktor</p>
                                     <p class="font-semibold text-gray-900">
@@ -159,10 +164,10 @@ onMounted(async () => {
                             <div class="flex flex-wrap gap-2 mt-6">
                                 <span
                                     v-for="tag in filteredCourse.tags"
-                                    :key="tag"
+                                    :key="tag.id"
                                     class="text-sm bg-blue-50 text-blue-700 px-3 py-1 rounded-full font-medium"
                                 >
-                                    {{ tag }}
+                                    {{ tag.name }}
                                 </span>
                             </div>
                         </div>

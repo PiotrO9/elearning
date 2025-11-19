@@ -2,17 +2,28 @@
 import CourseCard from '@/components/course/CourseCard.vue'
 import { useCourses } from '@/composables/useCourses'
 import { useHead } from '@vueuse/head'
+import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
 
-const { getHomePageCourses } = useCourses()
+const { courses, fetchCourses, error, isLoading } = useCourses()
 
-const mockCourses = getHomePageCourses()
+const mainCourses = fetchCourses()
+
+console.log(mainCourses)
 
 const navigateToCourses = () => {
     router.push('/courses')
 }
+
+function handleCourseClick(courseId: string) {
+    router.push(`/courses/${courseId}`)
+}
+
+onMounted(async () => {
+    await fetchCourses()
+})
 
 useHead({
     title: 'Strona Główna - E-Learning Platforma',
@@ -118,8 +129,16 @@ useHead({
                         całego świata
                     </p>
                 </div>
-                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    <CourseCard v-for="course in mockCourses" :course="course" :key="course.id" />
+                <div
+                    class="grid md:grid-cols-2 lg:grid-cols-3 gap-8"
+                    v-if="courses && !isLoading && !error"
+                >
+                    <CourseCard
+                        v-for="course in courses.slice(0, 3)"
+                        :course="course"
+                        :key="course.id"
+                        @click="handleCourseClick"
+                    />
                 </div>
                 <div class="text-center mt-12">
                     <button

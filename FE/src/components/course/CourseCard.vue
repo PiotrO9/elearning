@@ -9,14 +9,14 @@ interface Props {
 defineProps<Props>()
 
 const emit = defineEmits<{
-    click: [courseId: number]
+    click: [courseId: string]
 }>()
 
-function handleClick(courseId: number) {
+function handleClick(courseId: string) {
     emit('click', courseId)
 }
 
-function handleKeyDown(event: KeyboardEvent, courseId: number) {
+function handleKeyDown(event: KeyboardEvent, courseId: string) {
     handleKeyboardAction(event, () => handleClick(courseId))
 }
 </script>
@@ -26,8 +26,8 @@ function handleKeyDown(event: KeyboardEvent, courseId: number) {
         class="bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden cursor-pointer group border-2 border-transparent hover:border-primary/50"
         :aria-label="`Kurs: ${course.title}`"
         tabindex="0"
-        @click="handleClick(Number(course.id))"
-        @keydown="(e) => handleKeyDown(e, Number(course.id))"
+        @click="handleClick(course.id)"
+        @keydown="(e) => handleKeyDown(e, course.id)"
     >
         <div class="relative overflow-hidden">
             <img
@@ -59,10 +59,10 @@ function handleKeyDown(event: KeyboardEvent, courseId: number) {
             <div class="flex flex-wrap gap-2 mb-4">
                 <span
                     v-for="tag in course.tags"
-                    :key="tag"
+                    :key="tag.id"
                     class="text-xs bg-primary/10 text-primary px-3 py-1 rounded-full font-medium"
                 >
-                    {{ tag }}
+                    {{ tag.name }}
                 </span>
             </div>
 
@@ -73,7 +73,7 @@ function handleKeyDown(event: KeyboardEvent, courseId: number) {
                 <button
                     class="w-full bg-primary text-white px-6 py-3 rounded-lg font-medium hover:bg-button-primary-hover transition-colors"
                     :aria-label="`Zobacz szczegóły kursu ${course.title}`"
-                    @click.stop="handleClick(Number(course.id))"
+                    @click.stop="handleClick(course.id)"
                 >
                     Zobacz szczegóły
                 </button>
