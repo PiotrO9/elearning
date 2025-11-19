@@ -33,18 +33,18 @@ useHead({
 </script>
 
 <template>
-    <MaxWidthWrapper size="lg">
-        <div
-            class="min-h-[80vh] flex flex-col lg:flex-row gap-24 lg:gap-6 justify-between items-center py-6"
-        >
-            <LoginCard v-if="currentMode === 'login'" />
-            <RegisterCard v-else-if="currentMode === 'register'" />
-            <Carousel
-                class="max-w-5xl"
-                :images="['/placeholder.jpg', '/placeholder.webp']"
-                auto-play
-                :auto-play-interval="5000"
-            />
-        </div>
-    </MaxWidthWrapper>
+<MaxWidthWrapper size="lg">
+    <div
+        class="min-h-[80vh] flex flex-col lg:flex-row gap-24 lg:gap-6 justify-between items-center py-6"
+    >
+        <LoginCard v-if="currentMode === 'login'" />
+        <RegisterCard v-else-if="currentMode === 'register'" />
+        <Carousel
+            class="max-w-5xl"
+            :images="['/placeholder.jpg', '/placeholder.webp']"
+            auto-play
+            :auto-play-interval="5000"
+        />
+    </div>
+</MaxWidthWrapper>
 </template>

@@ -6,11 +6,11 @@ import { useAuthStore } from '../stores/auth'
 import { filterCourseVideos, hasAccessToVideo } from '../utils/courseUtils'
 import MaxWidthWrapper from '../components/wrappers/MaxWidthWrapper.vue'
 import UserAvatar from '../components/course/UserAvatar.vue'
-import { useHead } from '@vueuse/head'
 
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
+const { currentCourse, isLoading, error, fetchCourseDetails } = useCourses()
 const { currentCourse, isLoading, error, fetchCourseDetails } = useCourses()
 
 const courseId = computed(() => route.params.id as string)

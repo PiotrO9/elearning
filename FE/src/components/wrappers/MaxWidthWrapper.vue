@@ -15,7 +15,7 @@ const sizeClasses = {
 </script>
 
 <template>
-    <div :class="sizeClasses[size ? size : standardSize]">
-        <slot />
-    </div>
+<div :class="sizeClasses[size ? size : standardSize]">
+    <slot />
+</div>
 </template>

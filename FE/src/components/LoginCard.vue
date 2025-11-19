@@ -39,56 +39,56 @@ async function handleSubmit() {
 </script>
 
 <template>
-    <div class="bg-background-secondary w-full max-w-lg p-6 shadow-lg rounded-lg">
-        <h1 class="text-center font-bold text-xl uppercase">Zaloguj Się</h1>
+<div class="bg-background-secondary w-full max-w-lg p-6 shadow-lg rounded-lg">
+    <h1 class="text-center font-bold text-xl uppercase">Zaloguj Się</h1>
 
-        <div
-            v-if="authStore.error"
-            class="mt-4 p-3 bg-red-50 border border-red-200 rounded text-red-700 text-sm"
-        >
-            {{ authStore.error }}
+    <div
+        v-if="authStore.error"
+        class="mt-4 p-3 bg-red-50 border border-red-200 rounded text-red-700 text-sm"
+    >
+        {{ authStore.error }}
+    </div>
+
+    <form @submit.prevent="handleSubmit" class="flex flex-col gap-3 mt-6">
+        <div>
+            <Input
+                v-model="email"
+                placeholder="Email"
+                class="w-full"
+                type="email"
+                :disabled="authStore.loading"
+            />
+            <span v-if="errors.email" class="text-red-500 text-xs mt-1">{{
+                errors.email
+            }}</span>
         </div>
 
-        <form @submit.prevent="handleSubmit" class="flex flex-col gap-3 mt-6">
-            <div>
-                <Input
-                    v-model="email"
-                    placeholder="Email"
-                    class="w-full"
-                    type="email"
-                    :disabled="authStore.loading"
-                />
-                <span v-if="errors.email" class="text-red-500 text-xs mt-1">{{
-                    errors.email
-                }}</span>
-            </div>
+        <div>
+            <Input
+                v-model="password"
+                placeholder="Hasło"
+                class="w-full"
+                type="password"
+                :disabled="authStore.loading"
+            />
+            <span v-if="errors.password" class="text-red-500 text-xs mt-1">{{
+                errors.password
+            }}</span>
+        </div>
 
-            <div>
-                <Input
-                    v-model="password"
-                    placeholder="Hasło"
-                    class="w-full"
-                    type="password"
-                    :disabled="authStore.loading"
-                />
-                <span v-if="errors.password" class="text-red-500 text-xs mt-1">{{
-                    errors.password
-                }}</span>
-            </div>
+        <Button type="outline" variant="primary" :disabled="authStore.loading">
+            {{ authStore.loading ? 'Ładowanie...' : 'Prześlij' }}
+        </Button>
 
-            <Button type="outline" variant="primary" :disabled="authStore.loading">
-                {{ authStore.loading ? 'Ładowanie...' : 'Prześlij' }}
-            </Button>
-
-            <div class="text-center text-sm mt-2">
-                Nie masz konta?
-                <RouterLink
-                    to="/auth?mode=register"
-                    @click="authStore.clearError"
-                    class="text-blue-600 hover:underline"
-                    >Zarejestruj się</RouterLink
-                >
-            </div>
-        </form>
-    </div>
+        <div class="text-center text-sm mt-2">
+            Nie masz konta?
+            <RouterLink
+                to="/auth?mode=register"
+                @click="authStore.clearError"
+                class="text-blue-600 hover:underline"
+            >Zarejestruj się</RouterLink
+            >
+        </div>
+    </form>
+</div>
 </template>

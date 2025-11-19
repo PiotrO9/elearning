@@ -14,18 +14,18 @@ function close() {
 </script>
 
 <template>
-    <TransitionGroup>
-        <div
-            v-if="isOpen"
-            @click="close"
-            class="fixed left-0 top-0 w-full h-full backdrop-blur-sm z-0"
-        ></div>
-        <div class="fixed top-0 h-screen w-full" v-if="isOpen" role="dialog" aria-modal="true">
-            <div class="h-full flex justify-center items-center z-50">
-                <slot />
-            </div>
+<TransitionGroup>
+    <div
+        v-if="isOpen"
+        @click="close"
+        class="fixed left-0 top-0 w-full h-full backdrop-blur-sm z-0"
+    ></div>
+    <div class="fixed top-0 h-screen w-full" v-if="isOpen" role="dialog" aria-modal="true">
+        <div class="h-full flex justify-center items-center z-50">
+            <slot />
         </div>
-    </TransitionGroup>
+    </div>
+</TransitionGroup>
 </template>
 
 <style scoped>

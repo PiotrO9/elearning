@@ -2,20 +2,20 @@ import type { Video } from '../types/Video'
 import type { CourseDetails } from '../types/Course'
 
 export function handleKeyboardAction(event: KeyboardEvent, callback: () => void) {
-  if (event.key === 'Enter' || event.key === ' ') {
-    event.preventDefault()
-    callback()
-  }
+    if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault()
+        callback()
+    }
 }
 
 export function getInitials(name: string) {
-  if (!name) return ''
+    if (!name) return ''
 
-  return name
-    .split(' ')
-    .map(n => n[0])
-    .join('')
-    .toUpperCase()
+    return name
+        .split(' ')
+        .map(n => n[0])
+        .join('')
+        .toUpperCase()
 }
 
 /**
@@ -26,17 +26,17 @@ export function getInitials(name: string) {
  * @returns Kurs z przefiltrowanymi video
  */
 export function filterCourseVideos(
-  course: CourseDetails,
-  isAuthenticated: boolean
+    course: CourseDetails,
+    isAuthenticated: boolean
 ): CourseDetails {
-  if (isAuthenticated) {
-    return course
-  }
+    if (isAuthenticated) {
+        return course
+    }
 
-  return {
-    ...course,
-    videos: course.videos.filter((video: Video) => video.isTrailer === true)
-  }
+    return {
+        ...course,
+        videos: course.videos.filter((video: Video) => video.isTrailer === true)
+    }
 }
 
 /**
@@ -46,10 +46,10 @@ export function filterCourseVideos(
  * @returns true jeśli użytkownik ma dostęp
  */
 export function hasAccessToVideo(video: Video, isAuthenticated: boolean): boolean {
-  if (isAuthenticated) {
-    return true
-  }
+    if (isAuthenticated) {
+        return true
+    }
 
-  return video.isTrailer === true
+    return video.isTrailer === true
 }
 
