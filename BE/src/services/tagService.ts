@@ -26,11 +26,15 @@ export async function getAllTags(
 	const skip = page && limit ? (page - 1) * limit : undefined;
 	const take = limit;
 
-	const orderBy = buildOrderBy(sortBy, {
-		validSortFields: ['name', 'createdAt'],
-		defaultField: 'name',
-		defaultOrder: 'asc',
-	}, sortOrder);
+	const orderBy = buildOrderBy(
+		sortBy,
+		{
+			validSortFields: ['name', 'createdAt'],
+			defaultField: 'name',
+			defaultOrder: 'asc',
+		},
+		sortOrder,
+	);
 
 	const [tags, total] = await Promise.all([
 		prisma.tag.findMany({
@@ -53,6 +57,7 @@ export async function getAllTags(
 			slug: tag.slug,
 			description: tag.description,
 			coursesCount: tag._count.courses,
+			createdAt: tag.createdAt,
 		})),
 		total,
 	};
@@ -322,5 +327,6 @@ export async function getTagsForCourse(courseId: string): Promise<TagDto[]> {
 		name: ct.tag.name,
 		slug: ct.tag.slug,
 		description: ct.tag.description,
+		createdAt: ct.tag.createdAt,
 	}));
 }

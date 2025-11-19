@@ -14,6 +14,7 @@ import Pagination from '@/components/ui/Pagination.vue'
 import Icon from '@/components/ui/Icon.vue'
 import type { Tag } from '@/types/Admin'
 import { getTags, deleteTag } from '@/services/adminService'
+import { formatDate } from '@/utils/date'
 
 const tableColumns = [
     { label: 'Nazwa tagu', align: 'left' as const },
@@ -44,8 +45,9 @@ async function fetchTags() {
             page: currentPage.value,
             limit: limit.value
         })
+
         tags.value = response.data.items
-        totalTags.value = response.data.total
+        totalTags.value = response.data.pagination.totalItems
     } catch (err: unknown) {
         const errorMessage = err && typeof err === 'object' && 'message' in err
             ? String((err as { message: unknown }).message)
@@ -83,6 +85,12 @@ async function confirmDeleteTag() {
 
     try {
         await deleteTag(tagToDelete.value.id)
+
+        const totalPages = Math.ceil((totalTags.value - 1) / limit.value)
+        if (currentPage.value > totalPages && totalPages > 0) {
+            currentPage.value = totalPages
+        }
+
         await fetchTags()
         isDeleteModalOpen.value = false
         tagToDelete.value = null
@@ -183,7 +191,7 @@ onMounted(() => {
                                     name="calendar"
                                     class="w-4 h-4 text-gray-400"
                                 />
-                                <span>{{ item.createdAt || '—' }}</span>
+                                <span>{{ formatDate(item.createdAt ?? '') || '—' }}</span>
                             </div>
                         </td>
                         <td class="px-6 py-4">
@@ -220,7 +228,6 @@ onMounted(() => {
         </AdminTable>
 
         <Pagination
-            v-if="!isLoading && totalTags > 0"
             :current-page="currentPage"
             :total-items="totalTags"
             :items-per-page="limit"

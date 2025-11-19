@@ -21,6 +21,7 @@ function mapListItem(course: {
 			name: string;
 			slug: string;
 			description: string | null;
+			createdAt: Date;
 		};
 	}[];
 }): CourseListItem {
@@ -35,6 +36,7 @@ function mapListItem(course: {
 			name: ct.tag.name,
 			slug: ct.tag.slug,
 			description: ct.tag.description,
+			createdAt: ct.tag.createdAt,
 		})),
 	};
 }
@@ -61,11 +63,15 @@ export async function listPublishedCourses(
 	const skip = page && limit ? (page - 1) * limit : undefined;
 	const take = limit;
 
-	const orderBy = buildOrderBy(sortBy, {
-		validSortFields: ['title', 'createdAt', 'updatedAt'],
-		defaultField: 'createdAt',
-		defaultOrder: 'desc',
-	}, sortOrder);
+	const orderBy = buildOrderBy(
+		sortBy,
+		{
+			validSortFields: ['title', 'createdAt', 'updatedAt'],
+			defaultField: 'createdAt',
+			defaultOrder: 'desc',
+		},
+		sortOrder,
+	);
 
 	const [courses, total] = await Promise.all([
 		prisma.course.findMany({
@@ -84,6 +90,7 @@ export async function listPublishedCourses(
 								name: true,
 								slug: true,
 								description: true,
+								createdAt: true,
 							},
 						},
 					},
@@ -134,6 +141,7 @@ export async function getCourseDetail(
 							name: true,
 							slug: true,
 							description: true,
+							createdAt: true,
 						},
 					},
 				},
@@ -167,6 +175,7 @@ export async function getCourseDetail(
 		name: ct.tag.name,
 		slug: ct.tag.slug,
 		description: ct.tag.description,
+		createdAt: ct.tag.createdAt,
 	}));
 
 	return {
@@ -223,6 +232,7 @@ export async function createCourse(input: CreateCourseInput): Promise<CourseDeta
 							name: true,
 							slug: true,
 							description: true,
+							createdAt: true,
 						},
 					},
 				},
@@ -250,6 +260,7 @@ export async function createCourse(input: CreateCourseInput): Promise<CourseDeta
 			name: ct.tag.name,
 			slug: ct.tag.slug,
 			description: ct.tag.description,
+			createdAt: ct.tag.createdAt,
 		})),
 	};
 }
@@ -320,6 +331,7 @@ export async function updateCourse(
 							name: true,
 							slug: true,
 							description: true,
+							createdAt: true,
 						},
 					},
 				},
@@ -347,6 +359,7 @@ export async function updateCourse(
 			name: ct.tag.name,
 			slug: ct.tag.slug,
 			description: ct.tag.description,
+			createdAt: ct.tag.createdAt,
 		})),
 	};
 }

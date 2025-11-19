@@ -110,13 +110,13 @@ function handleKeyDown(event: KeyboardEvent, action: () => void) {
             :aria-label="'Poprzednia strona'"
             :aria-disabled="currentPage === 1"
             tabindex="0"
-            class="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:border-gray-300 transition-all"
+            class="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:border-gray-300 transition-all cursor-pointer"
             @click="handlePrevious"
             @keydown="(e) => handleKeyDown(e, handlePrevious)"
         >
             <Icon
                 name="arrow-left"
-                class="w-5 h-5"
+                class="w-4 h-4"
                 aria-hidden="true"
             />
         </button>
@@ -127,7 +127,7 @@ function handleKeyDown(event: KeyboardEvent, action: () => void) {
             :aria-label="'Strona 1'"
             :aria-current="currentPage === 1 ? 'page' : undefined"
             tabindex="0"
-            class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-all"
+            class="px-3 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2 transition-all"
             :class="currentPage === 1 ? 'bg-purple-600 text-white border-purple-600 hover:bg-purple-700 hover:border-purple-700' : ''"
             @click="handleFirst"
             @keydown="(e) => handleKeyDown(e, () => handleFirst())"
@@ -150,7 +150,7 @@ function handleKeyDown(event: KeyboardEvent, action: () => void) {
             :aria-label="`Strona ${page}`"
             :aria-current="page === currentPage ? 'page' : undefined"
             tabindex="0"
-            class="px-4 py-2 text-sm font-medium border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-all"
+            class="px-4 py-2 text-sm font-medium border border-gray-300 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2 transition-all cursor-pointer"
             :class="
                 page === currentPage
                     ? 'bg-purple-600 text-white border-purple-600 hover:bg-purple-700 hover:border-purple-700'
@@ -176,7 +176,7 @@ function handleKeyDown(event: KeyboardEvent, action: () => void) {
             :aria-label="`Strona ${totalPages}`"
             :aria-current="currentPage === totalPages ? 'page' : undefined"
             tabindex="0"
-            class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-all"
+            class="px-3 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2 transition-all cursor-pointer"
             :class="currentPage === totalPages ? 'bg-purple-600 text-white border-purple-600 hover:bg-purple-700 hover:border-purple-700' : ''"
             @click="handleLast"
             @keydown="(e) => handleKeyDown(e, () => handleLast())"
@@ -190,13 +190,13 @@ function handleKeyDown(event: KeyboardEvent, action: () => void) {
             :aria-label="'Następna strona'"
             :aria-disabled="currentPage === totalPages"
             tabindex="0"
-            class="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:border-gray-300 transition-all"
+            class="px-3 py-2.5 flex justify-center items-center text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:border-gray-300 transition-all cursor-pointer"
             @click="handleNext"
             @keydown="(e) => handleKeyDown(e, handleNext)"
         >
             <Icon
                 name="arrow-right"
-                class="w-5 h-5"
+                class="w-4 h-4"
                 aria-hidden="true"
             />
         </button>

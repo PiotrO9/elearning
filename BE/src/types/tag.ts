@@ -13,6 +13,7 @@ export interface TagDto {
 	slug: string;
 	description?: string | null;
 	coursesCount?: number;
+	createdAt: Date;
 }
 
 export interface CreateTagInput {
