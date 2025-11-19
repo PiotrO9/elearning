@@ -203,7 +203,18 @@ export async function getUserEnrollments(
 	limit?: number,
 	sortBy?: string,
 	sortOrder?: 'asc' | 'desc',
-): Promise<{ items: EnrollmentWithCourse[]; total: number }> {
+): Promise<{
+	items: EnrollmentWithCourse[];
+	total: number;
+	user: {
+		id: string;
+		username: string;
+		email: string;
+		role: string;
+		createdAt: Date;
+		lastSeen: Date | null;
+	} | null;
+}> {
 	const skip = page && limit ? (page - 1) * limit : undefined;
 	const take = limit;
 
@@ -223,7 +234,7 @@ export async function getUserEnrollments(
 		sortOrder,
 	);
 
-	const [enrollments, total] = await Promise.all([
+	const [enrollments, total, user] = await Promise.all([
 		prisma.courseEnrollment.findMany({
 			where: { userId },
 			include: {
@@ -242,6 +253,17 @@ export async function getUserEnrollments(
 			orderBy,
 		}),
 		prisma.courseEnrollment.count({ where: { userId } }),
+		prisma.user.findUnique({
+			where: { id: userId },
+			select: {
+				id: true,
+				username: true,
+				email: true,
+				role: true,
+				createdAt: true,
+				lastSeen: true,
+			},
+		}),
 	]);
 
 	return {
@@ -254,6 +276,7 @@ export async function getUserEnrollments(
 			course: e.course,
 		})),
 		total,
+		user,
 	};
 }
 

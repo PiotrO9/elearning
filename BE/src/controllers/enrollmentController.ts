@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { sendSuccess, sendNoContent } from '../utils/response';
+import { sendSuccess, sendNoContent, sendError } from '../utils/response';
 import { PaginatedListResponse } from '../types/api';
 import { buildPagination } from '../utils/pagination';
 import { asyncHandler } from '../middleware/asyncHandler';
@@ -10,7 +10,7 @@ import {
 	getUserEnrollments,
 	joinPublicCourse,
 } from '../services/enrollmentService';
-import { EnrollmentDto, UserCourseDto } from '../types/enrollment';
+import { EnrollmentDto, UserCourseDto, UserCoursesResponse, UserInfo } from '../types/enrollment';
 
 /**
  * POST /courses/:id/enroll
@@ -64,13 +64,7 @@ export const handleGetCourseEnrollments = asyncHandler(
 			sortOrder?: 'asc' | 'desc';
 		};
 
-		const result = await getCourseEnrollments(
-			courseId,
-			page,
-			limit,
-			sortBy,
-			sortOrder,
-		);
+		const result = await getCourseEnrollments(courseId, page, limit, sortBy, sortOrder);
 
 		const payload: EnrollmentDto[] = result.items.map(e => ({
 			id: e.id,
@@ -103,15 +97,13 @@ export const handleGetUserCourses = asyncHandler(
 			sortOrder?: 'asc' | 'desc';
 		};
 
-		const result = await getUserEnrollments(
-			userId,
-			page,
-			limit,
-			sortBy,
-			sortOrder,
-		);
+		const result = await getUserEnrollments(userId, page, limit, sortBy, sortOrder);
 
-		const payload: UserCourseDto[] = result.items.map(e => ({
+		if (!result.user) {
+			return sendError(res, 'User not found', 404, 'USER_NOT_FOUND');
+		}
+
+		const courses: UserCourseDto[] = result.items.map(e => ({
 			id: e.course.id,
 			title: e.course.title,
 			summary: e.course.summary,
@@ -120,8 +112,18 @@ export const handleGetUserCourses = asyncHandler(
 			enrolledAt: e.createdAt,
 		}));
 
-		const response: PaginatedListResponse<UserCourseDto> = {
-			items: payload,
+		const userInfo: UserInfo = {
+			id: result.user.id,
+			username: result.user.username,
+			email: result.user.email,
+			role: result.user.role,
+			createdAt: result.user.createdAt,
+			lastSeen: result.user.lastSeen,
+		};
+
+		const response: UserCoursesResponse = {
+			user: userInfo,
+			courses,
 			pagination: buildPagination(result.total, page, limit),
 		};
 		sendSuccess(res, response);

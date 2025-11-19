@@ -57,3 +57,23 @@ export interface UserCourseDto {
 	isPublic: boolean;
 	enrolledAt: Date;
 }
+
+export interface UserInfo {
+	id: string;
+	username: string;
+	email: string;
+	role: string;
+	createdAt: Date;
+	lastSeen: Date | null;
+}
+
+export interface UserCoursesResponse {
+	user: UserInfo;
+	courses: UserCourseDto[];
+	pagination: {
+		currentPage: number;
+		totalPages: number;
+		totalItems: number;
+		limit: number;
+	};
+}
