@@ -67,29 +67,29 @@ interface ApiCourseDetailsResponse {
  * @returns Promise z listą kursów
  */
 export async function getCourses(params?: GetCoursesParams): Promise<GetCoursesResponse> {
-  const response = await httpClient.get<ApiCoursesResponse>('/course', {
-    params,
-  })
+    const response = await httpClient.get<ApiCoursesResponse>('/course', {
+        params,
+    })
 
-  const courses = response.data.data.items.map(item => ({
-    id: item.id,
-    title: item.title,
-    description: item.summary || item.description,
-    summary: item.summary,
-    instructor: item.instructor,
-    thumbnail: item.imagePath,
-    imagePath: item.imagePath,
-    tags: item.tags,
-    isPublished: item.isPublished,
-    isPublic: item.isPublic,
-    createdAt: item.createdAt,
-    updatedAt: item.updatedAt,
-  }))
+    const courses = response.data.data.items.map(item => ({
+        id: item.id,
+        title: item.title,
+        description: item.summary || item.description,
+        summary: item.summary,
+        instructor: item.instructor,
+        thumbnail: item.imagePath,
+        imagePath: item.imagePath,
+        tags: item.tags,
+        isPublished: item.isPublished,
+        isPublic: item.isPublic,
+        createdAt: item.createdAt,
+        updatedAt: item.updatedAt,
+    }))
 
-  return {
-    courses,
-    total: response.data.data.total
-  }
+    return {
+        courses,
+        total: response.data.data.total
+    }
 }
 
 /**
@@ -98,27 +98,27 @@ export async function getCourses(params?: GetCoursesParams): Promise<GetCoursesR
  * @returns Promise ze szczegółami kursu
  */
 export async function getCourseDetails(id: number | string): Promise<GetCourseDetailsResponse> {
-  const response = await httpClient.get<ApiCourseDetailsResponse>(`/course/${id}`)
-  const apiData = response.data.data
+    const response = await httpClient.get<ApiCourseDetailsResponse>(`/course/${id}`)
+    const apiData = response.data.data
 
-  return {
-    course: {
-      id: apiData.id,
-      title: apiData.title,
-      description: apiData.descriptionMarkdown || apiData.description,
-      descriptionMarkdown: apiData.descriptionMarkdown,
-      summary: apiData.summary,
-      instructor: apiData.instructor,
-      thumbnail: apiData.imagePath,
-      imagePath: apiData.imagePath,
-      tags: apiData.tags,
-      isPublished: apiData.isPublished,
-      isPublic: apiData.isPublic,
-      videos: apiData.videos || [],
-      createdAt: apiData.createdAt,
-      updatedAt: apiData.updatedAt,
+    return {
+        course: {
+            id: apiData.id,
+            title: apiData.title,
+            description: apiData.descriptionMarkdown || apiData.description,
+            descriptionMarkdown: apiData.descriptionMarkdown,
+            summary: apiData.summary,
+            instructor: apiData.instructor,
+            thumbnail: apiData.imagePath,
+            imagePath: apiData.imagePath,
+            tags: apiData.tags,
+            isPublished: apiData.isPublished,
+            isPublic: apiData.isPublic,
+            videos: apiData.videos || [],
+            createdAt: apiData.createdAt,
+            updatedAt: apiData.updatedAt,
+        }
     }
-  }
 }
 
 /**
@@ -127,6 +127,6 @@ export async function getCourseDetails(id: number | string): Promise<GetCourseDe
  * @returns Promise z listą kursów
  */
 export async function getCoursesByTag(tag: string): Promise<GetCoursesResponse> {
-  return getCourses({ tag })
+    return getCourses({ tag })
 }
 

@@ -55,85 +55,85 @@ function clearMessages() {
 </script>
 
 <template>
-    <div class="bg-white rounded-2xl shadow-md border border-border overflow-hidden">
-        <div class="bg-white border-b border-primary p-6">
-            <h3 class="text-xl font-bold text-text">Zmiana hasła</h3>
-        </div>
-
-        <div class="p-6">
-            <form @submit.prevent="handleChangePassword" class="space-y-4">
-                <div>
-                    <label
-                        for="current-password"
-                        class="text-sm font-semibold text-text-muted block mb-2"
-                    >
-                        Obecne hasło
-                    </label>
-                    <Input
-                        id="current-password"
-                        v-model="currentPassword"
-                        type="password"
-                        placeholder="Wprowadź obecne hasło"
-                        :disabled="isLoading"
-                        @input="clearMessages"
-                    />
-                </div>
-                <div>
-                    <label
-                        for="new-password"
-                        class="text-sm font-semibold text-text-muted block mb-2"
-                    >
-                        Nowe hasło
-                    </label>
-                    <Input
-                        id="new-password"
-                        v-model="newPassword"
-                        type="password"
-                        placeholder="Wprowadź nowe hasło (min. 6 znaków)"
-                        :disabled="isLoading"
-                        @input="clearMessages"
-                    />
-                </div>
-                <div>
-                    <label
-                        for="confirm-password"
-                        class="text-sm font-semibold text-text-muted block mb-2"
-                    >
-                        Potwierdź nowe hasło
-                    </label>
-                    <Input
-                        id="confirm-password"
-                        v-model="confirmPassword"
-                        type="password"
-                        placeholder="Wprowadź nowe hasło ponownie"
-                        :disabled="isLoading"
-                        @input="clearMessages"
-                    />
-                </div>
-
-                <!-- Error -->
-                <div
-                    v-if="errorMessage"
-                    class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm"
-                >
-                    {{ errorMessage }}
-                </div>
-
-                <!-- Success -->
-                <div
-                    v-if="successMessage"
-                    class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm"
-                >
-                    {{ successMessage }}
-                </div>
-
-                <!-- Submit Button -->
-                <div class="pt-2">
-                    <Button :disabled="isLoading" class="w-full">
-                        {{ isLoading ? 'Zapisywanie...' : 'Zmień hasło' }}
-                    </Button>
-                </div>
-            </form>
-        </div>
+<div class="bg-white rounded-2xl shadow-md border border-border overflow-hidden">
+    <div class="bg-white border-b border-primary p-6">
+        <h3 class="text-xl font-bold text-text">Zmiana hasła</h3>
     </div>
+
+    <div class="p-6">
+        <form @submit.prevent="handleChangePassword" class="space-y-4">
+            <div>
+                <label
+                    for="current-password"
+                    class="text-sm font-semibold text-text-muted block mb-2"
+                >
+                    Obecne hasło
+                </label>
+                <Input
+                    id="current-password"
+                    v-model="currentPassword"
+                    type="password"
+                    placeholder="Wprowadź obecne hasło"
+                    :disabled="isLoading"
+                    @input="clearMessages"
+                />
+            </div>
+            <div>
+                <label
+                    for="new-password"
+                    class="text-sm font-semibold text-text-muted block mb-2"
+                >
+                    Nowe hasło
+                </label>
+                <Input
+                    id="new-password"
+                    v-model="newPassword"
+                    type="password"
+                    placeholder="Wprowadź nowe hasło (min. 6 znaków)"
+                    :disabled="isLoading"
+                    @input="clearMessages"
+                />
+            </div>
+            <div>
+                <label
+                    for="confirm-password"
+                    class="text-sm font-semibold text-text-muted block mb-2"
+                >
+                    Potwierdź nowe hasło
+                </label>
+                <Input
+                    id="confirm-password"
+                    v-model="confirmPassword"
+                    type="password"
+                    placeholder="Wprowadź nowe hasło ponownie"
+                    :disabled="isLoading"
+                    @input="clearMessages"
+                />
+            </div>
+
+            <!-- Error -->
+            <div
+                v-if="errorMessage"
+                class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm"
+            >
+                {{ errorMessage }}
+            </div>
+
+            <!-- Success -->
+            <div
+                v-if="successMessage"
+                class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm"
+            >
+                {{ successMessage }}
+            </div>
+
+            <!-- Submit Button -->
+            <div class="pt-2">
+                <Button :disabled="isLoading" class="w-full">
+                    {{ isLoading ? 'Zapisywanie...' : 'Zmień hasło' }}
+                </Button>
+            </div>
+        </form>
+    </div>
+</div>
 </template>

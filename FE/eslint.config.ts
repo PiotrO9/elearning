@@ -20,27 +20,39 @@ export default defineConfigWithVueTs(
     vueTsConfigs.recommended,
     skipFormatting,
     {
-        name: 'app/routes-override',
-        files: ['src/routes/**/*.vue'],
+        name: 'app/vue-global-rules',
+        files: ['**/*.vue'],
         rules: {
             'vue/multi-word-component-names': 'off',
+            'vue/no-reserved-component-names': 'off',
         },
     },
     {
-        name: 'app/components-override',
-        files: ['src/components/**/*.vue'],
+        name: 'app/typescript-global-rules',
+        files: ['**/*.{ts,mts,tsx,vue}'],
         rules: {
+            '@typescript-eslint/no-explicit-any': 'off',
             'vue/multi-word-component-names': 'off',
+            'vue/no-reserved-component-names': 'off',
         },
     },
     {
         name: 'app/stores-override',
     },
     {
-        name: 'app/any-off-specific-files',
-        files: ['src/stores/auth.ts', 'src/middleware/index.ts'],
+        name: 'app/indentation',
+        files: ['**/*.{ts,mts,tsx}'],
         rules: {
-            '@typescript-eslint/no-explicit-any': 'off',
+            indent: ['error', 4, { SwitchCase: 1 }],
+        },
+    },
+    {
+        name: 'app/vue-indentation',
+        files: ['**/*.vue'],
+        rules: {
+            indent: 'off',
+            'vue/script-indent': ['error', 4, { baseIndent: 0, switchCase: 1 }],
+            'vue/html-indent': ['error', 4, { baseIndent: 0 }],
         },
     },
 )

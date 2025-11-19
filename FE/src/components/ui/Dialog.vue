@@ -2,114 +2,114 @@
 import { watch, ref, onMounted, onBeforeUnmount } from 'vue'
 
 interface Props {
-  isOpen: boolean
-  size?: 'sm' | 'md' | 'lg' | 'xl' | 'full'
+    isOpen: boolean
+    size?: 'sm' | 'md' | 'lg' | 'xl' | 'full'
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  size: 'md'
+    size: 'md'
 })
 
 const emit = defineEmits<{
-  'update:isOpen': [value: boolean]
-  close: []
+    'update:isOpen': [value: boolean]
+    close: []
 }>()
 
 const dialogRef = ref<HTMLDialogElement | null>(null)
 
 const sizeClasses: Record<string, string> = {
-  sm: 'max-w-sm',
-  md: 'max-w-md',
-  lg: 'max-w-lg',
-  xl: 'max-w-xl',
-  full: 'max-w-full'
+    sm: 'max-w-sm',
+    md: 'max-w-md',
+    lg: 'max-w-lg',
+    xl: 'max-w-xl',
+    full: 'max-w-full'
 }
 
 function handleClose() {
-  emit('update:isOpen', false)
-  emit('close')
+    emit('update:isOpen', false)
+    emit('close')
 }
 
 function handleCancel(event: Event) {
-  // Prevent default close behavior and emit our own event
-  event.preventDefault()
-  handleClose()
+    // Prevent default close behavior and emit our own event
+    event.preventDefault()
+    handleClose()
 }
 
 function handleDialogClose() {
-  // This is called when dialog closes natively (ESC key or backdrop click)
-  // We need to sync the state
-  emit('update:isOpen', false)
-  emit('close')
+    // This is called when dialog closes natively (ESC key or backdrop click)
+    // We need to sync the state
+    emit('update:isOpen', false)
+    emit('close')
 }
 
 watch(() => props.isOpen, (isOpen) => {
-  if (!dialogRef.value) return
+    if (!dialogRef.value) return
 
-  if (isOpen) {
-    // Use nextTick to ensure dialog is in DOM
-    setTimeout(() => {
-      if (dialogRef.value) {
-        dialogRef.value.showModal()
-      }
-    }, 0)
-  } else {
-    dialogRef.value.close()
-  }
+    if (isOpen) {
+        // Use nextTick to ensure dialog is in DOM
+        setTimeout(() => {
+            if (dialogRef.value) {
+                dialogRef.value.showModal()
+            }
+        }, 0)
+    } else {
+        dialogRef.value.close()
+    }
 })
 
 onMounted(() => {
-  if (!dialogRef.value) return
+    if (!dialogRef.value) return
 
-  // Listen for native close event
-  dialogRef.value.addEventListener('close', handleDialogClose)
+    // Listen for native close event
+    dialogRef.value.addEventListener('close', handleDialogClose)
 
-  // Open dialog if isOpen is true on mount
-  if (props.isOpen) {
-    setTimeout(() => {
-      if (dialogRef.value) {
-        dialogRef.value.showModal()
-      }
-    }, 0)
-  }
+    // Open dialog if isOpen is true on mount
+    if (props.isOpen) {
+        setTimeout(() => {
+            if (dialogRef.value) {
+                dialogRef.value.showModal()
+            }
+        }, 0)
+    }
 })
 
 onBeforeUnmount(() => {
-  if (dialogRef.value) {
-    dialogRef.value.removeEventListener('close', handleDialogClose)
-  }
+    if (dialogRef.value) {
+        dialogRef.value.removeEventListener('close', handleDialogClose)
+    }
 })
 </script>
 
 <template>
-  <dialog
+<dialog
     v-if="isOpen"
     ref="dialogRef"
     class="dialog"
     @cancel="handleCancel"
-  >
+>
     <div
-      :class="[
-        'dialog-content',
-        sizeClasses[size]
-      ]"
-      @click.stop
+        :class="[
+            'dialog-content',
+            sizeClasses[size]
+        ]"
+        @click.stop
     >
-      <slot name="header">
-        <div v-if="$slots.title" class="dialog-header">
-          <slot name="title" />
+        <slot name="header">
+            <div v-if="$slots.title" class="dialog-header">
+                <slot name="title" />
+            </div>
+        </slot>
+
+        <div class="dialog-body">
+            <slot />
         </div>
-      </slot>
 
-      <div class="dialog-body">
-        <slot />
-      </div>
-
-      <div v-if="$slots.footer" class="dialog-footer">
-        <slot name="footer" />
-      </div>
+        <div v-if="$slots.footer" class="dialog-footer">
+            <slot name="footer" />
+        </div>
     </div>
-  </dialog>
+</dialog>
 </template>
 
 <style scoped>

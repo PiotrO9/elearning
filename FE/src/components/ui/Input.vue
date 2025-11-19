@@ -18,12 +18,12 @@ const onInput = function (e: Event) {
 </script>
 
 <template>
-    <input
-        :value="modelValue"
-        @input="onInput"
-        :type="type || 'text'"
-        :placeholder="placeholder"
-        :disabled="disabled"
-        class="w-full bg-input-bg placeholder:text-input-placeholder border border-input-border rounded-md px-3 py-2 shadow-sm outline-none transition-colors duration-200 focus:border-primary focus:ring-1 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
-    />
+<input
+    :value="modelValue"
+    @input="onInput"
+    :type="type || 'text'"
+    :placeholder="placeholder"
+    :disabled="disabled"
+    class="w-full bg-input-bg placeholder:text-input-placeholder border border-input-border rounded-md px-3 py-2 shadow-sm outline-none transition-colors duration-200 focus:border-primary focus:ring-1 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
+/>
 </template>
