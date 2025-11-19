@@ -7,6 +7,7 @@ export async function clearDatabase() {
 	console.log('🗑️  Czyszczenie bazy danych...');
 
 	await prisma.courseEnrollment.deleteMany();
+	await prisma.courseInstructor.deleteMany();
 	await prisma.courseTag.deleteMany();
 	await prisma.refreshToken.deleteMany();
 	await prisma.video.deleteMany();
@@ -795,6 +796,63 @@ export async function seedCourseTags(courses: Course[], tags: Tag[]) {
 	console.log(`✅ Przypisano ${totalAssignments} tagów do kursów`);
 }
 
+export async function seedCourseInstructors(users: User[], courses: Course[]) {
+	console.log('👨‍🏫 Przypisywanie instruktorów do kursów...');
+
+	// Wybieramy użytkowników jako instruktorów (pomijamy superadmin i admin, bierzemy zwykłych użytkowników)
+	const instructors = users.filter(user => user.role === UserRole.USER).slice(0, 8);
+
+	if (instructors.length < 8) {
+		console.warn(
+			`⚠️  Ostrzeżenie: Znaleziono tylko ${instructors.length} użytkowników z rolą USER. Potrzebne jest minimum 8.`,
+		);
+		return;
+	}
+
+	const courseInstructorsData = [
+		// TypeScript - 2 instruktorów
+		{ courseId: courses[0].id, userIds: [instructors[0].id, instructors[1].id] },
+		// Vue 3 - 1 instruktor
+		{ courseId: courses[1].id, userIds: [instructors[2].id] },
+		// Node.js - 2 instruktorów
+		{ courseId: courses[2].id, userIds: [instructors[3].id, instructors[4].id] },
+		// React 18 - 1 instruktor
+		{ courseId: courses[3].id, userIds: [instructors[0].id] },
+		// Python Data Science - 1 instruktor
+		{ courseId: courses[4].id, userIds: [instructors[5].id] },
+		// Docker i Kubernetes - 1 instruktor
+		{ courseId: courses[5].id, userIds: [instructors[6].id] },
+		// PostgreSQL - 2 instruktorów
+		{ courseId: courses[6].id, userIds: [instructors[3].id, instructors[7].id] },
+		// GraphQL - 1 instruktor
+		{ courseId: courses[7].id, userIds: [instructors[4].id] },
+		// MongoDB - 1 instruktor
+		{ courseId: courses[8].id, userIds: [instructors[5].id] },
+		// Next.js - 2 instruktorów
+		{ courseId: courses[9].id, userIds: [instructors[0].id, instructors[2].id] },
+		// Tailwind CSS - 1 instruktor
+		{ courseId: courses[10].id, userIds: [instructors[1].id] },
+		// AWS - 2 instruktorów
+		{ courseId: courses[11].id, userIds: [instructors[6].id, instructors[7].id] },
+	];
+
+	let totalAssignments = 0;
+
+	for (const courseInstructorData of courseInstructorsData) {
+		for (const userId of courseInstructorData.userIds) {
+			await prisma.courseInstructor.create({
+				data: {
+					courseId: courseInstructorData.courseId,
+					userId,
+				},
+			});
+			totalAssignments++;
+		}
+	}
+
+	console.log(`✅ Przypisano ${totalAssignments} instruktorów do kursów`);
+}
+
 export async function runSeed() {
 	console.log('🌱 Rozpoczynam seedowanie bazy danych...\n');
 
@@ -817,6 +875,9 @@ export async function runSeed() {
 	console.log('');
 
 	await seedEnrollments(users, courses);
+	console.log('');
+
+	await seedCourseInstructors(users, courses);
 
 	console.log('\n✨ Seedowanie zakończone pomyślnie!');
 	console.log('\n📊 Podsumowanie:');
