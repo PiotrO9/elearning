@@ -61,10 +61,10 @@ function handleKeyDown(event: KeyboardEvent, action: () => void) {
 </script>
 
 <template>
-<nav class="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-1">
+<nav class="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-1 py-4">
     <MaxWidthWrapper>
-        <div class="flex items-center justify-between h-16">
-            <div class="flex items-center gap-8">
+        <div class="flex items-center justify-between h-full">
+            <div class="flex items-center flex-wrap gap-4">
                 <router-link
                     to="/admin"
                     class="flex items-center gap-2 text-xl font-bold text-gray-900 hover:text-purple-600 transition-colors"
@@ -77,7 +77,7 @@ function handleKeyDown(event: KeyboardEvent, action: () => void) {
                     <span>Admin Panel</span>
                 </router-link>
 
-                <div class="hidden md:flex items-center gap-1">
+                <div class="flex items-center flex-wrap gap-1">
                     <router-link
                         v-for="item in navItems"
                         :key="item.path"
@@ -99,39 +99,6 @@ function handleKeyDown(event: KeyboardEvent, action: () => void) {
                     </router-link>
                 </div>
             </div>
-
-            <div class="flex items-center gap-4">
-                <router-link
-                    to="/"
-                    class="hidden md:flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors"
-                >
-                    <Icon
-                        name="home"
-                        class="w-5 h-5"
-                    />
-                    <span>Wróć do strony głównej</span>
-                </router-link>
-
-                <button
-                    @click="isMobileMenuOpen = !isMobileMenuOpen"
-                    @keydown="(e) => handleKeyDown(e, () => isMobileMenuOpen = !isMobileMenuOpen)"
-                    class="md:hidden p-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    :aria-expanded="isMobileMenuOpen"
-                    aria-label="Otwórz menu"
-                    aria-controls="mobile-menu"
-                >
-                    <Icon
-                        v-if="!isMobileMenuOpen"
-                        name="menu"
-                        class="w-6 h-6"
-                    />
-                    <Icon
-                        v-else
-                        name="close"
-                        class="w-6 h-6"
-                    />
-                </button>
-            </div>
         </div>
 
         <Transition
@@ -145,7 +112,7 @@ function handleKeyDown(event: KeyboardEvent, action: () => void) {
             <div
                 v-if="isMobileMenuOpen"
                 id="mobile-menu"
-                class="md:hidden border-t border-gray-200 py-4"
+                class="border-t border-gray-200 py-4"
             >
                 <div class="flex flex-col gap-1">
                     <button
@@ -197,7 +164,7 @@ function handleKeyDown(event: KeyboardEvent, action: () => void) {
     >
         <div
             v-if="isMobileMenuOpen"
-            class="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+            class="fixed inset-0 bg-black bg-opacity-50 z-40"
             @click="isMobileMenuOpen = false"
             aria-hidden="true"
         />

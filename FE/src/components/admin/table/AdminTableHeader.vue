@@ -24,7 +24,7 @@ function handleAdd() {
 </script>
 
 <template>
-<div class="flex items-center justify-between mb-4">
+<div class="flex items-center justify-between flex-wrap gap-4 mb-4">
     <div>
         <h1 class="text-4xl font-bold text-gray-900 mb-2">
             {{ title }}

@@ -170,7 +170,7 @@ onMounted(() => {
                                     name="tags"
                                     class="w-4 h-4 text-blue-500 flex-shrink-0"
                                 />
-                                <span class="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium bg-blue-100 text-blue-700 group-hover:bg-blue-200 transition-colors">
+                                <span class="inline-flex items-center text-center px-3 py-1.5 rounded-xl text-sm font-medium bg-blue-100 text-blue-700 group-hover:bg-blue-200 transition-colors">
                                     {{ item.name }}
                                 </span>
                             </div>
