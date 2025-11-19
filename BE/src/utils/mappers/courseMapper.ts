@@ -22,6 +22,6 @@ export function mapCourseToDetailDto(course: CourseDetail): CourseDetailDto {
 			durationSeconds: v.durationSeconds,
 		})) as VideoDto[],
 		tags: course.tags,
+		instructors: course.instructors,
 	};
 }
-

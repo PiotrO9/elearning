@@ -5,6 +5,7 @@ import {
 	CourseDetail,
 	CreateCourseInput,
 	UpdateCourseInput,
+	InstructorDto,
 } from '../types/course';
 import { Video } from '../types/video';
 import { TagDto } from '../types/tag';
@@ -24,6 +25,13 @@ function mapListItem(course: {
 			createdAt: Date;
 		};
 	}[];
+	instructors?: {
+		user: {
+			id: string;
+			username: string;
+			email: string;
+		};
+	}[];
 }): CourseListItem {
 	return {
 		id: course.id,
@@ -37,6 +45,11 @@ function mapListItem(course: {
 			slug: ct.tag.slug,
 			description: ct.tag.description,
 			createdAt: ct.tag.createdAt,
+		})),
+		instructors: course.instructors?.map(ci => ({
+			id: ci.user.id,
+			username: ci.user.username,
+			email: ci.user.email,
 		})),
 	};
 }
@@ -95,6 +108,17 @@ export async function listPublishedCourses(
 						},
 					},
 				},
+				instructors: {
+					select: {
+						user: {
+							select: {
+								id: true,
+								username: true,
+								email: true,
+							},
+						},
+					},
+				},
 			},
 			skip,
 			take,
@@ -146,6 +170,17 @@ export async function getCourseDetail(
 					},
 				},
 			},
+			instructors: {
+				select: {
+					user: {
+						select: {
+							id: true,
+							username: true,
+							email: true,
+						},
+					},
+				},
+			},
 		},
 	});
 
@@ -178,6 +213,12 @@ export async function getCourseDetail(
 		createdAt: ct.tag.createdAt,
 	}));
 
+	const instructors: InstructorDto[] = course.instructors.map(ci => ({
+		id: ci.user.id,
+		username: ci.user.username,
+		email: ci.user.email,
+	}));
+
 	return {
 		id: course.id,
 		title: course.title,
@@ -186,6 +227,7 @@ export async function getCourseDetail(
 		isPublic: course.isPublic,
 		videos,
 		tags,
+		instructors,
 	};
 }
 
@@ -237,6 +279,17 @@ export async function createCourse(input: CreateCourseInput): Promise<CourseDeta
 					},
 				},
 			},
+			instructors: {
+				select: {
+					user: {
+						select: {
+							id: true,
+							username: true,
+							email: true,
+						},
+					},
+				},
+			},
 		},
 	});
 
@@ -261,6 +314,11 @@ export async function createCourse(input: CreateCourseInput): Promise<CourseDeta
 			slug: ct.tag.slug,
 			description: ct.tag.description,
 			createdAt: ct.tag.createdAt,
+		})),
+		instructors: created.instructors.map(ci => ({
+			id: ci.user.id,
+			username: ci.user.username,
+			email: ci.user.email,
 		})),
 	};
 }
@@ -336,6 +394,17 @@ export async function updateCourse(
 					},
 				},
 			},
+			instructors: {
+				select: {
+					user: {
+						select: {
+							id: true,
+							username: true,
+							email: true,
+						},
+					},
+				},
+			},
 		},
 	});
 
@@ -360,6 +429,11 @@ export async function updateCourse(
 			slug: ct.tag.slug,
 			description: ct.tag.description,
 			createdAt: ct.tag.createdAt,
+		})),
+		instructors: updated.instructors.map(ci => ({
+			id: ci.user.id,
+			username: ci.user.username,
+			email: ci.user.email,
 		})),
 	};
 }
