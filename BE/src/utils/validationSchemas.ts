@@ -162,3 +162,7 @@ export const userCourseSortSchema = paginationQuerySchema.extend({
 		.optional()
 		.default('enrolledAt'),
 });
+
+export const userQuerySchema = paginationQuerySchema.extend({
+	search: z.string().min(1, 'Search query must be at least 1 character').optional(),
+});

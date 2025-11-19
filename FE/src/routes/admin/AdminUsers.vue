@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import MaxWidthWrapper from '@/components/wrappers/MaxWidthWrapper.vue'
 import ConfirmModal from '@/components/ui/ConfirmModal.vue'
@@ -49,6 +49,9 @@ const currentPage = ref(1)
 const limit = ref(10)
 const totalUsers = ref(0)
 
+// Timer dla debounce
+let searchTimeout: ReturnType<typeof setTimeout> | null = null
+
 async function fetchUsers() {
     isLoadingUsers.value = true
     error.value = null
@@ -56,7 +59,8 @@ async function fetchUsers() {
     try {
         const response = await getAllUsers({
             page: currentPage.value,
-            limit: limit.value
+            limit: limit.value,
+            search: searchQuery.value.trim() || undefined
         })
 
         if (response.data && response.success && response.data.items) {
@@ -151,8 +155,29 @@ function handlePageChange(page: number) {
     fetchUsers()
 }
 
+// Watcher na zmianę wyszukiwania z debounce
+watch(searchQuery, () => {
+    currentPage.value = 1
+
+    // Anuluj poprzedni timer, jeśli istnieje
+    if (searchTimeout) {
+        clearTimeout(searchTimeout)
+    }
+
+    // Ustaw nowy timer - wyślij zapytanie po 500ms od ostatniego wpisania
+    searchTimeout = setTimeout(() => {
+        fetchUsers()
+    }, 500)
+})
+
 onMounted(() => {
     fetchUsers()
+})
+
+onUnmounted(() => {
+    if (searchTimeout) {
+        clearTimeout(searchTimeout)
+    }
 })
 </script>
 

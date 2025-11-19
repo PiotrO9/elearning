@@ -243,12 +243,18 @@ export async function getDashboard(): Promise<ApiResponse<DashboardStats>> {
 /**
  * Pobierz wszystkich użytkowników z paginacją
  */
-export async function getAllUsers(params?: { page?: number; limit?: number }): Promise<ApiListResponse<UserAdminPanelListItem>> {
+export async function getAllUsers(params?: { page?: number; limit?: number; search?: string }): Promise<ApiListResponse<UserAdminPanelListItem>> {
+    const requestParams: Record<string, string | number> = {
+        page: params?.page || 1,
+        limit: params?.limit || 10
+    }
+
+    if (params?.search && params.search.trim()) {
+        requestParams.search = params.search.trim()
+    }
+
     const response = await httpClient.get<ApiListResponse<UserAdminPanelListItem>>('/users', {
-        params: {
-            page: params?.page || 1,
-            limit: params?.limit || 10
-        }
+        params: requestParams
     })
 
     return response.data

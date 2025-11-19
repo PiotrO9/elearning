@@ -43,10 +43,30 @@ export class UserService {
 	 * Gets all users with pagination
 	 */
 	async getAllUsers(params: PaginationParams): Promise<PaginatedUsersResponse> {
-		const { page, limit } = params;
+		const { page, limit, search } = params;
 		const skip = (page - 1) * limit;
 
+		const whereClause = search
+			? {
+					OR: [
+						{
+							email: {
+								contains: search,
+								mode: 'insensitive' as const,
+							},
+						},
+						{
+							username: {
+								contains: search,
+								mode: 'insensitive' as const,
+							},
+						},
+					],
+				}
+			: {};
+
 		const users = await prisma.user.findMany({
+			where: whereClause,
 			select: {
 				id: true,
 				email: true,
@@ -67,7 +87,9 @@ export class UserService {
 			},
 		});
 
-		const totalUsers = await prisma.user.count();
+		const totalUsers = await prisma.user.count({
+			where: whereClause,
+		});
 		const totalPages = Math.ceil(totalUsers / limit);
 
 		const usersWithCoursesCount = users.map(user => ({
