@@ -5,7 +5,7 @@ import { validateBody, validateParams, validateQuery } from '../middleware/valid
 import {
 	userRoleParamSchema,
 	updateUserRoleSchema,
-	paginationQuerySchema,
+	userQuerySchema,
 } from '../utils/validationSchemas';
 
 const router = Router();
@@ -15,7 +15,7 @@ const router = Router();
  * @desc Get all users with pagination
  * @access Admin or Superadmin
  */
-router.get('/', authenticateToken, requireAdmin, validateQuery(paginationQuerySchema), handleGetAllUsers);
+router.get('/', authenticateToken, requireAdmin, validateQuery(userQuerySchema), handleGetAllUsers);
 
 /**
  * @route PATCH /api/users/:id/role
@@ -35,4 +35,3 @@ router.patch(
 );
 
 export { router as userRoutes };
-

@@ -26,7 +26,7 @@ async function fetchTag() {
 
     try {
         const tags = await getTags()
-        const foundTag = tags.find(t => t.id === tagId)
+        const foundTag = tags.data.items.find(tag => tag.id === tagId)
 
         if (!foundTag) {
             error.value = 'Tag nie został znaleziony'
@@ -134,10 +134,10 @@ onMounted(() => {
                         />
                     </div>
 
-                    <div class="flex justify-end gap-3 pt-4 border-t">
+                    <div class="flex justify-end gap-3 pt-4">
                         <Action
                             @click="handleCancel"
-                            variant="ghost"
+                            variant="outline"
                             size="lg"
                             :disabled="isSaving"
                             aria-label="Anuluj"

@@ -124,7 +124,7 @@ onMounted(async () => {
                 </button>
                 <AdminTableHeader
                     :title="`Zarządzanie kursami użytkownika`"
-                    :description="`Przypisz lub usuń kursy dla użytkownika ID: ${userId}`"
+                    :description="`Przypisz lub usuń kursy dla użytkownika : ${userId}`"
                 />
             </div>
         </div>
@@ -198,16 +198,7 @@ onMounted(async () => {
                             :disabled="isLoading"
                             :aria-label="isEnrolled(course.id.toString()) ? 'Usuń z kursu' : 'Przypisz do kursu'"
                         >
-                            <Icon
-                                v-if="isEnrolled(course.id.toString())"
-                                name="close"
-                                class="w-5 h-5 mr-2"
-                            />
-                            <Icon
-                                v-else
-                                name="plus"
-                                class="w-5 h-5 mr-2"
-                            />
+
                             {{ isEnrolled(course.id.toString()) ? 'Usuń z kursu' : 'Przypisz do kursu' }}
                         </Action>
                     </div>

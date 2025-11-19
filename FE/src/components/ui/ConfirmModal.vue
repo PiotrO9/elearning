@@ -56,7 +56,7 @@ const variantMap: Record<string, 'danger' | 'primary' | 'secondary'> = {
     <template #footer>
         <Action
             @click="handleCancel"
-            variant="ghost"
+            variant="outline"
             size="md"
             :disabled="isLoading"
             :aria-label="cancelText"

@@ -38,6 +38,7 @@ export const handleGetCourses = asyncHandler(async (req: Request, res: Response)
 		imagePath: course.imagePath,
 		isPublic: course.isPublic,
 		tags: course.tags,
+		instructors: course.instructors,
 	}));
 
 	const response: PaginatedListResponse<CourseListItemDto> = {

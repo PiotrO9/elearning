@@ -1,10 +1,20 @@
+import { TagDto } from './tag';
+import { VideoDto, Video } from './video';
+
+export interface InstructorDto {
+	id: string;
+	username: string;
+	email: string;
+}
+
 export interface CourseListItemDto {
 	id: string;
 	title: string;
 	description: string;
 	imagePath: string;
 	isPublic: boolean;
-	tags?: import('./tag').TagDto[];
+	tags?: TagDto[];
+	instructors?: InstructorDto[];
 }
 
 export interface CourseDetailDto {
@@ -13,8 +23,9 @@ export interface CourseDetailDto {
 	description: string;
 	imagePath: string;
 	isPublic: boolean;
-	videos: import('./video').VideoDto[];
-	tags?: import('./tag').TagDto[];
+	videos: VideoDto[];
+	tags?: TagDto[];
+	instructors?: InstructorDto[];
 }
 
 export interface CourseListItem {
@@ -23,7 +34,8 @@ export interface CourseListItem {
 	summary: string;
 	imagePath: string;
 	isPublic: boolean;
-	tags?: import('./tag').TagDto[];
+	tags?: TagDto[];
+	instructors?: InstructorDto[];
 }
 
 export interface CourseDetail {
@@ -32,8 +44,9 @@ export interface CourseDetail {
 	descriptionMarkdown: string;
 	imagePath: string;
 	isPublic: boolean;
-	videos: import('./video').Video[];
-	tags?: import('./tag').TagDto[];
+	videos: Video[];
+	tags?: TagDto[];
+	instructors?: InstructorDto[];
 }
 
 export interface CreateCourseInput {

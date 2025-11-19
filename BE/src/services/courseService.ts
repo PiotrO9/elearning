@@ -5,6 +5,7 @@ import {
 	CourseDetail,
 	CreateCourseInput,
 	UpdateCourseInput,
+	InstructorDto,
 } from '../types/course';
 import { Video } from '../types/video';
 import { TagDto } from '../types/tag';
@@ -21,6 +22,14 @@ function mapListItem(course: {
 			name: string;
 			slug: string;
 			description: string | null;
+			createdAt: Date;
+		};
+	}[];
+	instructors?: {
+		user: {
+			id: string;
+			username: string;
+			email: string;
 		};
 	}[];
 }): CourseListItem {
@@ -35,6 +44,12 @@ function mapListItem(course: {
 			name: ct.tag.name,
 			slug: ct.tag.slug,
 			description: ct.tag.description,
+			createdAt: ct.tag.createdAt,
+		})),
+		instructors: course.instructors?.map(ci => ({
+			id: ci.user.id,
+			username: ci.user.username,
+			email: ci.user.email,
 		})),
 	};
 }
@@ -61,11 +76,15 @@ export async function listPublishedCourses(
 	const skip = page && limit ? (page - 1) * limit : undefined;
 	const take = limit;
 
-	const orderBy = buildOrderBy(sortBy, {
-		validSortFields: ['title', 'createdAt', 'updatedAt'],
-		defaultField: 'createdAt',
-		defaultOrder: 'desc',
-	}, sortOrder);
+	const orderBy = buildOrderBy(
+		sortBy,
+		{
+			validSortFields: ['title', 'createdAt', 'updatedAt'],
+			defaultField: 'createdAt',
+			defaultOrder: 'desc',
+		},
+		sortOrder,
+	);
 
 	const [courses, total] = await Promise.all([
 		prisma.course.findMany({
@@ -84,6 +103,18 @@ export async function listPublishedCourses(
 								name: true,
 								slug: true,
 								description: true,
+								createdAt: true,
+							},
+						},
+					},
+				},
+				instructors: {
+					select: {
+						user: {
+							select: {
+								id: true,
+								username: true,
+								email: true,
 							},
 						},
 					},
@@ -134,6 +165,18 @@ export async function getCourseDetail(
 							name: true,
 							slug: true,
 							description: true,
+							createdAt: true,
+						},
+					},
+				},
+			},
+			instructors: {
+				select: {
+					user: {
+						select: {
+							id: true,
+							username: true,
+							email: true,
 						},
 					},
 				},
@@ -167,6 +210,13 @@ export async function getCourseDetail(
 		name: ct.tag.name,
 		slug: ct.tag.slug,
 		description: ct.tag.description,
+		createdAt: ct.tag.createdAt,
+	}));
+
+	const instructors: InstructorDto[] = course.instructors.map(ci => ({
+		id: ci.user.id,
+		username: ci.user.username,
+		email: ci.user.email,
 	}));
 
 	return {
@@ -177,6 +227,7 @@ export async function getCourseDetail(
 		isPublic: course.isPublic,
 		videos,
 		tags,
+		instructors,
 	};
 }
 
@@ -223,6 +274,18 @@ export async function createCourse(input: CreateCourseInput): Promise<CourseDeta
 							name: true,
 							slug: true,
 							description: true,
+							createdAt: true,
+						},
+					},
+				},
+			},
+			instructors: {
+				select: {
+					user: {
+						select: {
+							id: true,
+							username: true,
+							email: true,
 						},
 					},
 				},
@@ -250,6 +313,12 @@ export async function createCourse(input: CreateCourseInput): Promise<CourseDeta
 			name: ct.tag.name,
 			slug: ct.tag.slug,
 			description: ct.tag.description,
+			createdAt: ct.tag.createdAt,
+		})),
+		instructors: created.instructors.map(ci => ({
+			id: ci.user.id,
+			username: ci.user.username,
+			email: ci.user.email,
 		})),
 	};
 }
@@ -320,6 +389,18 @@ export async function updateCourse(
 							name: true,
 							slug: true,
 							description: true,
+							createdAt: true,
+						},
+					},
+				},
+			},
+			instructors: {
+				select: {
+					user: {
+						select: {
+							id: true,
+							username: true,
+							email: true,
 						},
 					},
 				},
@@ -347,6 +428,12 @@ export async function updateCourse(
 			name: ct.tag.name,
 			slug: ct.tag.slug,
 			description: ct.tag.description,
+			createdAt: ct.tag.createdAt,
+		})),
+		instructors: updated.instructors.map(ci => ({
+			id: ci.user.id,
+			username: ci.user.username,
+			email: ci.user.email,
 		})),
 	};
 }

@@ -1,3 +1,10 @@
+export type ActivityType =
+	| 'course_added'
+	| 'course_updated'
+	| 'tag_added'
+	| 'tag_updated'
+	| 'user_registered';
+
 export interface DashboardMetrics {
 	totalCourses: number;
 	activeCourses: number;
@@ -8,7 +15,7 @@ export interface DashboardMetrics {
 export interface RecentActivity {
 	description: string;
 	timeAgo: string;
-	type: 'course_added' | 'course_updated' | 'tag_added' | 'tag_updated' | 'user_registered';
+	type: ActivityType;
 	timestamp: Date;
 }
 

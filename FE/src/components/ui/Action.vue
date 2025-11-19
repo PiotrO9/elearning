@@ -42,11 +42,11 @@ function handleKeyDown(event: KeyboardEvent) {
 }
 
 const variantClasses = {
-    primary: 'bg-blue-600 text-white hover:bg-blue-700 focus-visible:ring-blue-500',
-    secondary: 'bg-gray-600 text-white hover:bg-gray-700 focus-visible:ring-gray-500',
-    danger: 'bg-red-600 text-white hover:bg-red-700 focus-visible:ring-red-500',
-    ghost: 'text-gray-700 hover:bg-gray-100 focus-visible:ring-gray-500',
-    outline: 'border-2 border-blue-600 text-blue-600 hover:bg-blue-50 focus-visible:ring-blue-500'
+    primary: 'bg-blue-600 text-white hover:bg-blue-700 focus-visible:ring-blue-500 cursor-pointer',
+    secondary: 'bg-gray-600 text-white hover:bg-gray-700 focus-visible:ring-gray-500 cursor-pointer',
+    danger: 'bg-red-600 text-white hover:bg-red-700 focus-visible:ring-red-500 cursor-pointer',
+    ghost: 'text-gray-700 hover:bg-gray-100 focus-visible:ring-gray-500 cursor-pointer',
+    outline: 'border-2 border-blue-600 text-blue-600 hover:bg-blue-50 focus-visible:ring-blue-500 cursor-pointer'
 }
 
 const sizeClasses = computed(() => {
@@ -68,9 +68,15 @@ const baseClasses = computed(() => {
     const classes = [
         'inline-flex items-center justify-center',
         props.circle ? 'rounded-full' : 'rounded-lg gap-2',
-        'font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed'
+        'font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
+        props.disabled ? 'cursor-not-allowed' : 'cursor-pointer'
     ]
     return classes.join(' ')
+})
+
+const disabledClasses = computed(() => {
+    if (!props.disabled) return ''
+    return 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-60 hover:bg-gray-300 hover:text-gray-500'
 })
 </script>
 
@@ -80,7 +86,7 @@ const baseClasses = computed(() => {
     :aria-label="ariaLabel"
     :class="[
         baseClasses,
-        variantClasses[variant],
+        disabled ? disabledClasses : variantClasses[variant],
         sizeClasses,
         disabled && 'pointer-events-none'
     ]"

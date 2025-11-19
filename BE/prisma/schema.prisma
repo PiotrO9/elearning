@@ -27,6 +27,7 @@ model User {
 
   refreshTokens        RefreshToken[]
   courseEnrollments    CourseEnrollment[]
+  courseInstructors    CourseInstructor[]
 }
 
 model RefreshToken {
@@ -50,6 +51,7 @@ model Course {
   videos              Video[]
   enrollments         CourseEnrollment[]
   tags                CourseTag[]
+  instructors         CourseInstructor[]
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
 }
@@ -105,4 +107,17 @@ model CourseTag {
   @@unique([courseId, tagId])
   @@index([courseId])
   @@index([tagId])
+}
+
+model CourseInstructor {
+  id        String   @id @default(cuid())
+  courseId  String
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([courseId, userId])
+  @@index([courseId])
+  @@index([userId])
 }
