@@ -40,7 +40,16 @@ export default defineConfigWithVueTs(
         name: 'app/any-off-specific-files',
         files: ['src/stores/auth.ts', 'src/middleware/index.ts'],
         rules: {
-            '@typescript-eslint/no-explicit-any': 'off',
+            indent: ['error', 4, { SwitchCase: 1 }],
+        },
+    },
+    {
+        name: 'app/vue-indentation',
+        files: ['**/*.vue'],
+        rules: {
+            indent: 'off',
+            'vue/script-indent': ['error', 4, { baseIndent: 0, switchCase: 1 }],
+            'vue/html-indent': 'off',
         },
     },
 )
