@@ -13,6 +13,7 @@ import AdminUserCourses from './routes/admin/AdminUserCourses.vue'
 import { useAuthStore } from './stores/auth'
 import Auth from './routes/Auth.vue'
 import NotFound from './routes/NotFound.vue'
+import ProfileCourses from './routes/ProfileCourses.vue'
 
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
@@ -21,6 +22,12 @@ const router = createRouter({
         { path: '/auth', component: Auth, meta: { guest: true }, name: 'login' },
         { path: '/auth?mode=register', component: Auth, meta: { guest: true }, name: 'register' },
         { path: '/profile', component: Profile, meta: { requiresAuth: true }, name: 'profile' },
+        {
+            path: '/profile/courses',
+            component: ProfileCourses,
+            meta: { requiresAuth: true },
+            name: 'profile-courses',
+        },
         { path: '/courses', component: Courses, name: 'courses' },
         {
             path: '/courses/:id',
@@ -34,37 +41,37 @@ const router = createRouter({
         {
             path: '/admin',
             component: AdminDashboard,
-            meta: { requiresAuth: true, requiresAdmin: true }
+            meta: { requiresAuth: true, requiresAdmin: true },
         },
         {
             path: '/admin/courses',
             component: AdminCourses,
-            meta: { requiresAuth: true, requiresAdmin: true }
+            meta: { requiresAuth: true, requiresAdmin: true },
         },
         {
             path: '/admin/courses/:id',
             component: AdminCourseEdit,
-            meta: { requiresAuth: true, requiresAdmin: true }
+            meta: { requiresAuth: true, requiresAdmin: true },
         },
         {
             path: '/admin/tags',
             component: AdminTags,
-            meta: { requiresAuth: true, requiresAdmin: true }
+            meta: { requiresAuth: true, requiresAdmin: true },
         },
         {
             path: '/admin/tags/:id',
             component: AdminTagEdit,
-            meta: { requiresAuth: true, requiresAdmin: true }
+            meta: { requiresAuth: true, requiresAdmin: true },
         },
         {
             path: '/admin/users',
             component: AdminUsers,
-            meta: { requiresAuth: true, requiresAdmin: true }
+            meta: { requiresAuth: true, requiresAdmin: true },
         },
         {
             path: '/admin/users/:userId/courses',
             component: AdminUserCourses,
-            meta: { requiresAuth: true, requiresAdmin: true }
+            meta: { requiresAuth: true, requiresAdmin: true },
         },
     ],
 })
