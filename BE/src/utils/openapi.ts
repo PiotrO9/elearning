@@ -36,10 +36,9 @@ export function extractRoutes(base: string, router: Router): RouteMeta[] {
 			const route = layer.route;
 			const routePath: string = `${normalizedBase}${route.path === '/' ? '' : route.path}`;
 			const methods: Record<string, boolean> = route.methods || {};
-			const handlers: unknown[] = (route.stack || []).map((s: unknown) => {
-				// @ts-expect-error Express internals
-				return s?.handle || s;
-			});
+		const handlers: unknown[] = (route.stack || []).map((s: unknown) => {
+			return (s as any)?.handle || s;
+		});
 			const isProtected = detectIsProtected(handlers);
 			for (const key of Object.keys(methods)) {
 				if (!methods[key]) continue;
@@ -54,9 +53,7 @@ export function extractRoutes(base: string, router: Router): RouteMeta[] {
 			continue;
 		}
 
-		// Nested router mounted under a path, e.g. router.use('/auth', authRoutes)
 		if (layer?.name === 'router' && typeof layer?.handle === 'function') {
-			// Express 5 keeps the mount path in layer.regexp and sometimes layer.path
 			const mountPath: string =
 				typeof layer?.path === 'string' && layer.path
 					? layer.path
@@ -74,7 +71,6 @@ function extractPathFromRegex(regexp: unknown): string {
 	if (!regexp) return '';
 	try {
 		const source: string = (regexp as { source?: string })?.source || '';
-		// Match literal path like ^\\/auth(?:\\/(?=$))?$
 		const literal = source
 			.replace(/^\^/, '')
 			.replace(/\$$/, '')

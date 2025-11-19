@@ -7,6 +7,7 @@ import {
 } from '../utils/jwt';
 import { UserRole } from '../types/user';
 import { prisma } from '../utils/prisma';
+import { sendError } from '../utils/response';
 
 declare global {
 	namespace Express {
@@ -25,18 +26,12 @@ export const authenticateToken = (req: Request, res: Response, next: NextFunctio
 		const { accessToken } = req.cookies;
 
 		if (!accessToken) {
-			res.status(401).json({
-				success: false,
-				message: 'Access token required',
-			});
-			return;
+			return sendError(res, 'Access token required', 401, 'ACCESS_TOKEN_REQUIRED');
 		}
 
-		// Verify access token
 		const decoded = verifyAccessToken(accessToken);
 		req.user = decoded;
 
-		// Generate new access token with refreshed expiration (sliding session)
 		if (SLIDING_SESSION_ENABLED) {
 			const newAccessToken = generateAccessToken({
 				userId: decoded.userId,
@@ -44,24 +39,19 @@ export const authenticateToken = (req: Request, res: Response, next: NextFunctio
 				role: decoded.role,
 			});
 
-			// Set refreshed access token cookie
 			res.cookie('accessToken', newAccessToken, {
 				httpOnly: true,
 				secure: process.env.NODE_ENV === 'production',
 				sameSite: 'strict',
-				maxAge: 15 * 60 * 1000, // 15 minutes refreshed
+				maxAge: 15 * 60 * 1000,
 			});
 
-			// Optional: Add header to indicate token was refreshed
 			res.setHeader('X-Token-Refreshed', 'true');
 		}
 
 		next();
 	} catch (error) {
-		res.status(403).json({
-			success: false,
-			message: 'Invalid or expired access token',
-		});
+		return sendError(res, 'Invalid or expired access token', 403, 'INVALID_TOKEN');
 	}
 };
 
@@ -78,22 +68,14 @@ export const authenticateTokenWithoutRefresh = (
 		const { accessToken } = req.cookies;
 
 		if (!accessToken) {
-			res.status(401).json({
-				success: false,
-				message: 'Access token required',
-			});
-			return;
+			return sendError(res, 'Access token required', 401, 'ACCESS_TOKEN_REQUIRED');
 		}
 
-		// Verify access token
 		const decoded = verifyAccessToken(accessToken);
 		req.user = decoded;
 		next();
 	} catch (error) {
-		res.status(403).json({
-			success: false,
-			message: 'Invalid or expired access token',
-		});
+		return sendError(res, 'Invalid or expired access token', 403, 'INVALID_TOKEN');
 	}
 };
 
@@ -101,8 +83,7 @@ export const authenticateTokenWithoutRefresh = (
  * Optional authentication: attaches req.user if accessToken cookie is valid.
  * If no token or invalid, continues without error to support guest access.
  */
-export function optionalAuth(req: Request, res: Response, next: NextFunction): void {
-	res;
+export function optionalAuth(req: Request, _res: Response, next: NextFunction): void {
 	try {
 		const { accessToken } = req.cookies;
 		if (!accessToken) {
@@ -113,7 +94,6 @@ export function optionalAuth(req: Request, res: Response, next: NextFunction): v
 		req.user = decoded;
 		next();
 	} catch (error) {
-		// treat as guest when token invalid/expired
 		next();
 	}
 }
@@ -130,43 +110,41 @@ export const authorizeUserModification = (
 	const authenticatedUserId = req.user?.userId;
 
 	if (!authenticatedUserId) {
-		res.status(401).json({
-			success: false,
-			message: 'Authentication required',
-		});
-		return;
+		return sendError(res, 'Authentication required', 401, 'UNAUTHENTICATED');
 	}
 
 	if (requestedUserId !== authenticatedUserId) {
-		res.status(403).json({
-			success: false,
-			message: 'You can only modify your own profile',
-		});
-		return;
+		return sendError(res, 'You can only modify your own profile', 403, 'FORBIDDEN');
 	}
 
 	next();
 };
 
 /**
- * Middleware to require admin role
+ * Middleware to require admin role (ADMIN or SUPERADMIN)
  */
 export const requireAdmin = (req: Request, res: Response, next: NextFunction): void => {
 	if (!req.user) {
-		res.status(401).json({
-			success: false,
-			message: 'Authentication required',
-		});
-		return;
+		return sendError(res, 'Authentication required', 401, 'UNAUTHENTICATED');
 	}
 
-	if (req.user.role !== UserRole.ADMIN) {
-		res.status(403).json({
-			success: false,
-			message: 'Admin access required',
-			code: 'ADMIN_ACCESS_REQUIRED',
-		});
-		return;
+	if (req.user.role !== UserRole.ADMIN && req.user.role !== UserRole.SUPERADMIN) {
+		return sendError(res, 'Admin access required', 403, 'ADMIN_ACCESS_REQUIRED');
+	}
+
+	next();
+};
+
+/**
+ * Middleware to require superadmin role
+ */
+export const requireSuperAdmin = (req: Request, res: Response, next: NextFunction): void => {
+	if (!req.user) {
+		return sendError(res, 'Authentication required', 401, 'UNAUTHENTICATED');
+	}
+
+	if (req.user.role !== UserRole.SUPERADMIN) {
+		return sendError(res, 'Superadmin access required', 403, 'SUPERADMIN_ACCESS_REQUIRED');
 	}
 
 	next();
@@ -186,59 +164,37 @@ export const checkCourseAccess = async (
 ): Promise<void> => {
 	try {
 		if (!req.user) {
-			res.status(401).json({
-				success: false,
-				message: 'Authentication required',
-			});
-			return;
+			return sendError(res, 'Authentication required', 401, 'UNAUTHENTICATED');
 		}
 
 		const courseId = req.params.id || req.params.courseId;
 		if (!courseId) {
-			res.status(400).json({
-				success: false,
-				message: 'Course ID required',
-			});
-			return;
+			return sendError(res, 'Course ID required', 400, 'COURSE_ID_REQUIRED');
 		}
 
-		// Admin has access to everything
-		if (req.user.role === UserRole.ADMIN) {
+		if (req.user.role === UserRole.ADMIN || req.user.role === UserRole.SUPERADMIN) {
 			next();
 			return;
 		}
 
-		// Check if course exists and is public
 		const course = await prisma.course.findUnique({
 			where: { id: courseId },
 			select: { isPublic: true, isPublished: true },
 		});
 
 		if (!course) {
-			res.status(404).json({
-				success: false,
-				message: 'Course not found',
-				code: 'COURSE_NOT_FOUND',
-			});
-			return;
+			return sendError(res, 'Course not found', 404, 'COURSE_NOT_FOUND');
 		}
 
 		if (!course.isPublished) {
-			res.status(403).json({
-				success: false,
-				message: 'Course is not published',
-				code: 'COURSE_NOT_PUBLISHED',
-			});
-			return;
+			return sendError(res, 'Course is not published', 403, 'COURSE_NOT_PUBLISHED');
 		}
 
-		// If course is public, allow access
 		if (course.isPublic) {
 			next();
 			return;
 		}
 
-		// Check if user is enrolled
 		const enrollment = await prisma.courseEnrollment.findUnique({
 			where: {
 				userId_courseId: {
@@ -249,19 +205,11 @@ export const checkCourseAccess = async (
 		});
 
 		if (!enrollment) {
-			res.status(403).json({
-				success: false,
-				message: 'You do not have access to this course',
-				code: 'COURSE_ACCESS_DENIED',
-			});
-			return;
+			return sendError(res, 'You do not have access to this course', 403, 'COURSE_ACCESS_DENIED');
 		}
 
 		next();
 	} catch (error) {
-		res.status(500).json({
-			success: false,
-			message: 'Failed to check course access',
-		});
+		return sendError(res, 'Failed to check course access', 500, 'INTERNAL_SERVER_ERROR');
 	}
 };

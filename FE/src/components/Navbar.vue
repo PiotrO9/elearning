@@ -29,6 +29,7 @@ import { links, getVisibleLinks } from '@/utils/linksUtils'
         <RouterLink to="/" class="italic font-semibold text-2xl">eLearning</RouterLink>
         <nav class="flex space-x-4 text-sm items-center">
             <RouterLink to="/courses">Kursy</RouterLink>
+            <RouterLink v-if="authStore.isAdmin" to="/admin">Panel Admina</RouterLink>
 
             <button
                 class="p-2 bg-background-dark/10 hover:bg-background-dark/20 duration-300 rounded cursor-pointer"

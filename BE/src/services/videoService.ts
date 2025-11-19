@@ -1,4 +1,5 @@
 import { prisma } from '../utils/prisma';
+import { buildOrderBy } from '../utils/sorting';
 import { CreateVideoInput, UpdateVideoInput, AttachVideoOptions, Video } from '../types/video';
 
 export async function createVideo(input: CreateVideoInput): Promise<string> {
@@ -39,33 +40,61 @@ export async function attachExistingVideoToCourse(
 }
 
 export async function detachVideoFromCourse(videoId: string): Promise<void> {
-	// Deleting the video to detach, assuming videos are always tied to a course
 	await prisma.video.delete({ where: { id: videoId } });
 }
 
-export async function listAllVideos(): Promise<Video[]> {
-	const videos = await prisma.video.findMany({
-		select: {
-			id: true,
-			courseId: true,
-			title: true,
-			order: true,
-			isTrailer: true,
-			sourceUrl: true,
-			durationSeconds: true,
-		},
-		orderBy: [{ courseId: 'asc' }, { order: 'asc' }],
-	});
+export async function listAllVideos(
+	page?: number,
+	limit?: number,
+	sortBy?: string,
+	sortOrder?: 'asc' | 'desc',
+): Promise<{ items: Video[]; total: number }> {
+	const skip = page && limit ? (page - 1) * limit : undefined;
+	const take = limit;
 
-	return videos.map(v => ({
-		id: v.id,
-		courseId: v.courseId,
-		title: v.title,
-		order: v.order,
-		isTrailer: v.isTrailer,
-		sourceUrl: v.sourceUrl,
-		durationSeconds: v.durationSeconds ?? null,
-	}));
+	const orderBy = buildOrderBy(
+		sortBy,
+		{
+			validSortFields: ['title', 'order', 'createdAt', 'courseId'],
+			defaultField: 'courseId',
+			defaultOrder: 'asc',
+			multiSorts: {
+				courseId: [{ field: 'order', order: 'asc' }],
+			},
+		},
+		sortOrder,
+	);
+
+	const [videos, total] = await Promise.all([
+		prisma.video.findMany({
+			select: {
+				id: true,
+				courseId: true,
+				title: true,
+				order: true,
+				isTrailer: true,
+				sourceUrl: true,
+				durationSeconds: true,
+			},
+			skip,
+			take,
+			orderBy,
+		}),
+		prisma.video.count(),
+	]);
+
+	return {
+		items: videos.map(v => ({
+			id: v.id,
+			courseId: v.courseId,
+			title: v.title,
+			order: v.order,
+			isTrailer: v.isTrailer,
+			sourceUrl: v.sourceUrl,
+			durationSeconds: v.durationSeconds ?? null,
+		})),
+		total,
+	};
 }
 
 export async function getVideoById(videoId: string): Promise<Video | null> {

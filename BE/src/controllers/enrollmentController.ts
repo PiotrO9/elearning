@@ -1,134 +1,78 @@
 import { Request, Response } from 'express';
-import { sendSuccess, sendNoContent, sendError, buildValidationErrors } from '../utils/response';
-import { ValidationError } from '../types/api';
+import { sendSuccess, sendNoContent } from '../utils/response';
+import { PaginatedListResponse } from '../types/api';
+import { buildPagination } from '../utils/pagination';
+import { asyncHandler } from '../middleware/asyncHandler';
 import {
 	enrollUserByCourse,
 	unenrollUser,
 	getCourseEnrollments,
 	getUserEnrollments,
 	joinPublicCourse,
-	EnrollmentServiceError,
 } from '../services/enrollmentService';
-import {
-	enrollUserSchema,
-	courseIdParamSchema,
-	userIdParamSchema,
-} from '../utils/validationSchemas';
 import { EnrollmentDto, UserCourseDto } from '../types/enrollment';
 
 /**
  * POST /courses/:id/enroll
  * Admin przypisuje użytkownika do kursu
  */
-export async function handleEnrollUser(req: Request, res: Response): Promise<void> {
-	try {
-		const paramsValidation = courseIdParamSchema.safeParse(req.params);
-		if (!paramsValidation.success) {
-			const errors = buildValidationErrors(paramsValidation.error.issues);
-			throw new ValidationError('Invalid course id', errors);
-		}
+export const handleEnrollUser = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+	const { id: courseId } = req.params as any as { id: string };
+	const { userId } = req.body as { userId: string };
+	const adminId = req.user!.userId;
 
-		const bodyValidation = enrollUserSchema.safeParse(req.body);
-		if (!bodyValidation.success) {
-			const errors = buildValidationErrors(bodyValidation.error.issues);
-			throw new ValidationError('Validation failed', errors);
-		}
-
-		const { id: courseId } = paramsValidation.data;
-		const { userId } = bodyValidation.data;
-		const adminId = req.user!.userId;
-
-		await enrollUserByCourse(userId, courseId, adminId);
-		sendSuccess(res, null, 'User enrolled successfully', 201);
-	} catch (error) {
-		if (error instanceof EnrollmentServiceError) {
-			return sendError(res, error.message, error.statusCode, error.code);
-		}
-		if (error instanceof ValidationError) {
-			return sendError(res, error.message, error.statusCode, error.code, error.errors);
-		}
-		return sendError(res, 'Failed to enroll user');
-	}
-}
+	await enrollUserByCourse(userId, courseId, adminId);
+	sendSuccess(res, null, 'User enrolled successfully', 201);
+});
 
 /**
  * POST /courses/:id/join
  * Użytkownik dołącza do publicznego kursu
  */
-export async function handleJoinCourse(req: Request, res: Response): Promise<void> {
-	try {
-		const paramsValidation = courseIdParamSchema.safeParse(req.params);
-		if (!paramsValidation.success) {
-			const errors = buildValidationErrors(paramsValidation.error.issues);
-			throw new ValidationError('Invalid course id', errors);
-		}
+export const handleJoinCourse = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+	const { id: courseId } = req.params as any as { id: string };
+	const userId = req.user!.userId;
 
-		const { id: courseId } = paramsValidation.data;
-		const userId = req.user!.userId;
-
-		await joinPublicCourse(userId, courseId);
-		sendSuccess(res, null, 'Joined course successfully', 201);
-	} catch (error) {
-		if (error instanceof EnrollmentServiceError) {
-			return sendError(res, error.message, error.statusCode, error.code);
-		}
-		if (error instanceof ValidationError) {
-			return sendError(res, error.message, error.statusCode, error.code, error.errors);
-		}
-		return sendError(res, 'Failed to join course');
-	}
-}
+	await joinPublicCourse(userId, courseId);
+	sendSuccess(res, null, 'Joined course successfully', 201);
+});
 
 /**
  * DELETE /courses/:id/enrollments/:userId
  * Admin usuwa dostęp użytkownika do kursu
  */
-export async function handleUnenrollUser(req: Request, res: Response): Promise<void> {
-	try {
-		const courseParams = courseIdParamSchema.safeParse(req.params);
-		if (!courseParams.success) {
-			const errors = buildValidationErrors(courseParams.error.issues);
-			throw new ValidationError('Invalid course id', errors);
-		}
-
-		const userParams = userIdParamSchema.safeParse(req.params);
-		if (!userParams.success) {
-			const errors = buildValidationErrors(userParams.error.issues);
-			throw new ValidationError('Invalid user id', errors);
-		}
-
-		const { id: courseId } = courseParams.data;
-		const { userId } = userParams.data;
+export const handleUnenrollUser = asyncHandler(
+	async (req: Request, res: Response): Promise<void> => {
+		const { id: courseId, userId } = req.params as any as { id: string; userId: string };
 
 		await unenrollUser(userId, courseId);
 		sendNoContent(res);
-	} catch (error) {
-		if (error instanceof EnrollmentServiceError) {
-			return sendError(res, error.message, error.statusCode, error.code);
-		}
-		if (error instanceof ValidationError) {
-			return sendError(res, error.message, error.statusCode, error.code, error.errors);
-		}
-		return sendError(res, 'Failed to unenroll user');
-	}
-}
+	},
+);
 
 /**
  * GET /courses/:id/enrollments
  * Pobiera listę użytkowników zapisanych na kurs
  */
-export async function handleGetCourseEnrollments(req: Request, res: Response): Promise<void> {
-	try {
-		const paramsValidation = courseIdParamSchema.safeParse(req.params);
-		if (!paramsValidation.success) {
-			const errors = buildValidationErrors(paramsValidation.error.issues);
-			throw new ValidationError('Invalid course id', errors);
-		}
+export const handleGetCourseEnrollments = asyncHandler(
+	async (req: Request, res: Response): Promise<void> => {
+		const { id: courseId } = req.params as any as { id: string };
+		const { page, limit, sortBy, sortOrder } = req.query as unknown as {
+			page: number;
+			limit: number;
+			sortBy?: string;
+			sortOrder?: 'asc' | 'desc';
+		};
 
-		const { id: courseId } = paramsValidation.data;
-		const enrollments = await getCourseEnrollments(courseId);
+		const result = await getCourseEnrollments(
+			courseId,
+			page,
+			limit,
+			sortBy,
+			sortOrder,
+		);
 
-		const payload: EnrollmentDto[] = enrollments.map(e => ({
+		const payload: EnrollmentDto[] = result.items.map(e => ({
 			id: e.id,
 			userId: e.user.id,
 			username: e.user.username,
@@ -137,31 +81,37 @@ export async function handleGetCourseEnrollments(req: Request, res: Response): P
 			enrolledBy: e.enrolledBy,
 		}));
 
-		sendSuccess(res, { items: payload, total: payload.length });
-	} catch (error) {
-		if (error instanceof ValidationError) {
-			return sendError(res, error.message, error.statusCode, error.code, error.errors);
-		}
-		return sendError(res, 'Failed to fetch course enrollments');
-	}
-}
+		const response: PaginatedListResponse<EnrollmentDto> = {
+			items: payload,
+			pagination: buildPagination(result.total, page, limit),
+		};
+		sendSuccess(res, response);
+	},
+);
 
 /**
  * GET /users/:userId/courses
  * Pobiera listę kursów użytkownika
  */
-export async function handleGetUserCourses(req: Request, res: Response): Promise<void> {
-	try {
-		const paramsValidation = userIdParamSchema.safeParse(req.params);
-		if (!paramsValidation.success) {
-			const errors = buildValidationErrors(paramsValidation.error.issues);
-			throw new ValidationError('Invalid user id', errors);
-		}
+export const handleGetUserCourses = asyncHandler(
+	async (req: Request, res: Response): Promise<void> => {
+		const { userId } = req.params as any as { userId: string };
+		const { page, limit, sortBy, sortOrder } = req.query as unknown as {
+			page: number;
+			limit: number;
+			sortBy?: string;
+			sortOrder?: 'asc' | 'desc';
+		};
 
-		const { userId } = paramsValidation.data;
-		const enrollments = await getUserEnrollments(userId);
+		const result = await getUserEnrollments(
+			userId,
+			page,
+			limit,
+			sortBy,
+			sortOrder,
+		);
 
-		const payload: UserCourseDto[] = enrollments.map(e => ({
+		const payload: UserCourseDto[] = result.items.map(e => ({
 			id: e.course.id,
 			title: e.course.title,
 			summary: e.course.summary,
@@ -170,11 +120,10 @@ export async function handleGetUserCourses(req: Request, res: Response): Promise
 			enrolledAt: e.createdAt,
 		}));
 
-		sendSuccess(res, { items: payload, total: payload.length });
-	} catch (error) {
-		if (error instanceof ValidationError) {
-			return sendError(res, error.message, error.statusCode, error.code, error.errors);
-		}
-		return sendError(res, 'Failed to fetch user courses');
-	}
-}
+		const response: PaginatedListResponse<UserCourseDto> = {
+			items: payload,
+			pagination: buildPagination(result.total, page, limit),
+		};
+		sendSuccess(res, response);
+	},
+);

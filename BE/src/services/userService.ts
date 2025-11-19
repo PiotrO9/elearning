@@ -4,13 +4,15 @@ import {
 	UserProfile,
 	UpdateUserData,
 	UpdatePasswordData,
+	UpdateUserRoleData,
 	PaginationParams,
 	PaginatedUsersResponse,
 	UserStatus,
 	UserServiceError,
 } from '../types/user';
+import { Pagination } from '../types/api';
+import { UserRole } from '@prisma/client';
 
-// use shared prisma instance
 
 export class UserService {
 	/**
@@ -52,6 +54,11 @@ export class UserService {
 				role: true,
 				createdAt: true,
 				lastSeen: true,
+				_count: {
+					select: {
+						courseEnrollments: true,
+					},
+				},
 			},
 			skip,
 			take: limit,
@@ -63,15 +70,26 @@ export class UserService {
 		const totalUsers = await prisma.user.count();
 		const totalPages = Math.ceil(totalUsers / limit);
 
+		const usersWithCoursesCount = users.map(user => ({
+			id: user.id,
+			email: user.email,
+			username: user.username,
+			role: user.role,
+			createdAt: user.createdAt,
+			lastSeen: user.lastSeen,
+			coursesCount: user._count.courseEnrollments,
+		}));
+
+		const pagination: Pagination = {
+			currentPage: page,
+			totalPages,
+			totalItems: totalUsers,
+			limit,
+		};
+
 		return {
-			users,
-			pagination: {
-				currentPage: page,
-				totalPages,
-				totalUsers,
-				hasNext: page < totalPages,
-				hasPrev: page > 1,
-			},
+			items: usersWithCoursesCount,
+			pagination,
 		};
 	}
 
@@ -237,5 +255,76 @@ export class UserService {
 				lastSeen: new Date(),
 			},
 		});
+	}
+
+	/**
+	 * Updates user role
+	 * ADMIN can change USER -> ADMIN
+	 * SUPERADMIN can change ADMIN -> USER and USER -> ADMIN
+	 */
+	async updateUserRole(
+		userId: string,
+		data: UpdateUserRoleData,
+		requesterRole: UserRole,
+	): Promise<UserProfile> {
+		const { role: newRole } = data;
+
+		const user = await prisma.user.findUnique({
+			where: { id: userId },
+		});
+
+		if (!user) {
+			throw new UserServiceError('User not found', 404, 'USER_NOT_FOUND');
+		}
+
+		if (user.role === newRole) {
+			throw new UserServiceError('User already has this role', 400, 'SAME_ROLE');
+		}
+
+		if (requesterRole === UserRole.ADMIN) {
+			if (user.role !== UserRole.USER || newRole !== UserRole.ADMIN) {
+				throw new UserServiceError(
+					'Admin can only promote users from USER to ADMIN',
+					403,
+					'INSUFFICIENT_PERMISSIONS',
+				);
+			}
+		} else if (requesterRole === UserRole.SUPERADMIN) {
+			if (
+				!(user.role === UserRole.USER && newRole === UserRole.ADMIN) &&
+				!(user.role === UserRole.ADMIN && newRole === UserRole.USER)
+			) {
+				throw new UserServiceError(
+					'Superadmin can only change USER <-> ADMIN roles',
+					403,
+					'INSUFFICIENT_PERMISSIONS',
+				);
+			}
+		} else {
+			throw new UserServiceError(
+				'Only admin or superadmin can change user roles',
+				403,
+				'INSUFFICIENT_PERMISSIONS',
+			);
+		}
+
+		const updatedUser = await prisma.user.update({
+			where: { id: userId },
+			data: {
+				role: newRole,
+				updatedAt: new Date(),
+			},
+			select: {
+				id: true,
+				email: true,
+				username: true,
+				role: true,
+				createdAt: true,
+				updatedAt: true,
+				lastSeen: true,
+			},
+		});
+
+		return updatedUser;
 	}
 }

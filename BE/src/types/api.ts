@@ -15,7 +15,6 @@ export interface ApiErrorResponse {
 	message: string;
 	code?: string;
 	errors?: ApiErrorItem[];
-	// optional trace id for observability
 	traceId?: string;
 }
 
@@ -61,4 +60,22 @@ export class ConflictError extends AppError {
 		super(message, 409, code);
 		this.name = 'ConflictError';
 	}
+}
+
+/**
+ * Ustandaryzowany format paginacji
+ */
+export interface Pagination {
+	currentPage: number;
+	totalPages: number;
+	totalItems: number;
+	limit: number;
+}
+
+/**
+ * Ustandaryzowany format odpowiedzi z listą elementów
+ */
+export interface PaginatedListResponse<T> {
+	items: T[];
+	pagination: Pagination;
 }

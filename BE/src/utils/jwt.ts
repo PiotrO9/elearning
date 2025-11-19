@@ -8,16 +8,13 @@ export interface TokenPayload {
 	role: UserRole;
 }
 
-// JWT secret keys from environment variables
 const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET || 'your-access-secret-key';
 const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET || 'your-refresh-secret-key';
 
-// Token expiration times
-const ACCESS_TOKEN_EXPIRES_IN = '15m'; // 15 minutes
-const REFRESH_TOKEN_EXPIRES_IN = '7d'; // 7 days
+const ACCESS_TOKEN_EXPIRES_IN = '15m';
+const REFRESH_TOKEN_EXPIRES_IN = '7d';
 
-// Sliding session configuration
-export const SLIDING_SESSION_ENABLED = process.env.SLIDING_SESSION_ENABLED !== 'false'; // Default: true
+export const SLIDING_SESSION_ENABLED = process.env.SLIDING_SESSION_ENABLED !== 'false';
 
 /**
  * Generate access token (short-lived)
@@ -63,20 +60,18 @@ export const verifyRefreshToken = (token: string): TokenPayload => {
  * Set authentication cookies in response
  */
 export const setAuthCookies = (res: Response, accessToken: string, refreshToken: string): void => {
-	// Set access token cookie (15 minutes)
 	res.cookie('accessToken', accessToken, {
 		httpOnly: true,
-		secure: process.env.NODE_ENV === 'production', // HTTPS only in production
+		secure: process.env.NODE_ENV === 'production',
 		sameSite: 'strict',
-		maxAge: 15 * 60 * 1000, // 15 minutes in milliseconds
+		maxAge: 15 * 60 * 1000,
 	});
 
-	// Set refresh token cookie (7 days)
 	res.cookie('refreshToken', refreshToken, {
 		httpOnly: true,
-		secure: process.env.NODE_ENV === 'production', // HTTPS only in production
+		secure: process.env.NODE_ENV === 'production',
 		sameSite: 'strict',
-		maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in milliseconds
+		maxAge: 7 * 24 * 60 * 60 * 1000,
 	});
 };
 

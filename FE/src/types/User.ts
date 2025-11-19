@@ -1,8 +1,16 @@
+export type UserRole = 'USER' | 'ADMIN' | 'SUPER_ADMIN'
+
 export interface User {
     id: string
     email: string
     username: string
+    role: UserRole
 }
+
+export interface UserAdminPanelListItem extends User {
+  coursesCount: number
+}
+
 
 export type LoginResponse = {
     success: boolean

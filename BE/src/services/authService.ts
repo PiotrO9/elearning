@@ -8,15 +8,12 @@ import {
 } from '../utils/jwt';
 import { RegisterUserData, LoginResult, UserData, AuthServiceError } from '../types/auth';
 
-// use shared prisma instance
-
 /**
  * Register new user
  */
 export async function registerUser(data: RegisterUserData): Promise<void> {
 	const { email, username, password } = data;
 
-	// Check only active users (not deleted)
 	const existingUser = await prisma.user.findFirst({
 		where: {
 			OR: [{ email }, { username }],
@@ -52,7 +49,6 @@ export async function loginUser(email: string, password: string): Promise<LoginR
 		throw new AuthServiceError('Invalid credentials', 401, 'INVALID_CREDENTIALS');
 	}
 
-	// Check if account is deleted
 	if (user.deletedAt !== null) {
 		throw new AuthServiceError('This account has been deleted', 403, 'ACCOUNT_DELETED');
 	}
@@ -101,8 +97,7 @@ export async function loginUser(email: string, password: string): Promise<LoginR
  */
 export async function refreshAccessToken(refreshToken: string): Promise<string> {
 	try {
-		const tokenPayload: TokenPayload = verifyRefreshToken(refreshToken);
-		console.log(tokenPayload);
+		verifyRefreshToken(refreshToken);
 	} catch (error) {
 		throw new AuthServiceError('Invalid refresh token', 401, 'INVALID_TOKEN');
 	}
@@ -116,9 +111,7 @@ export async function refreshAccessToken(refreshToken: string): Promise<string> 
 		throw new AuthServiceError('Refresh token expired or not found', 401, 'TOKEN_EXPIRED');
 	}
 
-	// Check if user account is deleted
 	if (storedToken.user.deletedAt !== null) {
-		// Delete refresh token for deleted user
 		await prisma.refreshToken.delete({
 			where: { token: refreshToken },
 		});
@@ -153,6 +146,7 @@ export async function getUserData(userId: string): Promise<UserData> {
 			email: true,
 			username: true,
 			createdAt: true,
+			role: true,
 			lastSeen: true,
 			deletedAt: true,
 		},
@@ -162,12 +156,10 @@ export async function getUserData(userId: string): Promise<UserData> {
 		throw new AuthServiceError('User not found', 404, 'USER_NOT_FOUND');
 	}
 
-	// Check if account is deleted
 	if (user.deletedAt !== null) {
 		throw new AuthServiceError('This account has been deleted', 403, 'ACCOUNT_DELETED');
 	}
 
-	// Remove deletedAt from response
 	const { deletedAt, ...userData } = user;
 
 	return userData;

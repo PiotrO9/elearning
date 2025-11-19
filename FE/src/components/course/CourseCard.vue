@@ -26,8 +26,8 @@ function handleKeyDown(event: KeyboardEvent, courseId: number) {
         class="bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden cursor-pointer group border-2 border-transparent hover:border-primary/50"
         :aria-label="`Kurs: ${course.title}`"
         tabindex="0"
-        @click="handleClick(course.id)"
-        @keydown="(e) => handleKeyDown(e, course.id)"
+        @click="handleClick(Number(course.id))"
+        @keydown="(e) => handleKeyDown(e, Number(course.id))"
     >
         <div class="relative overflow-hidden">
             <img
@@ -73,7 +73,7 @@ function handleKeyDown(event: KeyboardEvent, courseId: number) {
                 <button
                     class="w-full bg-primary text-white px-6 py-3 rounded-lg font-medium hover:bg-button-primary-hover transition-colors"
                     :aria-label="`Zobacz szczegóły kursu ${course.title}`"
-                    @click.stop="handleClick(course.id)"
+                    @click.stop="handleClick(Number(course.id))"
                 >
                     Zobacz szczegóły
                 </button>

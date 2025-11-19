@@ -1,4 +1,5 @@
 import { UserRole } from '@prisma/client';
+import { PaginatedListResponse } from './api';
 
 export { UserRole };
 
@@ -19,6 +20,7 @@ export interface UserBasic {
 	role: UserRole;
 	createdAt: Date;
 	lastSeen: Date | null;
+	coursesCount: number;
 }
 
 export interface UpdateUserData {
@@ -31,21 +33,16 @@ export interface UpdatePasswordData {
 	newPassword: string;
 }
 
+export interface UpdateUserRoleData {
+	role: UserRole;
+}
+
 export interface PaginationParams {
 	page: number;
 	limit: number;
 }
 
-export interface PaginatedUsersResponse {
-	users: UserBasic[];
-	pagination: {
-		currentPage: number;
-		totalPages: number;
-		totalUsers: number;
-		hasNext: boolean;
-		hasPrev: boolean;
-	};
-}
+export interface PaginatedUsersResponse extends PaginatedListResponse<UserBasic> {}
 
 export interface UserStatus {
 	status: 'online' | 'offline';

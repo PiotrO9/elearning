@@ -33,7 +33,6 @@ export const createCourseSchema = z.object({
 	isPublic: z.boolean().optional().default(false),
 });
 
-// Video and update schemas
 export const videoIdParamSchema = z.object({
 	id: z.string().min(10, 'Invalid video id'),
 });
@@ -88,11 +87,78 @@ export const reorderCourseVideosSchema = z.object({
 		.min(1, 'At least one item is required'),
 });
 
-// Enrollment schemas
 export const enrollUserSchema = z.object({
 	userId: z.string().uuid('Invalid user id'),
 });
 
 export const userIdParamSchema = z.object({
 	userId: z.string().uuid('Invalid user id'),
+});
+
+export const userRoleParamSchema = z.object({
+	id: z.string().uuid('Invalid user id'),
+});
+
+export const updateUserRoleSchema = z.object({
+	role: z.enum(['USER', 'ADMIN', 'SUPERADMIN'], {
+		message: 'Role must be USER, ADMIN, or SUPERADMIN',
+	}),
+});
+
+export const paginationQuerySchema = z.object({
+	page: z.coerce.number().int().positive('Page must be a positive integer').default(1),
+	limit: z.coerce
+		.number()
+		.int()
+		.positive('Limit must be a positive integer')
+		.max(100, 'Limit cannot exceed 100')
+		.default(10),
+	sortBy: z.string().optional(),
+	sortOrder: z.enum(['asc', 'desc']).optional().default('asc'),
+});
+
+export const courseSortSchema = paginationQuerySchema.extend({
+	sortBy: z
+		.enum(['title', 'createdAt', 'updatedAt'], {
+			message: 'sortBy must be one of: title, createdAt, updatedAt',
+		})
+		.optional()
+		.default('createdAt'),
+	tag: z.string().optional(),
+});
+
+export const videoSortSchema = paginationQuerySchema.extend({
+	sortBy: z
+		.enum(['title', 'order', 'createdAt', 'courseId'], {
+			message: 'sortBy must be one of: title, order, createdAt, courseId',
+		})
+		.optional()
+		.default('courseId'),
+});
+
+export const tagSortSchema = paginationQuerySchema.extend({
+	sortBy: z
+		.enum(['name', 'createdAt'], {
+			message: 'sortBy must be one of: name, createdAt',
+		})
+		.optional()
+		.default('name'),
+});
+
+export const enrollmentSortSchema = paginationQuerySchema.extend({
+	sortBy: z
+		.enum(['createdAt', 'username', 'email'], {
+			message: 'sortBy must be one of: createdAt, username, email',
+		})
+		.optional()
+		.default('createdAt'),
+});
+
+export const userCourseSortSchema = paginationQuerySchema.extend({
+	sortBy: z
+		.enum(['title', 'enrolledAt'], {
+			message: 'sortBy must be one of: title, enrolledAt',
+		})
+		.optional()
+		.default('enrolledAt'),
 });

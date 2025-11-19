@@ -1,101 +1,94 @@
-import type { Course } from '../types/Course'
+import { ref } from 'vue'
+import type { CourseListItem, CourseDetails } from '../types/Course'
+import { getCourses, getCourseDetails, getCoursesByTag } from '../services/courseService'
 
 export function useCourses() {
-    const mockCourses: Course[] = [
-        {
-            id: 1,
-            title: 'Kompletny kurs Vue 3 i TypeScript',
-            description:
-                'Naucz się tworzyć nowoczesne aplikacje webowe używając Vue 3, Composition API i TypeScript od podstaw do zaawansowanych technik.',
-            instructor: 'Anna Kowalska',
-            thumbnail: '/placeholder.webp',
-            tags: ['Vue 3', 'TypeScript', 'Composition API', 'Pinia'],
-            isPopular: true,
-        },
-        {
-            id: 2,
-            title: 'UI/UX Design - Projektowanie interfejsów',
-            description:
-                'Poznaj zasady projektowania interfejsów użytkownika i doświadczenia użytkownika. Stwórz portfolio projektów.',
-            instructor: 'Michał Nowak',
-            thumbnail: '/placeholder.webp',
-            tags: ['Figma', 'Prototyping', 'User Research', 'Wireframing'],
-            isPopular: true,
-        },
-        {
-            id: 3,
-            title: 'Marketing w mediach społecznościowych',
-            description:
-                'Kompleksowy przewodnik po marketingu w mediach społecznościowych. Praktyczne strategie i narzędzia.',
-            instructor: 'Katarzyna Wiśniewska',
-            thumbnail: '/placeholder.webp',
-            tags: ['Instagram', 'TikTok', 'Meta Ads', 'Content Marketing'],
-            isPopular: true,
-        },
-        {
-            id: 4,
-            title: 'Node.js i Express - Backend Development',
-            description:
-                'Twórz skalowalne aplikacje backendowe używając Node.js, Express i MongoDB. Poznaj REST API i GraphQL.',
-            instructor: 'Piotr Zieliński',
-            thumbnail: '/placeholder.webp',
-            tags: ['Node.js', 'Express', 'MongoDB', 'REST API'],
-        },
-        {
-            id: 5,
-            title: 'Fotografia produktowa dla e-commerce',
-            description:
-                'Naucz się robić profesjonalne zdjęcia produktów. Oświetlenie, kompozycja, obróbka zdjęć.',
-            instructor: 'Magdalena Lewandowska',
-            thumbnail: '/placeholder.webp',
-            tags: ['Lightroom', 'Photoshop', 'Studio Setup', 'Retouching'],
-        },
-        {
-            id: 6,
-            title: 'Agile & Scrum - Zarządzanie projektami',
-            description:
-                'Poznaj metodyki Agile, Scrum i Kanban. Naucz się efektywnie zarządzać zespołem i projektami.',
-            instructor: 'Robert Kamiński',
-            thumbnail: '/placeholder.webp',
-            tags: ['Scrum', 'Kanban', 'Jira', 'Team Management'],
-        },
-        {
-            id: 7,
-            title: 'Python dla Data Science',
-            description:
-                'Analiza danych z Python. Pandas, NumPy, Matplotlib i wprowadzenie do Machine Learning.',
-            instructor: 'Tomasz Wojciechowski',
-            thumbnail: '/placeholder.webp',
-            tags: ['Python', 'Pandas', 'NumPy', 'Machine Learning'],
-            isPopular: true,
-        },
-        {
-            id: 8,
-            title: 'Blender - Modelowanie 3D',
-            description:
-                'Od modelowania przez teksturowanie po rendering. Stwórz swoje pierwsze projekty 3D.',
-            instructor: 'Aleksandra Szymańska',
-            thumbnail: '/placeholder.webp',
-            tags: ['Blender', '3D Modeling', 'Texturing', 'Rendering'],
-        },
-    ]
+    const courses = ref<CourseListItem[]>([])
+    const currentCourse = ref<CourseDetails | null>(null)
+    const isLoading = ref(false)
+    const error = ref<string | null>(null)
 
-    function getCourseById(id: number): Course | undefined {
-        return mockCourses.find((course) => course.id === id)
+    /**
+     * Pobiera wszystkie kursy
+     * @param tag - Opcjonalny tag do filtrowania
+     */
+    async function fetchCourses(tag?: string): Promise<void> {
+        isLoading.value = true
+        error.value = null
+
+        try {
+            const response = await getCourses(tag ? { tag } : undefined)
+            courses.value = response.courses
+        } catch (err) {
+            error.value = 'Nie udało się pobrać kursów'
+            console.error('Error fetching courses:', err)
+        } finally {
+            isLoading.value = false
+        }
     }
 
-    function getHomePageCourses(): Course[] {
-        return mockCourses.filter((course) => course.isPopular).slice(0, 3)
+    /**
+     * Pobiera kursy z określonym tagiem
+     * @param tag - Tag do filtrowania
+     */
+    async function fetchCoursesByTag(tag: string): Promise<void> {
+        isLoading.value = true
+        error.value = null
+
+        try {
+            const response = await getCoursesByTag(tag)
+            courses.value = response.courses
+        } catch (err) {
+            error.value = 'Nie udało się pobrać kursów'
+            console.error('Error fetching courses by tag:', err)
+        } finally {
+            isLoading.value = false
+        }
     }
 
-    function getAllCourses(): Course[] {
-        return mockCourses
+    /**
+     * Pobiera szczegóły kursu
+     * @param id - ID kursu
+     */
+    async function fetchCourseDetails(id: number | string): Promise<void> {
+        isLoading.value = true
+        error.value = null
+
+        try {
+            const response = await getCourseDetails(id)
+            currentCourse.value = response.course
+        } catch (err) {
+            error.value = 'Nie udało się pobrać szczegółów kursu'
+            console.error('Error fetching course details:', err)
+            currentCourse.value = null
+        } finally {
+            isLoading.value = false
+        }
+    }
+
+    /**
+     * Resetuje aktualny kurs
+     */
+    function resetCurrentCourse(): void {
+        currentCourse.value = null
+    }
+
+    /**
+     * Resetuje błędy
+     */
+    function resetError(): void {
+        error.value = null
     }
 
     return {
-        mockCourses,
-        getCourseById,
-        getAllCourses,
-        getHomePageCourses,
+        courses,
+        currentCourse,
+        isLoading,
+        error,
+        fetchCourses,
+        fetchCoursesByTag,
+        fetchCourseDetails,
+        resetCurrentCourse,
+        resetError,
     }
 }

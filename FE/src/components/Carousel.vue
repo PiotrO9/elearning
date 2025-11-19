@@ -2,6 +2,7 @@
 
 <script lang="ts" setup>
 import { ref, onMounted, onUnmounted, watch } from 'vue'
+import Icon from '@/components/ui/Icon.vue'
 
 type CarouselProps = {
     images: string[]
@@ -82,7 +83,6 @@ onUnmounted(() => {
         @mouseenter="stopAutoPlay"
         @mouseleave="startAutoPlay"
     >
-        <!-- Images Container -->
         <div class="relative aspect-video w-full">
             <transition-group name="fade">
                 <div
@@ -100,51 +100,30 @@ onUnmounted(() => {
             </transition-group>
         </div>
 
-        <!-- Previous Button -->
         <button
             v-if="images.length > 1"
             @click="prevSlide"
             class="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-white/80 p-2 shadow-lg transition-all hover:bg-white hover:scale-110 focus:outline-none focus:ring-2 focus:ring-primary"
             aria-label="Previous slide"
         >
-            <svg
+            <Icon
+                name="arrow-left"
                 class="h-6 w-6 text-gray-800"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-            >
-                <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M15 19l-7-7 7-7"
-                />
-            </svg>
+            />
         </button>
 
-        <!-- Next Button -->
         <button
             v-if="images.length > 1"
             @click="nextSlide"
             class="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-white/80 p-2 shadow-lg transition-all hover:bg-white hover:scale-110 focus:outline-none focus:ring-2 focus:ring-primary"
             aria-label="Next slide"
         >
-            <svg
+            <Icon
+                name="arrow-right"
                 class="h-6 w-6 text-gray-800"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-            >
-                <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M9 5l7 7-7 7"
-                />
-            </svg>
+            />
         </button>
 
-        <!-- Dots Navigation -->
         <div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
             <button
                 v-for="(image, index) in images"

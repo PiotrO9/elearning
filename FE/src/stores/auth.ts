@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { httpClient } from '@/utils'
-import type { MeResponse, LoginResponse, RegisterResponse, User } from '@/types/user'
+import type { MeResponse, LoginResponse, RegisterResponse, User } from '@/types/User'
 import { LoginScheme, RegisterScheme } from '@/schemas/user'
 import * as z from 'zod'
 
@@ -13,6 +13,7 @@ export const useAuthStore = defineStore('auth', {
 
     getters: {
         isAuthenticated: (state) => !!state.user,
+        isAdmin: (state) => ['ADMIN', 'SUPERADMIN'].includes(state.user?.role ?? ''),
     },
 
     actions: {

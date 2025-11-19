@@ -10,8 +10,8 @@ const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
 
-const email = ref('')
-const password = ref('')
+const email = ref('superadmin@elearning.pl')
+const password = ref('SuperAdmin123!')
 const errors = ref<Record<string, string>>({})
 
 async function handleSubmit() {
