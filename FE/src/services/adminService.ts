@@ -226,7 +226,7 @@ export async function getCourseEnrollments(
  * Pobierz kursy użytkownika
  */
 export async function getUserCourses(userId: string): Promise<ApiListResponse<CourseListItem>> {
-    const response = await httpClient.get<ApiListResponse<CourseListItem>>(`/users/${userId}/courses`)
+    const response = await httpClient.get<ApiListResponse<CourseListItem>>(`/courses/users/${userId}/courses`)
     return response.data
 }
 

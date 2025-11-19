@@ -38,7 +38,7 @@ function handleKeyDown(event: KeyboardEvent) {
 <template>
 <div class="relative w-full">
     <div class="relative flex items-center">
-        <div class="absolute left-4 z-10 pointer-events-none">
+        <div class="absolute left-4 pointer-events-none">
             <Icon
                 name="search"
                 class="w-5 h-5 text-gray-400"
@@ -74,4 +74,3 @@ function handleKeyDown(event: KeyboardEvent) {
     </div>
 </div>
 </template>
-

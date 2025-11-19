@@ -72,7 +72,7 @@ router.get(
  * Pobiera listę kursów użytkownika
  */
 router.get(
-	'/courses/users/:userId/courses',
+	'/users/:userId/courses',
 	authenticateToken,
 	validateParams(userIdParamSchema),
 	validateQuery(userCourseSortSchema),
