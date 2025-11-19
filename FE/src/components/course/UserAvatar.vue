@@ -37,14 +37,14 @@ const gradientClasses = computed(() => {
 </script>
 
 <template>
-    <div
-        :class="[
-            'bg-gradient-to-br rounded-full flex items-center justify-center text-white font-bold flex-shrink-0',
-            sizeClasses,
-            gradientClasses,
-        ]"
-        :aria-label="`Avatar użytkownika ${name}`"
-    >
-        {{ initials }}
-    </div>
+<div
+    :class="[
+        'bg-gradient-to-br rounded-full flex items-center justify-center text-white font-bold flex-shrink-0',
+        sizeClasses,
+        gradientClasses,
+    ]"
+    :aria-label="`Avatar użytkownika ${name}`"
+>
+    {{ initials }}
+</div>
 </template>

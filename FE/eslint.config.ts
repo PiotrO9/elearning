@@ -50,9 +50,16 @@ export default defineConfigWithVueTs(
         name: 'app/vue-indentation',
         files: ['**/*.vue'],
         rules: {
+            indent: ['error', 4, { SwitchCase: 1 }],
+        },
+    },
+    {
+        name: 'app/vue-indentation',
+        files: ['**/*.vue'],
+        rules: {
             indent: 'off',
             'vue/script-indent': ['error', 4, { baseIndent: 0, switchCase: 1 }],
-            'vue/html-indent': ['error', 4, { baseIndent: 0 }],
+            'vue/html-indent': 'off',
         },
     },
 )
