@@ -49,13 +49,42 @@ async function fetchUserCourses() {
             success: boolean
             data: {
                 user: any
-                courses: CourseListItem[]
+                courses: Array<{
+                    id: string
+                    title: string
+                    description: string
+                    summary: string
+                    imagePath: string
+                    isPublic: boolean
+                    enrolledAt: Date
+                    tags: Array<{ id: string; name: string }>
+                }>
                 pagination: any
             }
         }>(`/courses/users/${authStore.user.id}/courses`)
-        
+
         console.log('Response:', response.data)
-        courses.value = response.data.data.courses
+
+        // Mapuj UserCourseDto na CourseListItem
+        courses.value = response.data.data.courses.map((course) => ({
+            id: course.id,
+            title: course.title,
+            description: course.description || course.summary || '',
+            summary: course.summary,
+            thumbnail: course.imagePath || '/placeholder-course.jpg',
+            imagePath: course.imagePath,
+            instructor: '',
+            tags:
+                course.tags?.map((tag) => ({
+                    id: tag.id,
+                    name: tag.name,
+                    slug: tag.name.toLowerCase().replace(/\s+/g, '-'),
+                })) || [],
+            isPublished: true,
+            isPublic: course.isPublic,
+            createdAt: '',
+            updatedAt: '',
+        }))
     } catch (err: any) {
         error.value = err.response?.data?.message || err.message || 'Nie udało się pobrać kursów'
         console.error('Error fetching user courses:', err)
@@ -96,7 +125,7 @@ onMounted(async () => {
         await authStore.fetchUser()
         console.log('After fetchUser - authStore.user:', authStore.user)
     }
-    
+
     // Spróbuj załadować kursy
     await fetchUserCourses()
 })
@@ -109,7 +138,7 @@ watch(
         if (user && courses.value.length === 0 && !isLoading.value && !error.value) {
             fetchUserCourses()
         }
-    }
+    },
 )
 
 useHead({
