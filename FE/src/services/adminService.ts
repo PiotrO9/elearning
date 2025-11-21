@@ -33,7 +33,7 @@ export async function createCourse(data: CreateCourseInput): Promise<ApiResponse
  */
 export async function updateCourse(
     id: string,
-    data: UpdateCourseInput
+    data: UpdateCourseInput,
 ): Promise<ApiResponse<CourseDetails>> {
     const response = await httpClient.patch<ApiResponse<CourseDetails>>(`/course/${id}`, data)
     return response.data
@@ -51,7 +51,7 @@ export async function deleteCourse(id: string): Promise<void> {
  */
 export async function reorderCourseVideos(
     courseId: string,
-    items: VideoReorderItem[]
+    items: VideoReorderItem[],
 ): Promise<void> {
     await httpClient.post(`/course/${courseId}/videos/reorder`, { items })
 }
@@ -61,12 +61,15 @@ export async function reorderCourseVideos(
 /**
  * Pobierz wszystkie tagi z paginacją
  */
-export async function getTags(params?: { page?: number; limit?: number }): Promise<ApiListResponse<Tag>> {
+export async function getTags(params?: {
+    page?: number
+    limit?: number
+}): Promise<ApiListResponse<Tag>> {
     const response = await httpClient.get<ApiListResponse<Tag>>('/tags', {
         params: {
             page: params?.page || 1,
-            limit: params?.limit || 10
-        }
+            limit: params?.limit || 10,
+        },
     })
     return response.data
 }
@@ -116,7 +119,7 @@ export async function deleteTag(id: string): Promise<ApiResponse<null>> {
  */
 export async function assignTagsToCourse(
     courseId: string,
-    tagIds: string[]
+    tagIds: string[],
 ): Promise<ApiResponse<null>> {
     const response = await httpClient.put<ApiResponse<null>>(`/tags/course/${courseId}`, { tagIds })
     return response.data
@@ -125,12 +128,9 @@ export async function assignTagsToCourse(
 /**
  * Dodaj jeden tag do kursu
  */
-export async function addTagToCourse(
-    courseId: string,
-    tagId: string
-): Promise<ApiResponse<null>> {
+export async function addTagToCourse(courseId: string, tagId: string): Promise<ApiResponse<null>> {
     const response = await httpClient.post<ApiResponse<null>>(
-        `/tags/course/${courseId}/tag/${tagId}`
+        `/tags/course/${courseId}/tag/${tagId}`,
     )
     return response.data
 }
@@ -140,10 +140,10 @@ export async function addTagToCourse(
  */
 export async function removeTagFromCourse(
     courseId: string,
-    tagId: string
+    tagId: string,
 ): Promise<ApiResponse<null>> {
     const response = await httpClient.delete<ApiResponse<null>>(
-        `/tags/course/${courseId}/tag/${tagId}`
+        `/tags/course/${courseId}/tag/${tagId}`,
     )
     return response.data
 }
@@ -178,7 +178,7 @@ export async function deleteVideo(id: string): Promise<void> {
 export async function attachVideoToCourse(
     videoId: string,
     courseId: string,
-    data?: { order?: number; isTrailer?: boolean }
+    data?: { order?: number; isTrailer?: boolean },
 ): Promise<void> {
     await httpClient.post(`/video/${videoId}/attach/${courseId}`, data)
 }
@@ -197,7 +197,7 @@ export async function detachVideo(videoId: string): Promise<void> {
  */
 export async function enrollUserToCourse(
     courseId: string,
-    data: EnrollUserInput
+    data: EnrollUserInput,
 ): Promise<ApiResponse<null>> {
     const response = await httpClient.post<ApiResponse<null>>(`/courses/${courseId}/enroll`, data)
     return response.data
@@ -214,10 +214,10 @@ export async function unenrollUserFromCourse(courseId: string, userId: string): 
  * Pobierz listę użytkowników na kursie
  */
 export async function getCourseEnrollments(
-    courseId: string
+    courseId: string,
 ): Promise<ApiListResponse<EnrollmentUser>> {
     const response = await httpClient.get<ApiListResponse<EnrollmentUser>>(
-        `/courses/${courseId}/enrollments`
+        `/courses/${courseId}/enrollments`,
     )
     return response.data
 }
@@ -226,7 +226,9 @@ export async function getCourseEnrollments(
  * Pobierz kursy użytkownika
  */
 export async function getUserCourses(userId: string): Promise<ApiListResponse<CourseListItem>> {
-    const response = await httpClient.get<ApiListResponse<CourseListItem>>(`/courses/users/${userId}/courses`)
+    const response = await httpClient.get<ApiListResponse<CourseListItem>>(
+        `/courses/users/${userId}/courses`,
+    )
     return response.data
 }
 
@@ -243,10 +245,14 @@ export async function getDashboard(): Promise<ApiResponse<DashboardStats>> {
 /**
  * Pobierz wszystkich użytkowników z paginacją
  */
-export async function getAllUsers(params?: { page?: number; limit?: number; search?: string }): Promise<ApiListResponse<UserAdminPanelListItem>> {
+export async function getAllUsers(params?: {
+    page?: number
+    limit?: number
+    search?: string
+}): Promise<ApiListResponse<UserAdminPanelListItem>> {
     const requestParams: Record<string, string | number> = {
         page: params?.page || 1,
-        limit: params?.limit || 10
+        limit: params?.limit || 10,
     }
 
     if (params?.search && params.search.trim()) {
@@ -254,7 +260,7 @@ export async function getAllUsers(params?: { page?: number; limit?: number; sear
     }
 
     const response = await httpClient.get<ApiListResponse<UserAdminPanelListItem>>('/users', {
-        params: requestParams
+        params: requestParams,
     })
 
     return response.data
@@ -265,11 +271,10 @@ export async function getAllUsers(params?: { page?: number; limit?: number; sear
  */
 export async function updateUserRole(
     userId: string,
-    role: 'USER' | 'ADMIN'
+    role: 'USER' | 'ADMIN',
 ): Promise<ApiResponse<{ user: User }>> {
     const response = await httpClient.patch<ApiResponse<{ user: User }>>(`/users/${userId}/role`, {
-        role
+        role,
     })
     return response.data
 }
-
