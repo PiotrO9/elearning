@@ -143,6 +143,7 @@ export async function getUserData(userId: string): Promise<UserData> {
 	const user = await prisma.user.findUnique({
 		where: { id: userId },
 		select: {
+			id: true,
 			email: true,
 			username: true,
 			createdAt: true,
