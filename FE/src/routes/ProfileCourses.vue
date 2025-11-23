@@ -7,7 +7,7 @@ import MaxWidthWrapper from '../components/wrappers/MaxWidthWrapper.vue'
 import CourseCard from '../components/course/CourseCard.vue'
 import { Icon } from '@iconify/vue'
 import { useHead } from '@vueuse/head'
-import type { CourseListItem } from '@/types/Course'
+import type { CourseInstructor, CourseListItem } from '@/types/Course'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -48,42 +48,54 @@ async function fetchUserCourses() {
         const response = await httpClient.get<{
             success: boolean
             data: {
-                user: any
+                user: {
+                    id: string
+                    username: string
+                    email: string
+                    role: string
+                    createdAt: string
+                    lastSeen: string | null
+                }
                 courses: Array<{
                     id: string
                     title: string
-                    description: string
+                    description?: string
                     summary: string
                     imagePath: string
                     isPublic: boolean
-                    enrolledAt: Date
-                    tags: Array<{ id: string; name: string }>
+                    enrolledAt: string
+                    tags: Array<{
+                        id: string
+                        name: string
+                        slug: string
+                        description?: string
+                        createdAt: string
+                    }>
+                    instructors: CourseInstructor[]
                 }>
-                pagination: any
+                pagination: {
+                    currentPage: number
+                    totalPages: number
+                    totalItems: number
+                    limit: number
+                }
             }
         }>(`/courses/users/${authStore.user.id}/courses`)
 
         console.log('Response:', response.data)
 
-        // Mapuj UserCourseDto na CourseListItem
+        // Mapuj response na CourseListItem
         courses.value = response.data.data.courses.map((course) => ({
             id: course.id,
             title: course.title,
-            description: course.description || course.summary || '',
+            description: course.description || course.summary,
             summary: course.summary,
-            thumbnail: course.imagePath || '/placeholder-course.jpg',
+            thumbnail: course.imagePath,
             imagePath: course.imagePath,
-            instructor: '',
-            tags:
-                course.tags?.map((tag) => ({
-                    id: tag.id,
-                    name: tag.name,
-                    slug: tag.name.toLowerCase().replace(/\s+/g, '-'),
-                })) || [],
+            instructors: course.instructors,
+            tags: course.tags,
             isPublished: true,
             isPublic: course.isPublic,
-            createdAt: '',
-            updatedAt: '',
         }))
     } catch (err: any) {
         error.value = err.response?.data?.message || err.message || 'Nie udało się pobrać kursów'

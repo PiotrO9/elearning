@@ -133,11 +133,22 @@ onMounted(async () => {
                             </p>
 
                             <div class="flex items-center mb-6">
-                                <UserAvatar :name="filteredCourse.instructor" class="bg-blue-300" />
+                                <UserAvatar
+                                    :name="
+                                        filteredCourse.instructors
+                                            ?.map((instructor) => instructor.username)
+                                            .join(', ')
+                                    "
+                                    class="bg-blue-300"
+                                />
                                 <div class="ml-4">
                                     <p class="text-sm text-gray-500">Instruktor</p>
                                     <p class="font-semibold text-gray-900">
-                                        {{ filteredCourse.instructor }}
+                                        {{
+                                            filteredCourse.instructors
+                                                ?.map((instructor) => instructor.username)
+                                                .join(', ')
+                                        }}
                                     </p>
                                 </div>
                             </div>

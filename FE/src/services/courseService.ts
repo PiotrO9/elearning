@@ -1,64 +1,64 @@
 import { httpClient } from '../utils'
-import type { CourseListItem, CourseDetails } from '../types/Course'
+import type { CourseListItem, CourseDetails, CourseInstructor } from '../types/Course'
 import type { Video } from '../types/Video'
 import type { Tag } from '../types/Admin'
 
 export interface GetCoursesParams {
-  tag?: string
-  page?: number
-  limit?: number
+    tag?: string
+    page?: number
+    limit?: number
 }
 
 export interface GetCoursesResponse {
-  courses: CourseListItem[]
-  total: number
+    courses: CourseListItem[]
+    total: number
 }
 
 export interface GetCourseDetailsResponse {
-  course: CourseDetails
+    course: CourseDetails
 }
 
 interface ApiCourseListItem {
-  id: string
-  title: string
-  description: string
-  summary?: string
-  instructor?: string
-  imagePath: string
-  tags: Tag[]
-  isPublic?: boolean
-  isPublished?: boolean
-  createdAt?: string
-  updatedAt?: string
+    id: string
+    title: string
+    description: string
+    summary?: string
+    instructors?: CourseInstructor[]
+    imagePath: string
+    tags: Tag[]
+    isPublic?: boolean
+    isPublished?: boolean
+    createdAt?: string
+    updatedAt?: string
 }
 
 interface ApiCoursesResponse {
-  success: boolean
-  data: {
-    items: ApiCourseListItem[]
-    total: number
-  }
+    success: boolean
+    data: {
+        items: ApiCourseListItem[]
+        total: number
+    }
 }
 
 interface ApiCourseData {
-  id: string
-  title: string
-  description: string
-  descriptionMarkdown?: string
-  summary?: string
-  instructor?: string
-  imagePath: string
-  tags: Tag[]
-  isPublic?: boolean
-  isPublished?: boolean
-  videos: Video[]
-  createdAt?: string
-  updatedAt?: string
+    id: string
+    title: string
+    description: string
+    descriptionMarkdown?: string
+    summary?: string
+    instructors?: CourseInstructor[]
+    imagePath: string
+    tags: Tag[]
+    isPublic?: boolean
+    isPublished?: boolean
+    videos: Video[]
+    createdAt?: string
+    updatedAt?: string
 }
 
 interface ApiCourseDetailsResponse {
-  success: boolean
-  data: ApiCourseData
+    success: boolean
+    data: ApiCourseData
 }
 
 /**
@@ -71,12 +71,12 @@ export async function getCourses(params?: GetCoursesParams): Promise<GetCoursesR
         params,
     })
 
-    const courses = response.data.data.items.map(item => ({
+    const courses = response.data.data.items.map((item) => ({
         id: item.id,
         title: item.title,
         description: item.summary || item.description,
         summary: item.summary,
-        instructor: item.instructor,
+        instructors: item.instructors,
         thumbnail: item.imagePath,
         imagePath: item.imagePath,
         tags: item.tags,
@@ -88,7 +88,7 @@ export async function getCourses(params?: GetCoursesParams): Promise<GetCoursesR
 
     return {
         courses,
-        total: response.data.data.total
+        total: response.data.data.total,
     }
 }
 
@@ -108,7 +108,7 @@ export async function getCourseDetails(id: number | string): Promise<GetCourseDe
             description: apiData.descriptionMarkdown || apiData.description,
             descriptionMarkdown: apiData.descriptionMarkdown,
             summary: apiData.summary,
-            instructor: apiData.instructor,
+            instructors: apiData.instructors,
             thumbnail: apiData.imagePath,
             imagePath: apiData.imagePath,
             tags: apiData.tags,
@@ -117,7 +117,7 @@ export async function getCourseDetails(id: number | string): Promise<GetCourseDe
             videos: apiData.videos || [],
             createdAt: apiData.createdAt,
             updatedAt: apiData.updatedAt,
-        }
+        },
     }
 }
 
@@ -129,4 +129,3 @@ export async function getCourseDetails(id: number | string): Promise<GetCourseDe
 export async function getCoursesByTag(tag: string): Promise<GetCoursesResponse> {
     return getCourses({ tag })
 }
-
