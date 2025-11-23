@@ -13,14 +13,14 @@ useHead({
 </script>
 
 <template>
-<MaxWidthWrapper>
-    <div class="py-12">
-        <h1 class="text-4xl font-bold text-gray-900 mb-4">Mój Profil</h1>
-        <p>Zobacz swój profil i edytuj go.</p>
-        <div class="grid mg:grid-cols-2 grid-cols-3 items-baseline gap-6 mt-6">
-            <ProfileCard v-if="authStore.user" :user="authStore.user" />
-            <ChangePassword />
+    <MaxWidthWrapper>
+        <div class="py-12">
+            <h1 class="text-4xl font-bold text-gray-900 mb-4">Mój Profil</h1>
+            <p>Zobacz swój profil i edytuj go.</p>
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 items-baseline gap-6 mt-6">
+                <ProfileCard v-if="authStore.user" :user="authStore.user" />
+                <ChangePassword />
+            </div>
         </div>
-    </div>
-</MaxWidthWrapper>
+    </MaxWidthWrapper>
 </template>
