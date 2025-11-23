@@ -173,7 +173,6 @@ export async function getCourseDetail(
 						select: {
 							id: true,
 							username: true,
-							email: true,
 						},
 					},
 				},
@@ -281,7 +280,6 @@ export async function createCourse(input: CreateCourseInput): Promise<CourseDeta
 						select: {
 							id: true,
 							username: true,
-							email: true,
 						},
 					},
 				},
@@ -395,7 +393,6 @@ export async function updateCourse(
 						select: {
 							id: true,
 							username: true,
-							email: true,
 						},
 					},
 				},
