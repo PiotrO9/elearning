@@ -245,6 +245,29 @@ export async function getUserEnrollments(
 						summary: true,
 						imagePath: true,
 						isPublic: true,
+						tags: {
+							select: {
+								tag: {
+									select: {
+										id: true,
+										name: true,
+										slug: true,
+										description: true,
+										createdAt: true,
+									},
+								},
+							},
+						},
+						instructors: {
+							select: {
+								user: {
+									select: {
+										id: true,
+										username: true,
+									},
+								},
+							},
+						},
 					},
 				},
 			},
