@@ -110,6 +110,17 @@ export const handleGetUserCourses = asyncHandler(
 			imagePath: e.course.imagePath,
 			isPublic: e.course.isPublic,
 			enrolledAt: e.createdAt,
+			tags: e.course.tags?.map(ct => ({
+				id: ct.tag.id,
+				name: ct.tag.name,
+				slug: ct.tag.slug,
+				description: ct.tag.description,
+				createdAt: ct.tag.createdAt,
+			})),
+			instructors: e.course.instructors?.map(ci => ({
+				id: ci.user.id,
+				username: ci.user.username,
+			})),
 		}));
 
 		const userInfo: UserInfo = {

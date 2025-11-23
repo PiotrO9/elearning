@@ -29,7 +29,6 @@ function mapListItem(course: {
 		user: {
 			id: string;
 			username: string;
-			email: string;
 		};
 	}[];
 }): CourseListItem {
@@ -49,7 +48,6 @@ function mapListItem(course: {
 		instructors: course.instructors?.map(ci => ({
 			id: ci.user.id,
 			username: ci.user.username,
-			email: ci.user.email,
 		})),
 	};
 }
@@ -114,7 +112,6 @@ export async function listPublishedCourses(
 							select: {
 								id: true,
 								username: true,
-								email: true,
 							},
 						},
 					},
@@ -216,7 +213,6 @@ export async function getCourseDetail(
 	const instructors: InstructorDto[] = course.instructors.map(ci => ({
 		id: ci.user.id,
 		username: ci.user.username,
-		email: ci.user.email,
 	}));
 
 	return {
@@ -318,7 +314,6 @@ export async function createCourse(input: CreateCourseInput): Promise<CourseDeta
 		instructors: created.instructors.map(ci => ({
 			id: ci.user.id,
 			username: ci.user.username,
-			email: ci.user.email,
 		})),
 	};
 }
@@ -433,7 +428,6 @@ export async function updateCourse(
 		instructors: updated.instructors.map(ci => ({
 			id: ci.user.id,
 			username: ci.user.username,
-			email: ci.user.email,
 		})),
 	};
 }

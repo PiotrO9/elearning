@@ -1,3 +1,6 @@
+import { InstructorDto } from './course';
+import { TagDto } from './tag';
+
 export interface CourseEnrollment {
 	id: string;
 	userId: string;
@@ -32,6 +35,21 @@ export interface EnrollmentWithCourse {
 		summary: string;
 		imagePath: string;
 		isPublic: boolean;
+		tags?: {
+			tag: {
+				id: string;
+				name: string;
+				slug: string;
+				description: string | null;
+				createdAt: Date;
+			};
+		}[];
+		instructors?: {
+			user: {
+				id: string;
+				username: string;
+			};
+		}[];
 	};
 }
 
@@ -56,6 +74,8 @@ export interface UserCourseDto {
 	imagePath: string;
 	isPublic: boolean;
 	enrolledAt: Date;
+	tags?: TagDto[];
+	instructors?: InstructorDto[];
 }
 
 export interface UserInfo {

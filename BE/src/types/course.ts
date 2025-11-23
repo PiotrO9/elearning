@@ -4,7 +4,6 @@ import { VideoDto, Video } from './video';
 export interface InstructorDto {
 	id: string;
 	username: string;
-	email: string;
 }
 
 export interface CourseListItemDto {
