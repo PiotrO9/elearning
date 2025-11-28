@@ -22,7 +22,7 @@ const tableColumns = [
     { label: 'Email', align: 'left' as const },
     { label: 'Rola', align: 'left' as const },
     { label: 'Przypisane kursy', align: 'left' as const },
-    { label: 'Akcje', align: 'right' as const }
+    { label: 'Akcje', align: 'right' as const },
 ]
 
 interface UserWithCourses extends User {
@@ -60,14 +60,16 @@ async function fetchUsers() {
         const response = await getAllUsers({
             page: currentPage.value,
             limit: limit.value,
-            search: searchQuery.value.trim() || undefined
+            search: searchQuery.value.trim() || undefined,
         })
 
         if (response.data && response.success && response.data.items) {
-            users.value = response.data.items.map((user): UserListItem => ({
-                ...user,
-                enrolledCourses: []
-            }))
+            users.value = response.data.items.map(
+                (user): UserListItem => ({
+                    ...user,
+                    enrolledCourses: [],
+                }),
+            )
 
             totalUsers.value = response.data.pagination.totalItems
         } else {
@@ -76,11 +78,12 @@ async function fetchUsers() {
             totalUsers.value = 0
         }
     } catch (err: unknown) {
-        const errorMessage = err && typeof err === 'object' && 'response' in err
-            ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
-            : err && typeof err === 'object' && 'message' in err
-                ? String((err as { message: unknown }).message)
-                : 'Wystąpił błąd podczas pobierania użytkowników'
+        const errorMessage =
+            err && typeof err === 'object' && 'response' in err
+                ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
+                : err && typeof err === 'object' && 'message' in err
+                  ? String((err as { message: unknown }).message)
+                  : 'Wystąpił błąd podczas pobierania użytkowników'
         error.value = errorMessage || 'Wystąpił błąd podczas pobierania użytkowników'
         console.error('Error fetching users:', err)
         users.value = []
@@ -111,7 +114,7 @@ async function handleConfirmRoleChange() {
 
         if (response.success && response.data?.user) {
             // Aktualizuj rolę w liście użytkowników
-            const index = users.value.findIndex(u => u.id === userToChangeRole.value!.id)
+            const index = users.value.findIndex((u) => u.id === userToChangeRole.value!.id)
             const userData = response.data?.user
             if (index !== -1 && userData && users.value[index]) {
                 users.value[index].role = userData.role
@@ -126,12 +129,14 @@ async function handleConfirmRoleChange() {
             message?: string
         }
 
-        const errorResponse: ErrorResponse | null = err && typeof err === 'object' && 'response' in err
-            ? (err as { response?: { data?: ErrorResponse } }).response?.data || null
-            : null
+        const errorResponse: ErrorResponse | null =
+            err && typeof err === 'object' && 'response' in err
+                ? (err as { response?: { data?: ErrorResponse } }).response?.data || null
+                : null
 
         if (errorResponse?.code === 'INSUFFICIENT_PERMISSIONS') {
-            roleChangeError.value = 'Brak uprawnień. Administrator może tylko awansować użytkowników z roli USER na ADMIN.'
+            roleChangeError.value =
+                'Brak uprawnień. Administrator może tylko awansować użytkowników z roli USER na ADMIN.'
         } else if (errorResponse?.code === 'SAME_ROLE') {
             roleChangeError.value = 'Użytkownik już ma tę rolę.'
         } else if (errorResponse?.code === 'USER_NOT_FOUND') {
@@ -182,173 +187,169 @@ onUnmounted(() => {
 </script>
 
 <template>
-<div class="min-h-screen bg-gray-50">
-    <AdminNav />
-    <MaxWidthWrapper class="py-8 flex flex-col gap-4">
-        <div>
-            <AdminTableHeader
-                title="Zarządzanie użytkownikami"
-                description="Przypisuj użytkowników do kursów i zarządzaj rolami"
-            />
+    <div class="min-h-screen bg-gray-50">
+        <AdminNav />
+        <MaxWidthWrapper class="py-8 flex flex-col gap-4">
+            <div>
+                <AdminTableHeader
+                    title="Zarządzanie użytkownikami"
+                    description="Przypisuj użytkowników do kursów i zarządzaj rolami"
+                />
 
-            <AdminTableSearch
-                v-model="searchQuery"
-                placeholder="Szukaj użytkownika..."
-            />
-        </div>
+                <AdminTableSearch v-model="searchQuery" placeholder="Szukaj użytkownika..." />
+            </div>
 
-        <div v-if="error" class="p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p class="text-sm text-red-700">{{ error }}</p>
-        </div>
+            <div v-if="error" class="p-4 bg-red-50 border border-red-200 rounded-lg">
+                <p class="text-sm text-red-700">{{ error }}</p>
+            </div>
 
-        <AdminTable
-            :columns="tableColumns"
-            :is-empty="!isLoadingUsers && users.length === 0"
-            empty-message="Nie znaleziono użytkowników"
-        >
-            <template v-if="isLoadingUsers" #empty>
-                <div class="text-center py-12">
-                    <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-gray-300 border-t-blue-600"></div>
-                    <p class="mt-4 text-gray-600">Ładowanie użytkowników...</p>
-                </div>
-            </template>
-            <template #rows>
-                <AdminTableRow
-                    v-for="user in users"
-                    :key="user.id"
-                    :item="user"
-                >
-                    <template #default="{ item }">
-                        <td class="px-6 py-4">
-                            <div class="flex items-center gap-3">
-                                <div class="relative flex-shrink-0">
-                                    <div class="w-11 h-11 bg-gradient-to-br from-purple-400 to-blue-500 rounded-full flex items-center justify-center shadow-sm ring-2 ring-white group-hover:ring-purple-200 transition-all">
-                                        <span class="text-white font-semibold text-sm">
-                                            {{ item.username.charAt(0).toUpperCase() }}
-                                        </span>
+            <AdminTable
+                :columns="tableColumns"
+                :is-empty="!isLoadingUsers && users.length === 0"
+                empty-message="Nie znaleziono użytkowników"
+            >
+                <template v-if="isLoadingUsers" #empty>
+                    <div class="text-center py-12">
+                        <div
+                            class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-gray-300 border-t-blue-600"
+                        ></div>
+                        <p class="mt-4 text-gray-600">Ładowanie użytkowników...</p>
+                    </div>
+                </template>
+                <template #rows>
+                    <AdminTableRow v-for="user in users" :key="user.id" :item="user">
+                        <template #default="{ item }">
+                            <td class="px-6 py-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="relative flex-shrink-0">
+                                        <div
+                                            class="w-11 h-11 bg-gradient-to-br from-purple-400 to-blue-500 rounded-full flex items-center justify-center shadow-sm ring-2 ring-white group-hover:ring-purple-200 transition-all"
+                                        >
+                                            <span class="text-white font-semibold text-sm">
+                                                {{ item.username.charAt(0).toUpperCase() }}
+                                            </span>
+                                        </div>
+                                        <div
+                                            v-if="item.role === 'ADMIN'"
+                                            class="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-yellow-400 rounded-full border-2 border-white flex items-center justify-center"
+                                            title="Administrator"
+                                        >
+                                            <Icon name="star" class="w-2.5 h-2.5 text-yellow-900" />
+                                        </div>
                                     </div>
-                                    <div
-                                        v-if="item.role === 'ADMIN'"
-                                        class="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-yellow-400 rounded-full border-2 border-white flex items-center justify-center"
-                                        title="Administrator"
+                                    <div class="min-w-0 flex-1">
+                                        <p
+                                            class="font-semibold text-gray-900 group-hover:text-purple-700 transition-colors truncate"
+                                        >
+                                            {{ item.username }}
+                                        </p>
+                                        <div class="mt-0.5">
+                                            <CopyableText
+                                                :text="item.id"
+                                                label="ID:"
+                                                :show-icon="true"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="flex items-center gap-2 text-sm text-gray-700">
+                                    <Icon
+                                        name="email"
+                                        class="w-4 h-4 text-gray-400 flex-shrink-0"
+                                    />
+                                    <CopyableText :text="item.email" :show-icon="true" />
+                                </div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <button
+                                    @click="handleToggleRole(item)"
+                                    class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all hover:scale-105 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+                                    tabindex="0"
+                                    aria-label="Zmień rolę użytkownika"
+                                    @keydown="(e) => e.key === 'Enter' && handleToggleRole(item)"
+                                >
+                                    <span
+                                        class="px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1.5"
+                                        :class="
+                                            item.role === 'ADMIN'
+                                                ? 'bg-purple-100 text-purple-700'
+                                                : 'bg-gray-100 text-gray-700'
+                                        "
                                     >
                                         <Icon
+                                            v-if="item.role === 'ADMIN'"
                                             name="star"
-                                            class="w-2.5 h-2.5 text-yellow-900"
+                                            class="w-3.5 h-3.5"
                                         />
-                                    </div>
+                                        <Icon v-else name="user" class="w-3.5 h-3.5" />
+                                        {{ item.role === 'ADMIN' ? 'Admin' : 'Użytkownik' }}
+                                    </span>
+                                </button>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="inline-flex items-center gap-1.5 text-sm text-gray-600">
+                                    <Icon name="books" class="w-4 h-4 text-gray-400" />
+                                    <span v-if="item.coursesCount !== undefined">
+                                        {{ item.coursesCount }}
+                                        {{
+                                            item.coursesCount === 1
+                                                ? 'kurs'
+                                                : item.coursesCount < 5
+                                                  ? 'kursy'
+                                                  : 'kursów'
+                                        }}
+                                    </span>
+                                    <span v-else class="text-gray-400">—</span>
                                 </div>
-                                <div class="min-w-0 flex-1">
-                                    <p class="font-semibold text-gray-900 group-hover:text-purple-700 transition-colors truncate">
-                                        {{ item.username }}
-                                    </p>
-                                    <div class="mt-0.5">
-                                        <CopyableText
-                                            :text="item.id"
-                                            label="ID:"
-                                            :show-icon="true"
-                                        />
-                                    </div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="flex items-center justify-end">
+                                    <Action
+                                        @click="handleManageCourses(item)"
+                                        variant="outline"
+                                        size="sm"
+                                        circle
+                                        aria-label="Zarządzaj kursami użytkownika"
+                                    >
+                                        <Icon name="settings" class="w-4 h-4" />
+                                    </Action>
                                 </div>
-                            </div>
-                        </td>
-                        <td class="px-6 py-4">
-                            <div class="flex items-center gap-2 text-sm text-gray-700">
-                                <Icon
-                                    name="email"
-                                    class="w-4 h-4 text-gray-400 flex-shrink-0"
-                                />
-                                <CopyableText
-                                    :text="item.email"
-                                    :show-icon="true"
-                                />
-                            </div>
-                        </td>
-                        <td class="px-6 py-4">
-                            <button
-                                @click="handleToggleRole(item)"
-                                class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all hover:scale-105 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
-                                tabindex="0"
-                                aria-label="Zmień rolę użytkownika"
-                                @keydown="(e) => e.key === 'Enter' && handleToggleRole(item)"
-                            >
-                                <span
-                                    class="px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1.5"
-                                    :class="item.role === 'ADMIN'
-                                        ? 'bg-purple-100 text-purple-700'
-                                        : 'bg-gray-100 text-gray-700'"
-                                >
-                                    <Icon
-                                        v-if="item.role === 'ADMIN'"
-                                        name="star"
-                                        class="w-3.5 h-3.5"
-                                    />
-                                    <Icon
-                                        v-else
-                                        name="user"
-                                        class="w-3.5 h-3.5"
-                                    />
-                                    {{ item.role === 'ADMIN' ? 'Admin' : 'Użytkownik' }}
-                                </span>
-                            </button>
-                        </td>
-                        <td class="px-6 py-4">
-                            <div class="inline-flex items-center gap-1.5 text-sm text-gray-600">
-                                <Icon
-                                    name="books"
-                                    class="w-4 h-4 text-gray-400"
-                                />
-                                <span v-if="item.coursesCount !== undefined">
-                                    {{ item.coursesCount }} {{ item.coursesCount === 1 ? 'kurs' : item.coursesCount < 5 ? 'kursy' : 'kursów' }}
-                                </span>
-                                <span v-else class="text-gray-400">—</span>
-                            </div>
-                        </td>
-                        <td class="px-6 py-4">
-                            <div class="flex items-center justify-end">
-                                <Action
-                                    @click="handleManageCourses(item)"
-                                    variant="outline"
-                                    size="sm"
-                                    circle
-                                    aria-label="Zarządzaj kursami użytkownika"
-                                >
-                                    <Icon
-                                        name="settings"
-                                        class="w-4 h-4"
-                                    />
-                                </Action>
-                            </div>
-                        </td>
-                    </template>
-                </AdminTableRow>
-            </template>
-        </AdminTable>
+                            </td>
+                        </template>
+                    </AdminTableRow>
+                </template>
+            </AdminTable>
 
-        <Pagination
-            v-if="!isLoadingUsers && totalUsers > 0"
-            :current-page="currentPage"
-            :total-items="totalUsers"
-            :items-per-page="limit"
-            @page-change="handlePageChange"
-        />
-    </MaxWidthWrapper>
+            <Pagination
+                v-if="!isLoadingUsers && totalUsers > 0"
+                :current-page="currentPage"
+                :total-items="totalUsers"
+                :items-per-page="limit"
+                @page-change="handlePageChange"
+            />
+        </MaxWidthWrapper>
 
-    <ConfirmModal
-        :is-open="isRoleChangeModalOpen"
-        title="Zmiana roli użytkownika"
-        :message="userToChangeRole ? `Czy na pewno chcesz zmienić rolę użytkownika ${userToChangeRole.username} z ${userToChangeRole.role === 'ADMIN' ? 'Administratora' : 'Użytkownika'} na ${userToChangeRole.role === 'ADMIN' ? 'Użytkownika' : 'Administratora'}?` : ''"
-        confirm-text="Tak, zmień rolę"
-        cancel-text="Anuluj"
-        variant="warning"
-        :is-loading="isChangingRole"
-        @confirm="handleConfirmRoleChange"
-        @cancel="handleCancelRoleChange"
-        @update:is-open="handleCancelRoleChange"
-    >
-        <div v-if="roleChangeError" class="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-            <p class="text-sm text-red-700">{{ roleChangeError }}</p>
-        </div>
-    </ConfirmModal>
-</div>
+        <ConfirmModal
+            :is-open="isRoleChangeModalOpen"
+            title="Zmiana roli użytkownika"
+            :message="
+                userToChangeRole
+                    ? `Czy na pewno chcesz zmienić rolę użytkownika ${userToChangeRole.username} z ${userToChangeRole.role === 'ADMIN' ? 'Administratora' : 'Użytkownika'} na ${userToChangeRole.role === 'ADMIN' ? 'Użytkownika' : 'Administratora'}?`
+                    : ''
+            "
+            confirm-text="Tak, zmień rolę"
+            cancel-text="Anuluj"
+            variant="warning"
+            :is-loading="isChangingRole"
+            @confirm="handleConfirmRoleChange"
+            @cancel="handleCancelRoleChange"
+            @update:is-open="handleCancelRoleChange"
+        >
+            <div v-if="roleChangeError" class="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                <p class="text-sm text-red-700">{{ roleChangeError }}</p>
+            </div>
+        </ConfirmModal>
+    </div>
 </template>
