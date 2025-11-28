@@ -7,7 +7,7 @@ export interface Course {
     description: string
     summary?: string
     descriptionMarkdown?: string
-    instructor?: string
+    instructors?: CourseInstructor[]
     thumbnail: string
     imagePath?: string
     tags?: Tag[]
@@ -19,12 +19,17 @@ export interface Course {
     updatedAt?: string
 }
 
+export interface CourseInstructor {
+    id: string
+    username: string
+}
+
 export interface CourseListItem {
     id: string
     title: string
     description: string
     summary?: string
-    instructor?: string
+    instructors?: CourseInstructor[]
     thumbnail: string
     imagePath?: string
     tags?: Tag[]
