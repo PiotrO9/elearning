@@ -9,6 +9,7 @@ import { buildOpenApiSpec } from './utils/openapi';
 import { prisma } from './utils/prisma';
 import { handleExpressError } from './utils/response';
 import { NotFoundError } from './types/api';
+import { initializeMinIO } from './utils/minio';
 
 const app: Express = express();
 
@@ -117,8 +118,18 @@ app.use((err: unknown, req: Request, res: Response, _next: NextFunction) => {
 	handleExpressError(err, req, res);
 });
 
-app.listen(PORT, () => {
-	console.log(`🚀 Server is running on http://localhost:${PORT}`);
-	console.log(`📚 API available at http://localhost:${PORT}/api`);
-	console.log(`💾 Environment: ${process.env.NODE_ENV || 'development'}`);
-});
+async function startServer(): Promise<void> {
+	try {
+		await initializeMinIO();
+		app.listen(PORT, () => {
+			console.log(`🚀 Server is running on http://localhost:${PORT}`);
+			console.log(`📚 API available at http://localhost:${PORT}/api`);
+			console.log(`💾 Environment: ${process.env.NODE_ENV || 'development'}`);
+		});
+	} catch (error) {
+		console.error('Failed to start server:', error);
+		process.exit(1);
+	}
+}
+
+startServer();

@@ -9,6 +9,20 @@ import {
 } from '../types/course';
 import { Video } from '../types/video';
 import { TagDto } from '../types/tag';
+import {
+	BUCKET_COURSES,
+	uploadFile,
+	deleteFile,
+	generateCourseImagePath,
+	getPublicUrl,
+} from '../utils/minio';
+
+function convertImagePathToUrl(imagePath: string | null | undefined): string | null | undefined {
+	if (!imagePath) {
+		return imagePath;
+	}
+	return imagePath.startsWith('http') ? imagePath : getPublicUrl(BUCKET_COURSES, imagePath);
+}
 
 function mapListItem(course: {
 	id: string;
@@ -125,7 +139,11 @@ export async function listPublishedCourses(
 	]);
 
 	return {
-		items: courses.map(mapListItem),
+		items: courses.map(course => {
+			const item = mapListItem(course);
+			item.imagePath = convertImagePathToUrl(item.imagePath) || '';
+			return item;
+		}),
 		total,
 	};
 }
@@ -218,7 +236,7 @@ export async function getCourseDetail(
 		id: course.id,
 		title: course.title,
 		descriptionMarkdown: course.descriptionMarkdown,
-		imagePath: course.imagePath,
+		imagePath: convertImagePathToUrl(course.imagePath) || '',
 		isPublic: course.isPublic,
 		videos,
 		tags,
@@ -226,74 +244,105 @@ export async function getCourseDetail(
 	};
 }
 
-export async function createCourse(input: CreateCourseInput): Promise<CourseDetail> {
-	const created = await prisma.course.create({
-		data: {
-			title: input.title,
-			summary: input.summary,
-			descriptionMarkdown: input.descriptionMarkdown,
-			imagePath: input.imagePath,
-			isPublished: input.isPublished ?? true,
-			isPublic: input.isPublic ?? false,
-			tags: input.tagIds
-				? {
-						create: input.tagIds.map(tagId => ({
-							tag: { connect: { id: tagId } },
-						})),
-				  }
-				: undefined,
-		},
+const COURSE_SELECT = {
+	id: true,
+	title: true,
+	descriptionMarkdown: true,
+	imagePath: true,
+	isPublic: true,
+	videos: {
 		select: {
 			id: true,
+			courseId: true,
 			title: true,
-			descriptionMarkdown: true,
-			imagePath: true,
-			isPublic: true,
-			videos: {
+			order: true,
+			isTrailer: true,
+			sourceUrl: true,
+			durationSeconds: true,
+		},
+		orderBy: { order: 'asc' } as const,
+	},
+	tags: {
+		select: {
+			tag: {
 				select: {
 					id: true,
-					courseId: true,
-					title: true,
-					order: true,
-					isTrailer: true,
-					sourceUrl: true,
-					durationSeconds: true,
-				},
-				orderBy: { order: 'asc' },
-			},
-			tags: {
-				select: {
-					tag: {
-						select: {
-							id: true,
-							name: true,
-							slug: true,
-							description: true,
-							createdAt: true,
-						},
-					},
-				},
-			},
-			instructors: {
-				select: {
-					user: {
-						select: {
-							id: true,
-							username: true,
-						},
-					},
+					name: true,
+					slug: true,
+					description: true,
+					createdAt: true,
 				},
 			},
 		},
-	});
+	},
+	instructors: {
+		select: {
+			user: {
+				select: {
+					id: true,
+					username: true,
+				},
+			},
+		},
+	},
+} as const;
 
+function buildCourseData(input: CreateCourseInput, imagePath: string) {
 	return {
-		id: created.id,
-		title: created.title,
-		descriptionMarkdown: created.descriptionMarkdown,
-		imagePath: created.imagePath,
-		isPublic: created.isPublic,
-		videos: created.videos.map(v => ({
+		title: input.title,
+		summary: input.summary,
+		descriptionMarkdown: input.descriptionMarkdown,
+		imagePath,
+		isPublished: input.isPublished ?? true,
+		isPublic: input.isPublic ?? false,
+		tags: input.tagIds
+			? {
+					create: input.tagIds.map(tagId => ({
+						tag: { connect: { id: tagId } },
+					})),
+			  }
+			: undefined,
+	};
+}
+
+function mapCourseToDetail(course: {
+	id: string;
+	title: string;
+	descriptionMarkdown: string;
+	imagePath: string;
+	isPublic: boolean;
+	videos: {
+		id: string;
+		courseId: string | null;
+		title: string;
+		order: number;
+		isTrailer: boolean;
+		sourceUrl: string;
+		durationSeconds: number | null;
+	}[];
+	tags: {
+		tag: {
+			id: string;
+			name: string;
+			slug: string;
+			description: string | null;
+			createdAt: Date;
+		};
+	}[];
+	instructors: {
+		user: {
+			id: string;
+			username: string;
+		};
+	}[];
+}): CourseDetail {
+	return {
+		id: course.id,
+		title: course.title,
+		descriptionMarkdown: course.descriptionMarkdown,
+		imagePath: convertImagePathToUrl(course.imagePath) || '',
+		isPublic: course.isPublic,
+		videos: course.videos.map(v => ({
 			id: v.id,
 			courseId: v.courseId,
 			title: v.title,
@@ -302,21 +351,84 @@ export async function createCourse(input: CreateCourseInput): Promise<CourseDeta
 			sourceUrl: v.sourceUrl,
 			durationSeconds: v.durationSeconds ?? null,
 		})),
-		tags: created.tags.map(ct => ({
+		tags: course.tags.map(ct => ({
 			id: ct.tag.id,
 			name: ct.tag.name,
 			slug: ct.tag.slug,
 			description: ct.tag.description,
 			createdAt: ct.tag.createdAt,
 		})),
-		instructors: created.instructors.map(ci => ({
+		instructors: course.instructors.map(ci => ({
 			id: ci.user.id,
 			username: ci.user.username,
 		})),
 	};
 }
 
+export async function createCourse(
+	input: CreateCourseInput,
+	imageBuffer?: Buffer,
+	imageFilename?: string,
+	imageContentType?: string,
+): Promise<CourseDetail> {
+	let imagePath = input.imagePath;
+	let courseId: string;
+
+	if (imageBuffer && imageFilename) {
+		const created = await prisma.course.create({
+			data: buildCourseData(input, ''),
+			select: { id: true },
+		});
+		courseId = created.id;
+
+		try {
+			const objectName = generateCourseImagePath(courseId, imageFilename);
+			await uploadFile({
+				bucketName: BUCKET_COURSES,
+				objectName,
+				buffer: imageBuffer,
+				contentType: imageContentType || 'image/jpeg',
+			});
+
+			await prisma.course.update({
+				where: { id: courseId },
+				data: { imagePath: objectName },
+			});
+			imagePath = objectName;
+		} catch (error) {
+			await prisma.course.delete({ where: { id: courseId } });
+			throw error;
+		}
+	} else {
+		const created = await prisma.course.create({
+			data: buildCourseData(input, imagePath),
+			select: { id: true },
+		});
+		courseId = created.id;
+	}
+
+	const created = await prisma.course.findUniqueOrThrow({
+		where: { id: courseId },
+		select: COURSE_SELECT,
+	});
+
+	return mapCourseToDetail(created);
+}
+
 export async function deleteCourse(courseId: string): Promise<boolean> {
+	const course = await prisma.course.findUnique({
+		where: { id: courseId },
+		select: { imagePath: true },
+	});
+
+	if (course?.imagePath) {
+		try {
+			await deleteFile(BUCKET_COURSES, course.imagePath);
+		} catch (error) {
+			console.error(`Failed to delete image for course ${courseId}:`, error);
+		}
+	}
+
 	await prisma.course.delete({ where: { id: courseId } });
 	return true;
 }
@@ -324,8 +436,35 @@ export async function deleteCourse(courseId: string): Promise<boolean> {
 export async function updateCourse(
 	courseId: string,
 	data: UpdateCourseInput,
+	imageBuffer?: Buffer,
+	imageFilename?: string,
+	imageContentType?: string,
 ): Promise<CourseDetail> {
 	const { tagIds, ...courseData } = data;
+
+	if (imageBuffer && imageFilename) {
+		const existingCourse = await prisma.course.findUnique({
+			where: { id: courseId },
+			select: { imagePath: true },
+		});
+
+		if (existingCourse?.imagePath && !existingCourse.imagePath.startsWith('http')) {
+			try {
+				await deleteFile(BUCKET_COURSES, existingCourse.imagePath);
+			} catch (error) {
+				console.error(`Failed to delete old image for course ${courseId}:`, error);
+			}
+		}
+
+		const objectName = generateCourseImagePath(courseId, imageFilename);
+		await uploadFile({
+			bucketName: BUCKET_COURSES,
+			objectName,
+			buffer: imageBuffer,
+			contentType: imageContentType || 'image/jpeg',
+		});
+		courseData.imagePath = objectName;
+	}
 
 	if (tagIds !== undefined) {
 		await prisma.$transaction(async tx => {
@@ -356,77 +495,10 @@ export async function updateCourse(
 
 	const updated = await prisma.course.findUniqueOrThrow({
 		where: { id: courseId },
-		select: {
-			id: true,
-			title: true,
-			descriptionMarkdown: true,
-			imagePath: true,
-			isPublic: true,
-			videos: {
-				select: {
-					id: true,
-					courseId: true,
-					title: true,
-					order: true,
-					isTrailer: true,
-					sourceUrl: true,
-					durationSeconds: true,
-				},
-				orderBy: { order: 'asc' },
-			},
-			tags: {
-				select: {
-					tag: {
-						select: {
-							id: true,
-							name: true,
-							slug: true,
-							description: true,
-							createdAt: true,
-						},
-					},
-				},
-			},
-			instructors: {
-				select: {
-					user: {
-						select: {
-							id: true,
-							username: true,
-						},
-					},
-				},
-			},
-		},
+		select: COURSE_SELECT,
 	});
 
-	return {
-		id: updated.id,
-		title: updated.title,
-		descriptionMarkdown: updated.descriptionMarkdown,
-		imagePath: updated.imagePath,
-		isPublic: updated.isPublic,
-		videos: updated.videos.map(v => ({
-			id: v.id,
-			courseId: v.courseId,
-			title: v.title,
-			order: v.order,
-			isTrailer: v.isTrailer,
-			sourceUrl: v.sourceUrl,
-			durationSeconds: v.durationSeconds ?? null,
-		})),
-		tags: updated.tags.map(ct => ({
-			id: ct.tag.id,
-			name: ct.tag.name,
-			slug: ct.tag.slug,
-			description: ct.tag.description,
-			createdAt: ct.tag.createdAt,
-		})),
-		instructors: updated.instructors.map(ci => ({
-			id: ci.user.id,
-			username: ci.user.username,
-		})),
-	};
+	return mapCourseToDetail(updated);
 }
 
 export async function reorderCourseVideos(

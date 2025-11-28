@@ -1,16 +1,26 @@
 import { CourseDetailDto } from '../../types/course';
 import { CourseDetail } from '../../types/course';
 import { VideoDto } from '../../types/video';
+import { getPublicUrl, BUCKET_COURSES } from '../minio';
+
+function convertImagePathToUrl(imagePath: string | null | undefined): string | null | undefined {
+	if (!imagePath) {
+		return imagePath;
+	}
+	return imagePath.startsWith('http') ? imagePath : getPublicUrl(BUCKET_COURSES, imagePath);
+}
 
 /**
  * Mapuje CourseDetail (z serwisu) na CourseDetailDto (dla API)
  */
 export function mapCourseToDetailDto(course: CourseDetail): CourseDetailDto {
+	const imageUrl = convertImagePathToUrl(course.imagePath);
+
 	return {
 		id: course.id,
 		title: course.title,
 		description: course.descriptionMarkdown,
-		imagePath: course.imagePath,
+		imagePath: imageUrl,
 		isPublic: course.isPublic,
 		videos: course.videos.map(v => ({
 			id: v.id,

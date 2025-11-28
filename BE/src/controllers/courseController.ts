@@ -15,6 +15,21 @@ import { mapCourseToDetailDto } from '../utils/mappers/courseMapper';
 import { buildPagination } from '../utils/pagination';
 import { PaginatedListResponse } from '../types/api';
 
+interface UploadedFile {
+	buffer?: Buffer;
+	filename?: string;
+	contentType?: string;
+}
+
+function extractFileFromRequest(req: Request): UploadedFile {
+	const file = req.file as Express.Multer.File | undefined;
+	return {
+		buffer: file?.buffer,
+		filename: file?.originalname,
+		contentType: file?.mimetype,
+	};
+}
+
 export const handleGetCourses = asyncHandler(async (req: Request, res: Response): Promise<void> => {
 	const {
 		page,
@@ -35,7 +50,7 @@ export const handleGetCourses = asyncHandler(async (req: Request, res: Response)
 		id: course.id,
 		title: course.title,
 		description: course.summary,
-		imagePath: course.imagePath,
+		imagePath: course.imagePath || '',
 		isPublic: course.isPublic,
 		tags: course.tags,
 		instructors: course.instructors,
@@ -65,7 +80,8 @@ export const handleGetCourseById = asyncHandler(
 
 export const handleCreateCourse = asyncHandler(
 	async (req: Request, res: Response): Promise<void> => {
-		const course = await createCourse(req.body);
+		const file = extractFileFromRequest(req);
+		const course = await createCourse(req.body, file.buffer, file.filename, file.contentType);
 		const payload = mapCourseToDetailDto(course);
 
 		sendSuccess(res, payload, 'Course created', 201);
@@ -91,7 +107,8 @@ export const handleDeleteCourse = asyncHandler(
 export const handleUpdateCourse = asyncHandler(
 	async (req: Request, res: Response): Promise<void> => {
 		const { id } = req.params as { id: string };
-		const course = await updateCourse(id, req.body);
+		const file = extractFileFromRequest(req);
+		const course = await updateCourse(id, req.body, file.buffer, file.filename, file.contentType);
 		const payload = mapCourseToDetailDto(course);
 
 		sendSuccess(res, payload);

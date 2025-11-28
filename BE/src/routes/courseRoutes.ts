@@ -9,6 +9,7 @@ import {
 } from '../controllers/courseController';
 import { optionalAuth, authenticateToken, requireAdmin } from '../middleware/auth';
 import { validateBody, validateParams, validateQuery } from '../middleware/validation';
+import { uploadCourseImage, handleUploadError } from '../middleware/upload';
 import {
 	courseIdParamSchema,
 	createCourseSchema,
@@ -34,20 +35,34 @@ router.get('/', validateQuery(courseSortSchema), handleGetCourses);
 router.get('/:id', validateParams(courseIdParamSchema), optionalAuth, handleGetCourseById);
 /**
  * @route POST /api/course
- * @desc Create a new course
+ * @desc Create a new course (with optional image upload)
  * @access Admin only
  */
-router.post('/', authenticateToken, requireAdmin, validateBody(createCourseSchema), handleCreateCourse);
+router.post(
+	'/',
+	authenticateToken,
+	requireAdmin,
+	uploadCourseImage,
+	handleUploadError,
+	validateBody(createCourseSchema),
+	handleCreateCourse,
+);
 /**
  * @route DELETE /api/course/:id
  * @desc Delete a course
  * @access Admin only
  */
-router.delete('/:id', authenticateToken, requireAdmin, validateParams(courseIdParamSchema), handleDeleteCourse);
+router.delete(
+	'/:id',
+	authenticateToken,
+	requireAdmin,
+	validateParams(courseIdParamSchema),
+	handleDeleteCourse,
+);
 
 /**
  * @route PATCH /api/course/:id
- * @desc Update a course
+ * @desc Update a course (with optional image upload)
  * @access Admin only
  */
 router.patch(
@@ -55,6 +70,8 @@ router.patch(
 	authenticateToken,
 	requireAdmin,
 	validateParams(courseIdParamSchema),
+	uploadCourseImage,
+	handleUploadError,
 	validateBody(updateCourseSchema),
 	handleUpdateCourse,
 );
